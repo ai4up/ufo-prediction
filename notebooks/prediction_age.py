@@ -41,7 +41,7 @@ def dummy_encoding(df, var):
 
 
 def remove_outliers(df):
-    return df[df[AGE_ATTRIBUTE] > 1875]
+    return df[df[AGE_ATTRIBUTE] > 1920]
 
 
 def categorize_age(df):
@@ -76,83 +76,143 @@ def split_by_region(df):
     df_train = df[~df.index.isin(df_test.index)]
     return df_train, df_test
 
+class AgePredictor:
 
-def e2e_classification(model, df, func_validation_split, funcs_preprocessing=[], funcs_evaluation=[], hyperparameter_tuning=False):
-    y_test, y_predict = e2e(
-        model, df, func_validation_split, funcs_preprocessing, funcs_evaluation, hyperparameter_tuning)
+    def __init__(self, model, df, test_training_split, preprocessing_stages=[], hyperparameter_tuning=False) -> None:
+        self.model = model
+        self.df = df
+        self.test_training_split = test_training_split
+        self.preprocessing_stages = preprocessing_stages
+        self.hyperparameter_tuning = hyperparameter_tuning
 
-    print_classification_report(y_test, y_predict)
-    plot_histogram(y_test, y_predict, age_bins=[0, 1, 2, 3, 4, 5])
-    plot_confusion_matrix(y_test, y_predict, classes=[0, 1, 2, 3, 4, 5])
+        self.X_train = None
+        self.y_train = None
+        self.X_test = None
+        self.y_test = None
+        self.y_predict = None
+        self.shap_explainer = None
+        self.shap_values = None
 
-    return y_test, y_predict
-
-
-def e2e_regression(model, df, func_validation_split, funcs_preprocessing=[], funcs_evaluation=[], hyperparameter_tuning=False):
-    y_test, y_predict = e2e(
-        model, df, func_validation_split, funcs_preprocessing, funcs_evaluation, hyperparameter_tuning)
-
-    print_model_error(y_test, y_predict)
-    plot_histogram(y_test, y_predict, age_bins=[
-                   1850, 1915, 1945, 1965, 1980, 2000, 2025])
-    plot_grid(y_test, y_predict)
-
-    return y_test, y_predict
+        self._preprocess()
+        self._train()
 
 
-def e2e(model, df, func_validation_split, funcs_preprocessing=[], funcs_evaluation=[], hyperparameter_tuning=False):
-    logger.info(f'Dataset length: {len(df)}')
+    def _preprocess(self):
+        logger.info(f'Dataset length: {len(self.df)}')
 
-    # Validation & Training Split
-    df_train, df_test = func_validation_split(df)
-    logger.info(f'Validation dataset length: {len(df_test)}')
-    logger.info(f'Training dataset length: {len(df_train)}')
+        # Test & Training Split
+        df_train, df_test = self.test_training_split(self.df)
+        logger.info(f'Test dataset length: {len(df_test)}')
+        logger.info(f'Training dataset length: {len(df_train)}')
 
-    # The standard deviation in the validation set gives us an indication of a baseline. We want to be able to be substantially below that value.
-    logger.info(
-        f"Standard deviation of validation set: {df_test[AGE_ATTRIBUTE].std()}")
+        # The standard deviation in the test set gives us an indication of a baseline. We want to be able to be substantially below that value.
+        logger.info(
+            f"Standard deviation of test set: {df_test[AGE_ATTRIBUTE].std()}")
 
-    # Preprocessing & Cleaning
-    for func in funcs_preprocessing:
-        df_train = func(df_train)
-        df_test = func(df_test)
+        # Preprocessing & Cleaning
+        for func in self.preprocessing_stages:
+            df_train = func(df_train)
+            df_test = func(df_test)
 
-    df_train = utils.shuffle(df_train, random_state=0)
-    df_test = utils.shuffle(df_test, random_state=0)
+        df_train = utils.shuffle(df_train, random_state=0)
+        df_test = utils.shuffle(df_test, random_state=0)
 
-    X_train = df_train.drop(columns=AUX_VARS+[AGE_ATTRIBUTE])
-    y_train = df_train[[AGE_ATTRIBUTE]]
+        self.X_train = df_train.drop(columns=AUX_VARS+[AGE_ATTRIBUTE])
+        self.y_train = df_train[[AGE_ATTRIBUTE]]
 
-    X_test = df_test.drop(columns=AUX_VARS+[AGE_ATTRIBUTE])
-    y_test = df_test[[AGE_ATTRIBUTE]]
+        self.X_test = df_test.drop(columns=AUX_VARS+[AGE_ATTRIBUTE])
+        self.y_test = df_test[[AGE_ATTRIBUTE]]
 
-    eval_set = [(X_train, y_train), (X_test, y_test)]
 
-    # Hyperparameter Tuning
-    if hyperparameter_tuning:
-        params = tune_hyperparameter(model, X_train, y_train)
-        model.set_params(**params)
+    def _train(self):
+        if self.hyperparameter_tuning:
+            params = tune_hyperparameter(self.model, self.X_train, self.y_train)
+            self.model.set_params(**params)
 
-    # Training & Predicting
-    model.fit(X_train, y_train, verbose=False, eval_set=eval_set)
-    y_predict = model.predict(X_test)
+        # Training & Predicting
+        eval_set = [(self.X_train, self.y_train), (self.X_test, self.y_test)]
+        self.model.fit(self.X_train, self.y_train, verbose=False, eval_set=eval_set)
+        self.y_predict = self.model.predict(self.X_test)
 
-    # Evaluation
-    for func in funcs_evaluation:
-        try:
-            func(y_test, y_predict, model)
-        except Exception as e:
-            logger.error(e)
 
-    return y_test, y_predict
+    def evaluate_classification(self):
+        print_classification_report(self.y_test, self.y_predict)
+        plot_histogram(self.y_test, self.y_predict)
+        plot_confusion_matrix(self.y_test, self.y_predict, classes=[0, 1, 2, 3, 4, 5])
+
+
+    def evaluate_regression(self):
+        print_model_error(self.y_test, self.y_predict)
+        plot_histogram(self.y_test, self.y_predict, age_bins=[
+                    1850, 1915, 1945, 1965, 1980, 2000, 2025])
+        plot_grid(self.y_test, self.y_predict)
+
+
+    def calculate_SHAP_values(self):
+        self.shap_explainer = shap.TreeExplainer(self.model)
+        self.shap_values = self.shap_explainer.shap_values(self.X_train)
+        return self.shap_values
+
+
+    def SHAP_analysis(self):
+        self.calculate_SHAP_values()
+        shap.summary_plot(self.shap_values, self.X_train)
+        shap.summary_plot(self.shap_values, self.X_train, plot_type='bar')
+
+
+    def normalized_feature_importance(self):
+        # Calculate feature importance based on SHAP values
+        self.calculate_SHAP_values()
+
+        avg_shap_value = np.abs(self.shap_values).mean(0)
+        normalized_shap_value = avg_shap_value / sum(avg_shap_value)
+        feature_names = self.X_train.columns
+
+        feature_importance = pd.DataFrame(
+            {'feature': feature_names, 'normalized_importance': normalized_shap_value})
+        return feature_importance.sort_values(by=['normalized_importance'], ascending=False)
+
+
+    def feature_selection(self):
+        if 'feature_noise' not in self.X_train.columns:
+            raise Exception(
+                "feature_noise column missing. Please add 'add_noise_feature' preprocessing step before doing feature selection.")
+
+        df_fi = self.normalized_feature_importance()
+
+        # Dismiss features which have a lower impact than the noise feature
+        significance_level = 0.005
+        noise_feature_importance = df_fi.query("feature=='feature_noise'").normalized_importance.values[0]
+        threshold = df_fi.normalized_importance > noise_feature_importance + significance_level
+
+        selected_features = df_fi[threshold]
+        # remove noise feature from this list
+        excluded_features = df_fi[~threshold].iloc[1:]
+
+        print(f'{len(excluded_features)} of {len(self.X_train.columns)-1} features have been excluded:')
+        print(excluded_features)
+
+        return selected_features, excluded_features
+
+
+    def feature_dependence_plot(self, feature1, feature2, low_percentile=0, high_percentile=100, transparency=1):
+        self.calculate_SHAP_values()
+        shap.dependence_plot(feature1, self.shap_values, self.X_train, interaction_index=feature2,
+                             xmin=f"percentile({low_percentile})", xmax=f"percentile({high_percentile})", alpha=transparency)
+
+
+    def neighborhood_feature_importance(self):
+        df_fi = self.normalized_feature_importance()
+        df_neighborhood_fi = df_fi.loc[df_fi['feature'].str.contains('within_buffer')]
+        return round(sum(df_neighborhood_fi.normalized_importance), 2)
 
 
 def tune_hyperparameter(model, X, y):
     params = {
-        'max_depth': [3, 6, 10],
+        'max_depth': [1, 3, 6, 10], # try ada trees
         'learning_rate': [0.05, 0.1, 0.3],
         'n_estimators': [100, 500, 1000],
-        'colsample_bytree': [0.3, 0.7],
+        'colsample_bytree': [0.3, 0.5, 0.7],
         'subsample': [0.7, 1.0],
     }
 
@@ -279,46 +339,3 @@ def plot_confusion_matrix(y_test, y_predict, classes):
     norm_cm = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]
     sns.heatmap(norm_cm, annot=np.round(norm_cm, 2), fmt='g',
                 xticklabels=classes, yticklabels=classes, cmap='bone')
-
-
-def SHAP_analysis(model, X_train):
-    explainer = shap.TreeExplainer(model)
-    shap_values = explainer.shap_values(X_train)
-    shap.summary_plot(shap_values, X_train)
-    shap.summary_plot(shap_values, X_train, plot_type='bar')
-
-
-def normalized_feature_importance(model, X_train):
-    # Calculate feature importance based on SHAP values
-    explainer = shap.TreeExplainer(model)
-    shap_values = explainer.shap_values(X_train)
-
-    avg_shap_value = np.abs(shap_values).mean(0)
-    normalized_shap_value = avg_shap_value / sum(avg_shap_value)
-    feature_names = X_train.columns
-
-    feature_importance = pd.DataFrame(
-        {'feature': feature_names, 'normalized_importance': normalized_shap_value})
-    return feature_importance.sort_values(by=['normalized_importance'], ascending=False)
-
-
-def feature_selection(model, X_train):
-    if 'feature_noise' not in X_train.columns:
-        raise Exception(
-            "feature_noise column missing. Please add 'add_noise_feature' preprocessing step before doing feature selection.")
-
-    df_fi = normalized_feature_importance(model, X_train)
-
-    # Dismiss features which have a lower impact than the noise feature
-    significance_level = 0.005
-    noise_feature_importance = df_fi.query("feature=='feature_noise'").normalized_importance.values[0]
-    threshold = df_fi.normalized_importance > noise_feature_importance + significance_level
-
-    selected_features = df_fi[threshold]
-    # remove noise feature from this list
-    excluded_features = df_fi[~threshold].iloc[1:]
-
-    print(f'{len(excluded_features)} of {len(X_train.columns)-1} features have been excluded:')
-    print(excluded_features)
-
-    return selected_features, excluded_features
