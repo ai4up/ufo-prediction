@@ -1,0 +1,6 @@
+AGE_ATTRIBUTE = 'DATE_APP'
+TYPE_ATTRIBUTE = 'USAGE1'
+HEIGHT_ATTRIBUTE = 'HAUTEUR'
+OTHER_ATTRIBUTES = [TYPE_ATTRIBUTE, HEIGHT_ATTRIBUTE, 'NB_ETAGES']
+AUX_VARS = ['ID', 'USAGE2', 'PREC_ALTI', 'NB_LOGTS', 'MAT_TOITS', 'MAT_MURS',
+            'geometry', 'city', 'departement', 'is_buffer', 'TouchesIndexes']
