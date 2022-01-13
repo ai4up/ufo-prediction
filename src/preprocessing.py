@@ -1,12 +1,21 @@
+import logging
+from datetime import date
+from collections import Counter
+
+import utils
 import dataset
+import visualizations
 
 import pandas as pd
 import numpy as np
 from sklearn import model_selection
+from imblearn.under_sampling import RandomUnderSampler
+
+logger = logging.getLogger(__name__)
 
 
-def remove_other_attributes(df_input):
-    return df_input.drop(columns=dataset.OTHER_ATTRIBUTES)
+def remove_other_attributes(df):
+    return df.drop(columns=dataset.OTHER_ATTRIBUTES)
 
 
 def keep_other_attributes(df):
@@ -15,33 +24,45 @@ def keep_other_attributes(df):
     df = df[df[dataset.TYPE_ATTRIBUTE] != 'Indifférencié']
 
     # Encode 'usage type', which is a categorical variable, into multiple dummy variables.
-    df = dummy_encoding(df, dataset.TYPE_ATTRIBUTE)
-    return df
-
-
-def dummy_encoding(df, var):
-    one_hot_encoding = pd.get_dummies(df[var], prefix=var)
-    df = df.drop(columns=[var])
-    df = df.merge(
-        one_hot_encoding, left_index=True, right_index=True)
+    df = utils.dummy_encoding(df, dataset.TYPE_ATTRIBUTE)
     return df
 
 
 def remove_outliers(df):
-    return df[df[dataset.AGE_ATTRIBUTE] > 1920]
+    df = df[df[dataset.AGE_ATTRIBUTE] > 1950]
+    df = df[df[dataset.AGE_ATTRIBUTE] < 2020]
+    return df
+
+
+def undersample_skewed_distribution(df):
+    rus = RandomUnderSampler(random_state=dataset.GLOBAL_REPRODUCIBILITY_SEED)
+    X, y = utils.split_target_var(df)
+    undersampled_X, undersampled_y = rus.fit_resample(X, y)
+
+    visualizations.plot_histogram(undersampled_y, y, bins=utils.age_bins(undersampled_y))
+    logger.info(f'Downsampling distribution results in: {sorted(Counter(undersampled_y[dataset.AGE_ATTRIBUTE]).items())}')
+
+    undersampled_df = pd.concat([undersampled_X, undersampled_y], axis=1, join="inner")
+    return undersampled_df
+
+
+def categorize_age_EHS(df):
+    df[dataset.AGE_ATTRIBUTE] = pd.cut(
+        df[dataset.AGE_ATTRIBUTE], dataset.EHS_AGE_BINS, labels=dataset.EHS_AGE_LABELS).cat.codes
+    return df
 
 
 def categorize_age(df):
-    bins = [0, 1915, 1945, 1965, 1980, 2000, np.inf]
-    names = ['<1915', '1915-1944', '1945-1964',
-             '1965-1979', '1980-2000', '>2000']
-
-    # bins = [0, 1945, 1980, np.inf]
-    # names = ['<1944', '1945-1979', '>1980']
+    bins = utils.age_bins(df, bin_size=5)
+    labels = bins[:-1]
 
     df[dataset.AGE_ATTRIBUTE] = pd.cut(
-        df[dataset.AGE_ATTRIBUTE], bins, labels=names).cat.codes
+        df[dataset.AGE_ATTRIBUTE], bins, labels=labels).cat.codes
+    return df
 
+
+def round_age(df):
+    df[dataset.AGE_ATTRIBUTE] = utils.custom_round(df[dataset.AGE_ATTRIBUTE])
     return df
 
 
@@ -51,7 +72,7 @@ def add_noise_feature(df):
 
 
 def split_80_20(df):
-    return model_selection.train_test_split(df, test_size=0.2)
+    return model_selection.train_test_split(df, test_size=0.2, random_state=dataset.GLOBAL_REPRODUCIBILITY_SEED)
 
 
 def split_by_region(df):

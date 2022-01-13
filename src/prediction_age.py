@@ -1,12 +1,15 @@
 import logging
 
+import utils
 import visualizations
 import dataset
+import preprocessing
 
 import shap
 import pandas as pd
 import numpy as np
-from sklearn import utils, metrics, model_selection
+import sklearn
+from sklearn import metrics, model_selection
 
 logger = logging.getLogger(__name__)
 
@@ -49,43 +52,51 @@ class AgePredictor:
             df_train = func(df_train)
             df_test = func(df_test)
 
-        df_train = utils.shuffle(df_train, random_state=0)
-        df_test = utils.shuffle(df_test, random_state=0)
+        df_train = sklearn.utils.shuffle(
+            df_train, random_state=dataset.GLOBAL_REPRODUCIBILITY_SEED)
+        df_test = sklearn.utils.shuffle(
+            df_test, random_state=dataset.GLOBAL_REPRODUCIBILITY_SEED)
 
-        self.X_train = df_train.drop(columns=dataset.AUX_VARS+[dataset.AGE_ATTRIBUTE])
+        self.X_train = df_train.drop(
+            columns=dataset.AUX_VARS+[dataset.AGE_ATTRIBUTE])
         self.y_train = df_train[[dataset.AGE_ATTRIBUTE]]
 
-        self.X_test = df_test.drop(columns=dataset.AUX_VARS+[dataset.AGE_ATTRIBUTE])
+        self.X_test = df_test.drop(
+            columns=dataset.AUX_VARS+[dataset.AGE_ATTRIBUTE])
         self.y_test = df_test[[dataset.AGE_ATTRIBUTE]]
 
 
     def _train(self):
         if self.hyperparameter_tuning:
-            params = tune_hyperparameter(self.model, self.X_train, self.y_train)
+            params = tune_hyperparameter(
+                self.model, self.X_train, self.y_train)
             self.model.set_params(**params)
 
         # Training & Predicting
         eval_set = [(self.X_train, self.y_train), (self.X_test, self.y_test)]
-        self.model.fit(self.X_train, self.y_train) #, verbose=False, eval_set=eval_set)
-        self.y_predict = self.model.predict(self.X_test)
-
+        # , verbose=False, eval_set=eval_set)
+        self.model.fit(self.X_train, self.y_train)
+        self.y_predict = pd.DataFrame(
+            {dataset.AGE_ATTRIBUTE: self.model.predict(self.X_test)})
 
     def evaluate_classification(self):
         self.print_classification_report()
-        visualizations.plot_histogram(self.y_test, self.y_predict)
-        visualizations.plot_confusion_matrix(self.y_test, self.y_predict, classes=[0, 1, 2, 3, 4, 5])
-
+        visualizations.plot_histogram(self.y_test, self.y_predict, bins=list(
+            range(0, len(dataset.EHS_AGE_BINS))), bin_labels=dataset.EHS_AGE_BINS)
+        visualizations.plot_confusion_matrix(
+            self.y_test, self.y_predict, class_labels=dataset.EHS_AGE_LABELS)
 
     def evaluate_regression(self):
         self.print_model_error()
-        visualizations.plot_histogram(self.y_test, self.y_predict, age_bins=[
-                    1850, 1915, 1945, 1965, 1980, 2000, 2025])
+        visualizations.plot_histogram(
+            self.y_test, self.y_predict, bins=utils.age_bins(self.y_predict))
         visualizations.plot_grid(self.y_test, self.y_predict)
 
 
     def calculate_SHAP_values(self):
-        self.shap_explainer = shap.TreeExplainer(self.model)
-        self.shap_values = self.shap_explainer.shap_values(self.X_train)
+        if self.shap_values is None:
+            self.shap_explainer = shap.TreeExplainer(self.model)
+            self.shap_values = self.shap_explainer.shap_values(self.X_train)
         return self.shap_values
 
 
@@ -117,14 +128,16 @@ class AgePredictor:
 
         # Dismiss features which have a lower impact than the noise feature
         significance_level = 0.005
-        noise_feature_importance = df_fi.query("feature=='feature_noise'").normalized_importance.values[0]
+        noise_feature_importance = df_fi.query(
+            "feature=='feature_noise'").normalized_importance.values[0]
         threshold = df_fi.normalized_importance > noise_feature_importance + significance_level
 
         selected_features = df_fi[threshold]
         # remove noise feature from this list
         excluded_features = df_fi[~threshold].iloc[1:]
 
-        print(f'{len(excluded_features)} of {len(self.X_train.columns)-1} features have been excluded:')
+        print(
+            f'{len(excluded_features)} of {len(self.X_train.columns)-1} features have been excluded:')
         print(excluded_features)
 
         return selected_features, excluded_features
@@ -138,22 +151,26 @@ class AgePredictor:
 
     def neighborhood_feature_importance(self):
         df_fi = self.normalized_feature_importance()
-        df_neighborhood_fi = df_fi.loc[df_fi['feature'].str.contains('within_buffer')]
+        df_neighborhood_fi = df_fi.loc[df_fi['feature'].str.contains(
+            'within_buffer')]
         return round(sum(df_neighborhood_fi.normalized_importance), 2)
 
 
     def print_feature_importance(self):
-        feature_accuracy_contribution = self.model.get_booster().get_score(importance_type="gain")
-        feature_importance = pd.DataFrame({'importance': feature_accuracy_contribution})
-        feature_importance.sort_values(by=['importance'], ascending=False, inplace=True)
+        feature_accuracy_contribution = self.model.get_booster(
+        ).get_score(importance_type="gain")
+        feature_importance = pd.DataFrame(
+            {'importance': feature_accuracy_contribution})
+        feature_importance.sort_values(
+            by=['importance'], ascending=False, inplace=True)
         print(feature_importance.head(15))
 
-
     def print_model_error(self):
-        print('MAE: {} y'.format(metrics.mean_absolute_error(self.y_test, self.y_predict)))
-        print('RMSE: {} y'.format(np.sqrt(metrics.mean_squared_error(self.y_test, self.y_predict))))
+        print('MAE: {} y'.format(
+            metrics.mean_absolute_error(self.y_test, self.y_predict)))
+        print('RMSE: {} y'.format(
+            np.sqrt(metrics.mean_squared_error(self.y_test, self.y_predict))))
         print('R2: {}'.format(metrics.r2_score(self.y_test, self.y_predict)))
-
 
     def print_classification_report(self):
         print(metrics.classification_report(self.y_test, self.y_predict))
@@ -161,7 +178,7 @@ class AgePredictor:
 
 def tune_hyperparameter(model, X, y):
     params = {
-        'max_depth': [1, 3, 6, 10], # try ada trees
+        'max_depth': [1, 3, 6, 10],  # try ada trees
         'learning_rate': [0.05, 0.1, 0.3],
         'n_estimators': [100, 500, 1000],
         'colsample_bytree': [0.3, 0.5, 0.7],
@@ -183,4 +200,3 @@ def tune_hyperparameter(model, X, y):
     print('All hyperparameter tuning results:\n', tuning_results)
 
     return clf.best_params_
-

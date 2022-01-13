@@ -1,19 +1,25 @@
+import dataset
+import preprocessing
+
 import pandas as pd
 import numpy as np
 import seaborn as sns
 import matplotlib.pyplot as plt
 from sklearn import metrics
 
-
-def plot_histogram(y_test, y_predict, age_bins=None):
+def plot_histogram(y_test, y_predict, bins=None, bin_labels=[]):
     fig, ax = plt.subplots(figsize=(10, 7))
+    if bin_labels:
+        ax.set_xticklabels([None] + bin_labels)
+
+
     sns.distplot(
         y_predict,
         ax=ax,
         hist=True,
         kde=False,
         hist_kws=dict(edgecolor="k", linewidth=1),
-        bins=age_bins,
+        bins=bins,
         label='y_predict'
     )
     sns.distplot(
@@ -22,7 +28,7 @@ def plot_histogram(y_test, y_predict, age_bins=None):
         hist=True,
         kde=False,
         hist_kws=dict(edgecolor="k", linewidth=1),
-        bins=age_bins,
+        bins=bins,
         label='y_test'
     )
     ax.legend()
@@ -31,7 +37,10 @@ def plot_histogram(y_test, y_predict, age_bins=None):
 
 
 def plot_grid(y_test, y_predict):
-    time_range = [1800, 2020]
+    min_age = int(y_predict[dataset.AGE_ATTRIBUTE].min())
+    max_age = int(y_predict[dataset.AGE_ATTRIBUTE].max())
+    time_range = [min_age, max_age]
+
     df_test = pd.DataFrame()
     df_test['y_predict'] = y_predict
     df_test['y_test'] = y_test
@@ -88,9 +97,40 @@ def plot_classification_error(model):
     plt.show()
 
 
-def plot_confusion_matrix(y_test, y_predict, classes):
+def plot_confusion_matrix(y_test, y_predict, class_labels):
     cm = metrics.confusion_matrix(y_test, y_predict)
     plt.figure(figsize=[7, 6])
     norm_cm = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]
     sns.heatmap(norm_cm, annot=np.round(norm_cm, 2), fmt='g',
-                xticklabels=classes, yticklabels=classes, cmap='bone')
+                xticklabels=class_labels, yticklabels=class_labels, cmap='bone')
+
+
+def plot_feature_over_time(df, feature_selection=None):
+    df = preprocessing.remove_outliers(df)
+    df = df.drop(columns=['ID'])
+    df[dataset.AGE_ATTRIBUTE] = preprocessing.custom_round(df[dataset.AGE_ATTRIBUTE])
+
+    for feature, type in df.dtypes.iteritems():
+        if feature_selection is not None and feature not in feature_selection:
+            continue
+
+        feature_df = df.copy()
+        if type == 'object' or type == 'bool':
+            feature_df = feature_df[[dataset.AGE_ATTRIBUTE, feature]] \
+                .groupby([dataset.AGE_ATTRIBUTE, feature]) \
+                .size() \
+                .unstack(level=0) \
+                .fillna(0)
+            sns.heatmap(feature_df, cmap="Blues", cbar_kws={"shrink": .7})
+        else:
+            feature_df[feature] = feature_df[feature].clip(lower=feature_df[feature].quantile(0.005), upper=feature_df[feature].quantile(0.995))
+            sns.relplot(data=feature_df, x=dataset.AGE_ATTRIBUTE, ci=99, y=feature, kind="line")
+        #   sns.relplot(data=df, x=dataset.AGE_ATTRIBUTE, y=feature) #, line_kws={"color": "red"}, scatter_kws={'s':2})
+
+        plt.show()
+
+
+def plot_prediction_error_histogram(y_test, y_predict):
+    error = (y_test.T - y_predict.T).T
+    error.hist(bins = 40)
+    plt.title('Histogram of prediction errors')
