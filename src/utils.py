@@ -25,3 +25,9 @@ def split_target_var(df):
     X = df.drop(columns=[dataset.AGE_ATTRIBUTE])
     y = df[[dataset.AGE_ATTRIBUTE]]
     return X, y
+
+
+def duplicates(df):
+    print(len(df))
+    print(len(df['ID'].unique()))
+    return df[df.duplicated(keep=False)]

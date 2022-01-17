@@ -8,7 +8,7 @@ import visualizations
 
 import pandas as pd
 import numpy as np
-from sklearn import model_selection
+from sklearn import model_selection, preprocessing
 from imblearn.under_sampling import RandomUnderSampler
 
 logger = logging.getLogger(__name__)
@@ -28,8 +28,16 @@ def keep_other_attributes(df):
     return df
 
 
+def normalize_features(df_train, df_test):
+    scaler = preprocessing.MinMaxScaler()
+    feature_columns = list(set(df_train.columns) - set(dataset.AUX_VARS) - set(dataset.TARGET_ATTRIBUTES))
+    df_train[feature_columns] = scaler.fit_transform(df_train[feature_columns])
+    df_test[feature_columns] = scaler.transform(df_test[feature_columns])
+    return df_train, df_test
+
+
 def remove_outliers(df):
-    df = df[df[dataset.AGE_ATTRIBUTE] > 1950]
+    df = df[df[dataset.AGE_ATTRIBUTE] > 1900]
     df = df[df[dataset.AGE_ATTRIBUTE] < 2020]
     return df
 
@@ -80,6 +88,28 @@ def split_by_region(df):
     # one geographic region for validation, rest for testing
     region_names = ['Haute-Vienne', 'Hauts-de-Seine',
                     'Aisne', 'Orne', 'Pyrénées-Orientales']
-    df_test = df[df.departement == region_names[0]]
+    df_test = df[df.departement == region_names[dataset.GLOBAL_REPRODUCIBILITY_SEED % len(region_names)]]
+    df_train = df[~df.index.isin(df_test.index)]
+    return df_train, df_test
+
+
+def filter_french_medium_sized_cities_with_old_center(df):
+    city_names = ['Valence', 'Aurillac', 'Oyonnax', 'Aubenas', 'Vichy', 'Montluçon', 'Montélimar', 'Bourg-en-Bresse']
+    # city_names = ['Valence', 'Oyonnax', 'Bourg-en-Bresse'] # very similar in terms of building age structure
+    return df[df['city'].isin(city_names)]
+
+
+def split_and_filter_by_french_medium_sized_cities_with_old_center(df):
+    city_names = ['Valence', 'Aurillac', 'Oyonnax', 'Aubenas', 'Vichy', 'Montluçon', 'Montélimar', 'Bourg-en-Bresse']
+    test_city = city_names[dataset.GLOBAL_REPRODUCIBILITY_SEED % len(city_names)]
+    city_names.remove(test_city)
+    df_test = df[df['city'] == test_city]
+    df_train = df[df['city'].isin(city_names)]
+    return df_train, df_test
+
+
+def split_by_city(df):
+    cities = sorted(df['city'].unique())
+    df_test = df[df['city'] == cities[dataset.GLOBAL_REPRODUCIBILITY_SEED % len(cities)]]
     df_train = df[~df.index.isin(df_test.index)]
     return df_train, df_test

@@ -1,4 +1,5 @@
 import logging
+import inspect
 
 import utils
 import visualizations
@@ -12,13 +13,13 @@ import sklearn
 from sklearn import metrics, model_selection
 
 logger = logging.getLogger(__name__)
-
+logger.setLevel(logging.INFO)
 
 class AgePredictor:
 
     def __init__(self, model, df, test_training_split, preprocessing_stages=[], hyperparameter_tuning=False) -> None:
         self.model = model
-        self.df = df
+        self.df = df.copy()
         self.test_training_split = test_training_split
         self.preprocessing_stages = preprocessing_stages
         self.hyperparameter_tuning = hyperparameter_tuning
@@ -44,26 +45,40 @@ class AgePredictor:
         logger.info(f'Training dataset length: {len(df_train)}')
 
         # The standard deviation in the test set gives us an indication of a baseline. We want to be able to be substantially below that value.
-        logger.info(
-            f"Standard deviation of test set: {df_test[dataset.AGE_ATTRIBUTE].std()}")
+        logger.info(f"Standard deviation of test set: {df_test[dataset.AGE_ATTRIBUTE].std()}")
 
         # Preprocessing & Cleaning
         for func in self.preprocessing_stages:
-            df_train = func(df_train)
-            df_test = func(df_test)
+            params = inspect.signature(func).parameters
 
-        df_train = sklearn.utils.shuffle(
-            df_train, random_state=dataset.GLOBAL_REPRODUCIBILITY_SEED)
-        df_test = sklearn.utils.shuffle(
-            df_test, random_state=dataset.GLOBAL_REPRODUCIBILITY_SEED)
+            if 'df_train' in params and 'df_test' in params:
+                df_train, df_test = func(df_train=df_train, df_test=df_test)
+            else:
+                df_train = func(df_train)
+                df_test = func(df_test)
 
-        self.X_train = df_train.drop(
-            columns=dataset.AUX_VARS+[dataset.AGE_ATTRIBUTE])
+        logger.info(f'Test dataset length after preprocessing: {len(df_test)}')
+        logger.info(f'Training dataset length after preprocessing: {len(df_train)}')
+        logger.info(f"Standard deviation of test set after preprocessing: {df_test[dataset.AGE_ATTRIBUTE].std()}")
+
+        df_train = sklearn.utils.shuffle(df_train, random_state=dataset.GLOBAL_REPRODUCIBILITY_SEED)
+        df_test = sklearn.utils.shuffle(df_test, random_state=dataset.GLOBAL_REPRODUCIBILITY_SEED)
+
+        self.aux_vars_train = df_train[dataset.AUX_VARS]
+        self.aux_vars_test = df_test[dataset.AUX_VARS]
+
+        self.X_train = df_train.drop(columns=dataset.AUX_VARS+[dataset.AGE_ATTRIBUTE])
         self.y_train = df_train[[dataset.AGE_ATTRIBUTE]]
 
-        self.X_test = df_test.drop(
-            columns=dataset.AUX_VARS+[dataset.AGE_ATTRIBUTE])
+        self.X_test = df_test.drop(columns=dataset.AUX_VARS+[dataset.AGE_ATTRIBUTE])
         self.y_test = df_test[[dataset.AGE_ATTRIBUTE]]
+
+        self.aux_vars_train.reset_index(drop=True, inplace=True)
+        self.aux_vars_test.reset_index(drop=True, inplace=True)
+        self.X_train.reset_index(drop=True, inplace=True)
+        self.y_train.reset_index(drop=True, inplace=True)
+        self.X_test.reset_index(drop=True, inplace=True)
+        self.y_test.reset_index(drop=True, inplace=True)
 
 
     def _train(self):
@@ -79,6 +94,7 @@ class AgePredictor:
         self.y_predict = pd.DataFrame(
             {dataset.AGE_ATTRIBUTE: self.model.predict(self.X_test)})
 
+
     def evaluate_classification(self):
         self.print_classification_report()
         visualizations.plot_histogram(self.y_test, self.y_predict, bins=list(
@@ -86,11 +102,19 @@ class AgePredictor:
         visualizations.plot_confusion_matrix(
             self.y_test, self.y_predict, class_labels=dataset.EHS_AGE_LABELS)
 
+
     def evaluate_regression(self):
         self.print_model_error()
         visualizations.plot_histogram(
             self.y_test, self.y_predict, bins=utils.age_bins(self.y_predict))
         visualizations.plot_grid(self.y_test, self.y_predict)
+        visualizations.plot_relative_grid(self.y_test, self.y_predict)
+
+
+    def individual_prediction_error(self):
+        df = self.aux_vars_test[['id']]
+        df['error'] = self.y_test - self.y_predict
+        return df
 
 
     def calculate_SHAP_values(self):
@@ -164,6 +188,7 @@ class AgePredictor:
         feature_importance.sort_values(
             by=['importance'], ascending=False, inplace=True)
         print(feature_importance.head(15))
+
 
     def print_model_error(self):
         print('MAE: {} y'.format(

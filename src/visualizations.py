@@ -1,11 +1,14 @@
 import dataset
 import preprocessing
+import utils
 
 import pandas as pd
 import numpy as np
 import seaborn as sns
 import matplotlib.pyplot as plt
+import geopandas as gpd
 from sklearn import metrics
+from shapely import wkt
 
 def plot_histogram(y_test, y_predict, bins=None, bin_labels=[]):
     fig, ax = plt.subplots(figsize=(10, 7))
@@ -34,6 +37,42 @@ def plot_histogram(y_test, y_predict, bins=None, bin_labels=[]):
     ax.legend()
     plt.title('age distributions')
     plt.show()
+
+
+def plot_distribution(data):
+    fig, ax = plt.subplots(figsize=(10, 7))
+
+    for label, y in data.items():
+        sns.distplot(
+            y,
+            ax=ax,
+            hist=False,
+            kde=True,
+            norm_hist=True,
+            hist_kws=dict(edgecolor="k", linewidth=1)
+        )
+
+    ax.legend()
+    plt.title('age distributions')
+    plt.show()
+
+
+def plot_relative_grid(y_test, y_predict, bin_size=5):
+    # Idea: periods with more buildings will not be brighter than periods with little buildings
+    bins = utils.age_bins(y_predict, bin_size=bin_size)
+    X, Y = np.meshgrid(bins, bins)
+    age_test = y_test[dataset.AGE_ATTRIBUTE]
+    age_predict = y_predict[dataset.AGE_ATTRIBUTE]
+    H = np.histogram2d(age_test, age_predict, bins=bins)[0]
+    # H_norm: each row describes relative share of all prediction age bands for buildings of a certain test band
+    H_norm = (H.T / H.sum(axis=1)).T
+
+    fig = plt.figure(figsize=(20, 8))
+    ax = fig.add_subplot(132, title='Prediction age proportions for true age bands', aspect='equal')
+    ax.set_xlabel('Predicted age')
+    ax.set_ylabel('True age')
+    ax.plot([0, 1], [0, 1], transform=ax.transAxes)
+    ax.pcolormesh(X, Y, H_norm, cmap='Greens')
 
 
 def plot_grid(y_test, y_predict):
@@ -134,3 +173,27 @@ def plot_prediction_error_histogram(y_test, y_predict):
     error = (y_test.T - y_predict.T).T
     error.hist(bins = 40)
     plt.title('Histogram of prediction errors')
+
+
+def plot_age_on_map(df):
+    df = df.copy()
+    df = preprocessing.remove_outliers(df)
+    df = preprocessing.round_age(df)
+    df[dataset.AGE_ATTRIBUTE] = df[dataset.AGE_ATTRIBUTE].astype(str)
+
+    _, ax = plt.subplots(1, 1)
+    geo_wkt = df['geometry'].apply(wkt.loads)
+    geo_df = gpd.GeoDataFrame(df, geometry=geo_wkt, crs=2154)
+    geo_df.plot(column=dataset.AGE_ATTRIBUTE,  ax=ax, legend=True)
+
+
+def plot_prediction_error_on_map(prediction_error, geometry):
+    df = pd.concat([geometry.set_index('id'), prediction_error.set_index('id')], axis=1, join="inner").reset_index()
+
+    df['error'] = utils.custom_round(df['error'], base=20)
+    df['error'] = df['error'].astype(str)
+
+    _, ax = plt.subplots(1, 1)
+    geo_wkt = df['geometry'].apply(wkt.loads)
+    geo_df = gpd.GeoDataFrame(df, geometry=geo_wkt, crs=2154)
+    geo_df.plot(column='error',  ax=ax, legend=True)
