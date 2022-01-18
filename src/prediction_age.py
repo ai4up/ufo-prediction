@@ -37,6 +37,8 @@ class AgePredictor:
 
 
     def _preprocess(self):
+        self.df.dropna(subset=[dataset.AGE_ATTRIBUTE], inplace=True)
+        self.df.drop_duplicates(subset=['id'], inplace=True)
         logger.info(f'Dataset length: {len(self.df)}')
 
         # Test & Training Split

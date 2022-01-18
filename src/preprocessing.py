@@ -36,6 +36,14 @@ def normalize_features(df_train, df_test):
     return df_train, df_test
 
 
+def remove_buildings_pre_1850(df):
+    return df[df[dataset.AGE_ATTRIBUTE] >= 1850]
+
+
+def remove_buildings_pre_1950(df):
+    return df[df[dataset.AGE_ATTRIBUTE] >= 1850]
+
+
 def remove_outliers(df):
     df = df[df[dataset.AGE_ATTRIBUTE] > 1900]
     df = df[df[dataset.AGE_ATTRIBUTE] < 2020]
@@ -81,6 +89,10 @@ def add_noise_feature(df):
 
 def split_80_20(df):
     return model_selection.train_test_split(df, test_size=0.2, random_state=dataset.GLOBAL_REPRODUCIBILITY_SEED)
+
+
+def split_50_50(df):
+    return model_selection.train_test_split(df, test_size=0.5, random_state=dataset.GLOBAL_REPRODUCIBILITY_SEED)
 
 
 def split_by_region(df):
