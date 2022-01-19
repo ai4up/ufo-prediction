@@ -36,12 +36,24 @@ def normalize_features(df_train, df_test):
     return df_train, df_test
 
 
+def drop_unimportant_features(df):
+    return df[dataset.SELECTED_FEATURES + [dataset.AGE_ATTRIBUTE] + dataset.AUX_VARS]
+
+
+def remove_buildings_pre_2000(df):
+    return df[df[dataset.AGE_ATTRIBUTE] >= 2000]
+
+
 def remove_buildings_pre_1850(df):
     return df[df[dataset.AGE_ATTRIBUTE] >= 1850]
 
 
 def remove_buildings_pre_1950(df):
-    return df[df[dataset.AGE_ATTRIBUTE] >= 1850]
+    return df[df[dataset.AGE_ATTRIBUTE] >= 1950]
+
+
+def remove_buildings_between_1930_1990(df):
+    return df[~df[dataset.AGE_ATTRIBUTE].between(1930, 1990)]
 
 
 def remove_outliers(df):

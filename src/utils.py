@@ -29,5 +29,5 @@ def split_target_var(df):
 
 def duplicates(df):
     print(len(df))
-    print(len(df['ID'].unique()))
+    print(len(df['id'].unique()))
     return df[df.duplicated(keep=False)]

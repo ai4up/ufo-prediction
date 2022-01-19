@@ -115,7 +115,7 @@ class AgePredictor:
 
     def individual_prediction_error(self):
         df = self.aux_vars_test[['id']]
-        df['error'] = self.y_test - self.y_predict
+        df['error'] = self.y_predict - self.y_test
         return df
 
 

@@ -7,6 +7,7 @@ import numpy as np
 import seaborn as sns
 import matplotlib.pyplot as plt
 import geopandas as gpd
+from scipy.stats import kurtosis, skew, norm
 from sklearn import metrics
 from shapely import wkt
 
@@ -14,7 +15,6 @@ def plot_histogram(y_test, y_predict, bins=None, bin_labels=[]):
     fig, ax = plt.subplots(figsize=(10, 7))
     if bin_labels:
         ax.set_xticklabels([None] + bin_labels)
-
 
     sns.distplot(
         y_predict,
@@ -49,6 +49,7 @@ def plot_distribution(data):
             hist=False,
             kde=True,
             norm_hist=True,
+            label=label,
             hist_kws=dict(edgecolor="k", linewidth=1)
         )
 
@@ -73,6 +74,7 @@ def plot_relative_grid(y_test, y_predict, bin_size=5):
     ax.set_ylabel('True age')
     ax.plot([0, 1], [0, 1], transform=ax.transAxes)
     ax.pcolormesh(X, Y, H_norm, cmap='Greens')
+    plt.show()
 
 
 def plot_grid(y_test, y_predict):
@@ -146,8 +148,8 @@ def plot_confusion_matrix(y_test, y_predict, class_labels):
 
 def plot_feature_over_time(df, feature_selection=None):
     df = preprocessing.remove_outliers(df)
-    df = df.drop(columns=['ID'])
-    df[dataset.AGE_ATTRIBUTE] = preprocessing.custom_round(df[dataset.AGE_ATTRIBUTE])
+    df = df.drop(columns=['id'])
+    df[dataset.AGE_ATTRIBUTE] = utils.custom_round(df[dataset.AGE_ATTRIBUTE])
 
     for feature, type in df.dtypes.iteritems():
         if feature_selection is not None and feature not in feature_selection:
@@ -170,9 +172,15 @@ def plot_feature_over_time(df, feature_selection=None):
 
 
 def plot_prediction_error_histogram(y_test, y_predict):
-    error = (y_test.T - y_predict.T).T
-    error.hist(bins = 40)
+    error = y_predict - y_test
+    # error.hist(bins = 40)
+    sns.distplot(error, fit=norm, kde=False)
     plt.title('Histogram of prediction errors')
+    plt.show()
+    # A positively skewed distribution has a tail to the right, while a negative one has a tail to the left.
+    # If the distribution has positive kurtosis, it has fatter tails than the normal distribution; conversely, the tails would be thinner in a negative scenario.
+    print('Excess kurtosis of normal distribution (should be 0): {}'.format( kurtosis(error, fisher=True) ))
+    print('Skewness of normal distribution (should be 0): {}'.format( skew(error) ))
 
 
 def plot_age_on_map(df):
