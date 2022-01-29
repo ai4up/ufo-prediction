@@ -21,14 +21,7 @@ GLOBAL_REPRODUCIBILITY_SEED = 1
 
 # age bands ~ according to English Housing Survey (EHS) as done in https://doi.org/10.1016/j.compenvurbsys.2018.08.004
 EHS_AGE_BINS = [0, 1915, 1945, 1965, 1980, 2000, np.inf]
-EHS_AGE_LABELS = ['<1915', '1915-1944', '1945-1964', '1965-1979', '1980-2000', '>2000']
-
-
-# EHS_AGE_BINS = [0, 1950, np.inf]
-# EHS_AGE_LABELS = ['<1950', '>1950']
-
-# EHS_AGE_BINS = [0, 1915, 1960, np.inf]
-# EHS_AGE_LABELS = ['<1915', '1915-1960', '>1960']
+CUSTOM_AGE_BINS = [0, 1915, 1960, np.inf]
 
 SELECTED_FEATURES = [
     'total_ft_area_within_buffer_100',

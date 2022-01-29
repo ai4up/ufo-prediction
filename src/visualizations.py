@@ -11,32 +11,31 @@ from scipy.stats import kurtosis, skew, norm
 from sklearn import metrics
 from shapely import wkt
 
-def plot_histogram(y_test, y_predict, bins=None, bin_labels=[]):
-    fig, ax = plt.subplots(figsize=(10, 7))
-    if bin_labels:
-        ax.set_xticklabels([None] + bin_labels)
+def plot_histogram(y_test, y_predict, bins=None, bin_labels=[], **kwargs):
+    with SubplotManager(**kwargs) as ax:
+        if bin_labels:
+            ax.set_xticklabels([None] + bin_labels)
 
-    sns.distplot(
-        y_predict,
-        ax=ax,
-        hist=True,
-        kde=False,
-        hist_kws=dict(edgecolor="k", linewidth=1),
-        bins=bins,
-        label='y_predict'
-    )
-    sns.distplot(
-        y_test,
-        ax=ax,
-        hist=True,
-        kde=False,
-        hist_kws=dict(edgecolor="k", linewidth=1),
-        bins=bins,
-        label='y_test'
-    )
-    ax.legend()
-    plt.title('age distributions')
-    plt.show()
+        sns.distplot(
+            y_predict,
+            ax=ax,
+            hist=True,
+            kde=False,
+            hist_kws=dict(edgecolor="k", linewidth=1),
+            bins=bins,
+            label='y_predict'
+        )
+        sns.distplot(
+            y_test,
+            ax=ax,
+            hist=True,
+            kde=False,
+            hist_kws=dict(edgecolor="k", linewidth=1),
+            bins=bins,
+            label='y_test'
+        )
+        ax.legend()
+        ax.set_title('age distributions')
 
 
 def plot_distribution(data):
@@ -58,7 +57,7 @@ def plot_distribution(data):
     plt.show()
 
 
-def plot_relative_grid(y_test, y_predict, bin_size=5):
+def plot_relative_grid(y_test, y_predict, bin_size=5, **kwargs):
     # Idea: periods with more buildings will not be brighter than periods with little buildings
     bins = utils.age_bins(y_predict, bin_size=bin_size)
     X, Y = np.meshgrid(bins, bins)
@@ -68,13 +67,13 @@ def plot_relative_grid(y_test, y_predict, bin_size=5):
     # H_norm: each row describes relative share of all prediction age bands for buildings of a certain test band
     H_norm = (H.T / H.sum(axis=1)).T
 
-    fig = plt.figure(figsize=(20, 8))
-    ax = fig.add_subplot(132, title='Prediction age proportions for true age bands', aspect='equal')
-    ax.set_xlabel('Predicted age')
-    ax.set_ylabel('True age')
-    ax.plot([0, 1], [0, 1], transform=ax.transAxes)
-    ax.pcolormesh(X, Y, H_norm, cmap='Greens')
-    plt.show()
+    with SubplotManager(**kwargs) as ax:
+        # ax = fig.add_subplot(132, title='Prediction age proportions for true age bands', aspect='equal')
+        ax.set_title('Prediction age proportions for true age bands')
+        ax.set_xlabel('Predicted age')
+        ax.set_ylabel('True age')
+        ax.plot([0, 1], [0, 1], transform=ax.transAxes)
+        ax.pcolormesh(X, Y, H_norm, cmap='Greens')
 
 
 def plot_grid(y_test, y_predict):
@@ -104,46 +103,50 @@ def plot_grid(y_test, y_predict):
     plt.show()
 
 
-def plot_log_loss(model):
+def plot_log_loss(model, multiclass=False, **kwargs):
+    metric = 'mlogloss' if multiclass else 'logloss'
+    plot_eval_metric(model, metric=metric, title='Classification Log Loss', **kwargs)
+
+
+def plot_classification_error(model, multiclass=False, **kwargs):
+    metric = 'merror' if multiclass else 'error'
+    plot_eval_metric(model, metric=metric, title='Classification Error', **kwargs)
+
+
+def plot_regression_error(model, **kwargs):
+    plot_eval_metric(model, metric='rmse', title='Regression Error', scale_y_axis=True, **kwargs)
+
+
+def plot_eval_metric(model, metric, title, scale_y_axis=False, **kwargs):
     # retrieve performance metrics
     results = model.evals_result()
-    epochs = len(results['validation_0']['merror'])
+    error_train = results['validation_0'][metric]
+    error_test = results['validation_1'][metric]
+    epochs = len(error_train)
 
-    # plot log loss
-    fig, ax = plt.subplots(figsize=(12, 12))
-    x_axis = range(0, epochs)
-    ax.plot(x_axis, results['validation_0']['mlogloss'], label='Train')
-    ax.plot(x_axis, results['validation_1']['mlogloss'], label='Test')
-    ax.legend()
+    # plot performance metrics
+    with SubplotManager(**kwargs) as ax:
+        x_axis = range(0, epochs)
+        ax.plot(x_axis, error_train, label='Train')
+        ax.plot(x_axis, error_test, label='Test')
+        ax.legend()
 
-    plt.ylabel('Log Loss')
-    plt.title('XGBoost Log Loss')
-    plt.show()
+        if scale_y_axis:
+            y_min = min(error_train) / 1.25
+            y_max = np.quantile(error_test, 0.90)
+            ax.set_ylim(y_min, y_max)
 
-
-def plot_classification_error(model):
-    # retrieve performance metrics
-    results = model.evals_result()
-    epochs = len(results['validation_0']['merror'])
-
-    # plot classification error
-    fig, ax = plt.subplots(figsize=(12, 12))
-    x_axis = range(0, epochs)
-    ax.plot(x_axis, results['validation_0']['merror'], label='Train')
-    ax.plot(x_axis, results['validation_1']['merror'], label='Test')
-    ax.legend()
-
-    plt.ylabel('Classification Error')
-    plt.title('XGBoost Classification Error')
-    plt.show()
+        ax.set_xlabel('epochs / trees')
+        ax.set_ylabel(metric)
+        ax.set_title('XGBoost ' + title)
 
 
-def plot_confusion_matrix(y_test, y_predict, class_labels):
-    cm = metrics.confusion_matrix(y_test, y_predict)
-    plt.figure(figsize=[7, 6])
-    norm_cm = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]
-    sns.heatmap(norm_cm, annot=np.round(norm_cm, 2), fmt='g',
-                xticklabels=class_labels, yticklabels=class_labels, cmap='bone')
+def plot_confusion_matrix(y_test, y_predict, class_labels, **kwargs):
+    with SubplotManager(**kwargs) as ax:
+        cm = metrics.confusion_matrix(y_test, y_predict)
+        norm_cm = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]
+        sns.heatmap(norm_cm, annot=np.round(norm_cm, 2), fmt='g', ax=ax,
+                    xticklabels=class_labels, yticklabels=class_labels, cmap='bone')
 
 
 def plot_feature_over_time(df, feature_selection=None):
@@ -183,16 +186,19 @@ def plot_prediction_error_histogram(y_test, y_predict):
     print('Skewness of normal distribution (should be 0): {}'.format( skew(error) ))
 
 
-def plot_age_on_map(df):
-    df = df.copy()
+def plot_age_on_map(age, geometry):
+    df = pd.concat([geometry[['id', 'geometry']].set_index('id'), age[['id', dataset.AGE_ATTRIBUTE]].set_index('id')], axis=1, join="inner", copy=True).reset_index()
+    df = df.dropna(subset=[dataset.AGE_ATTRIBUTE])
+
     df = preprocessing.remove_outliers(df)
     df = preprocessing.round_age(df)
     df[dataset.AGE_ATTRIBUTE] = df[dataset.AGE_ATTRIBUTE].astype(str)
 
+    if not isinstance(df, gpd.GeoDataFrame):
+        df = utils.to_gdf(df)
+
     _, ax = plt.subplots(1, 1)
-    geo_wkt = df['geometry'].apply(wkt.loads)
-    geo_df = gpd.GeoDataFrame(df, geometry=geo_wkt, crs=2154)
-    geo_df.plot(column=dataset.AGE_ATTRIBUTE,  ax=ax, legend=True)
+    df.plot(column=dataset.AGE_ATTRIBUTE,  ax=ax, legend=True)
 
 
 def plot_prediction_error_on_map(prediction_error, geometry):
@@ -201,7 +207,25 @@ def plot_prediction_error_on_map(prediction_error, geometry):
     df['error'] = utils.custom_round(df['error'], base=20)
     df['error'] = df['error'].astype(str)
 
+
+    if not isinstance(df, gpd.GeoDataFrame):
+        df = utils.to_gdf(df)
+
     _, ax = plt.subplots(1, 1)
-    geo_wkt = df['geometry'].apply(wkt.loads)
-    geo_df = gpd.GeoDataFrame(df, geometry=geo_wkt, crs=2154)
-    geo_df.plot(column='error',  ax=ax, legend=True)
+    df.plot(column='error',  ax=ax, legend=True)
+
+
+class SubplotManager:
+    def __init__(self, **kwargs):
+        ax = kwargs.get('ax')
+        self.mainplot = not bool(ax)
+        self.ax = ax or plt.subplots(figsize=(12, 12))[1]
+
+
+    def __enter__(self):
+        return self.ax
+
+
+    def __exit__(self, exc_type, exc_value, exc_traceback):
+        if self.mainplot:
+            plt.show()

@@ -40,16 +40,28 @@ def drop_unimportant_features(df):
     return df[dataset.SELECTED_FEATURES + [dataset.AGE_ATTRIBUTE] + dataset.AUX_VARS]
 
 
-def remove_buildings_pre_2000(df):
-    return df[df[dataset.AGE_ATTRIBUTE] >= 2000]
-
-
 def remove_buildings_pre_1850(df):
     return df[df[dataset.AGE_ATTRIBUTE] >= 1850]
 
 
+def remove_buildings_pre_1900(df):
+    return df[df[dataset.AGE_ATTRIBUTE] >= 1900]
+
+
 def remove_buildings_pre_1950(df):
     return df[df[dataset.AGE_ATTRIBUTE] >= 1950]
+
+
+def remove_buildings_pre_2000(df):
+    return df[df[dataset.AGE_ATTRIBUTE] >= 2000]
+
+
+def remove_buildings_post_2009(df):
+    return df[df[dataset.AGE_ATTRIBUTE] < 2010]
+
+
+def remove_buildings_post_1980(df):
+    return df[df[dataset.AGE_ATTRIBUTE] <= 1980]
 
 
 def remove_buildings_between_1930_1990(df):
@@ -74,19 +86,29 @@ def undersample_skewed_distribution(df):
     return undersampled_df
 
 
+def categorize_age(df, bins):
+    df[dataset.AGE_ATTRIBUTE] = pd.cut(df[dataset.AGE_ATTRIBUTE], bins, right=False).cat.codes
+    df = df[df[dataset.AGE_ATTRIBUTE] >= 0]
+    logger.info(f'{dataset.AGE_ATTRIBUTE} attribute has been categorized (lowest age included: {bins[0]}; highest age included: {bins[-1]-1}; other buildings have been removed).')
+    return df
+
+
+def categorize_age_custom_bands(df):
+    return categorize_age(df, dataset.CUSTOM_AGE_BINS)
+
+
 def categorize_age_EHS(df):
-    df[dataset.AGE_ATTRIBUTE] = pd.cut(
-        df[dataset.AGE_ATTRIBUTE], dataset.EHS_AGE_BINS, labels=dataset.EHS_AGE_LABELS).cat.codes
-    return df
+    return categorize_age(df, dataset.EHS_AGE_BINS)
 
 
-def categorize_age(df):
+def categorize_age_5y_bins(df):
     bins = utils.age_bins(df, bin_size=5)
-    labels = bins[:-1]
+    return categorize_age(df, bins)
 
-    df[dataset.AGE_ATTRIBUTE] = pd.cut(
-        df[dataset.AGE_ATTRIBUTE], bins, labels=labels).cat.codes
-    return df
+
+def categorize_age_10y_bins(df):
+    bins = utils.age_bins(df, bin_size=10)
+    return categorize_age(df, bins)
 
 
 def round_age(df):

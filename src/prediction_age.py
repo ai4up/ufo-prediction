@@ -1,5 +1,6 @@
 import logging
 import inspect
+from functools import partial
 
 import utils
 import visualizations
@@ -11,18 +12,21 @@ import pandas as pd
 import numpy as np
 import sklearn
 from sklearn import metrics, model_selection
+import matplotlib.pyplot as plt
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
 class AgePredictor:
 
-    def __init__(self, model, df, test_training_split, preprocessing_stages=[], hyperparameter_tuning=False) -> None:
+    def __init__(self, model, df, test_training_split, preprocessing_stages=[], mitigate_class_imbalance=False, hyperparameter_tuning=False, hyperparameters=None, initialize_only=False) -> None:
         self.model = model
         self.df = df.copy()
         self.test_training_split = test_training_split
         self.preprocessing_stages = preprocessing_stages
+        self.mitigate_class_imbalance = mitigate_class_imbalance
         self.hyperparameter_tuning = hyperparameter_tuning
+        self.hyperparameters = hyperparameters
 
         self.X_train = None
         self.y_train = None
@@ -31,9 +35,12 @@ class AgePredictor:
         self.y_predict = None
         self.shap_explainer = None
         self.shap_values = None
+        self.sample_weights = None
 
-        self._preprocess()
-        self._train()
+        if not initialize_only:
+            self._preprocess()
+            self._train()
+            self._predict()
 
 
     def _preprocess(self):
@@ -48,6 +55,7 @@ class AgePredictor:
 
         # The standard deviation in the test set gives us an indication of a baseline. We want to be able to be substantially below that value.
         logger.info(f"Standard deviation of test set: {df_test[dataset.AGE_ATTRIBUTE].std()}")
+        logger.info(f"Mean age of test set: {df_test[dataset.AGE_ATTRIBUTE].mean()}")
 
         # Preprocessing & Cleaning
         for func in self.preprocessing_stages:
@@ -62,6 +70,7 @@ class AgePredictor:
         logger.info(f'Test dataset length after preprocessing: {len(df_test)}')
         logger.info(f'Training dataset length after preprocessing: {len(df_train)}')
         logger.info(f"Standard deviation of test set after preprocessing: {df_test[dataset.AGE_ATTRIBUTE].std()}")
+        logger.info(f"Mean age of test set after preprocessing: {df_test[dataset.AGE_ATTRIBUTE].mean()}")
 
         df_train = sklearn.utils.shuffle(df_train, random_state=dataset.GLOBAL_REPRODUCIBILITY_SEED)
         df_test = sklearn.utils.shuffle(df_test, random_state=dataset.GLOBAL_REPRODUCIBILITY_SEED)
@@ -85,32 +94,37 @@ class AgePredictor:
 
     def _train(self):
         if self.hyperparameter_tuning:
-            params = tune_hyperparameter(
+            self.hyperparameters = tune_hyperparameter(
                 self.model, self.X_train, self.y_train)
-            self.model.set_params(**params)
 
-        # Training & Predicting
+        if self.hyperparameters:
+            self.model.set_params(**self.hyperparameters)
+
+        if self.mitigate_class_imbalance:
+            self.sample_weights = sklearn.utils.class_weight.compute_sample_weight(
+                class_weight='balanced',
+                y=self.y_train[dataset.AGE_ATTRIBUTE]
+            )
+
         eval_set = [(self.X_train, self.y_train), (self.X_test, self.y_test)]
-        # , verbose=False, eval_set=eval_set)
-        self.model.fit(self.X_train, self.y_train)
+        early_stopping = self.model.n_estimators / 10
+        self.model.fit(self.X_train, self.y_train, sample_weight=self.sample_weights, verbose=False, eval_set=eval_set, early_stopping_rounds=early_stopping)
+
+
+    def _predict(self):
         self.y_predict = pd.DataFrame(
             {dataset.AGE_ATTRIBUTE: self.model.predict(self.X_test)})
 
 
-    def evaluate_classification(self):
-        self.print_classification_report()
-        visualizations.plot_histogram(self.y_test, self.y_predict, bins=list(
-            range(0, len(dataset.EHS_AGE_BINS))), bin_labels=dataset.EHS_AGE_BINS)
-        visualizations.plot_confusion_matrix(
-            self.y_test, self.y_predict, class_labels=dataset.EHS_AGE_LABELS)
-
-
     def evaluate_regression(self):
         self.print_model_error()
+        _, axis = plt.subplots(2, 2, figsize=(14, 10), constrained_layout=True)
+        visualizations.plot_regression_error(self.model, ax=axis[0, 0])
         visualizations.plot_histogram(
-            self.y_test, self.y_predict, bins=utils.age_bins(self.y_predict))
+            self.y_test, self.y_predict, bins=utils.age_bins(self.y_predict), ax=axis[1, 0])
+        visualizations.plot_relative_grid(self.y_test, self.y_predict, ax=axis[1, 1])
+        plt.show()
         visualizations.plot_grid(self.y_test, self.y_predict)
-        visualizations.plot_relative_grid(self.y_test, self.y_predict)
 
 
     def individual_prediction_error(self):
@@ -199,8 +213,61 @@ class AgePredictor:
             np.sqrt(metrics.mean_squared_error(self.y_test, self.y_predict))))
         print('R2: {}'.format(metrics.r2_score(self.y_test, self.y_predict)))
 
+
     def print_classification_report(self):
         print(metrics.classification_report(self.y_test, self.y_predict))
+
+
+class AgeClassifier(AgePredictor):
+
+    def __init__(self, bins=[], bin_config=None, predict_probabilities=False, *args, **kwargs):
+        if not bins and bin_config is None or bins and bin_config:
+            logger.exception('Please either specify the bins or define a bin config to have them generated automatically.')
+
+        super().__init__(*args, **kwargs, initialize_only=True)
+
+        self.bins = bins or utils.generate_bins(bin_config)
+        self.labels = utils.generate_labels(self.bins)
+        self.multiclass = len(self.labels) > 2
+        self.predict_probabilities = predict_probabilities
+
+        logger.info(f'Generated bins: {self.bins}')
+        logger.info(f'Generated bins with the following labels: {self.labels}')
+
+        objective = 'multi:softprob' if self.multiclass else 'binary:logistic'
+        eval_metric = ['mlogloss', 'merror'] if self.multiclass else  ['logloss', 'error']
+        self.model.set_params(objective=objective, eval_metric=eval_metric, use_label_encoder=False)
+
+        self.preprocessing_stages.append(partial(preprocessing.categorize_age, bins=self.bins))
+
+        self._preprocess()
+        self._train()
+        self._predict()
+
+
+    def evaluate_classification(self):
+        self.print_classification_report()
+        _, axis = plt.subplots(2, 2, figsize=(14, 10), constrained_layout=True)
+        visualizations.plot_classification_error(self.model, multiclass=self.multiclass, ax=axis[0, 0])
+        visualizations.plot_log_loss(self.model, multiclass=self.multiclass, ax=axis[0, 1])
+        visualizations.plot_histogram(self.y_test, self.y_predict, bins=list(range(0, len(self.bins))), bin_labels=self.labels, ax=axis[1, 0])
+        visualizations.plot_confusion_matrix(self.y_test, self.y_predict, class_labels=self.labels, ax=axis[1, 1])
+        plt.show()
+
+
+    def _predict(self):
+        if not self.predict_probabilities:
+            return super()._predict()
+
+        self.class_probabilities = self.model.predict_proba(self.X_test)
+        class_drawn = np.apply_along_axis(self._sample_class_from_probabilities, axis=1, arr=self.class_probabilities).ravel()
+        self.y_predict = pd.DataFrame({dataset.AGE_ATTRIBUTE: class_drawn})
+
+
+    def _sample_class_from_probabilities(self, prob):
+        classes = list(range(0, len(self.labels)))
+        sampled_class = np.random.choice(classes, 1, p=prob)
+        return sampled_class
 
 
 def tune_hyperparameter(model, X, y):
