@@ -191,33 +191,33 @@ def plot_prediction_error_histogram(y_test, y_predict):
     print('Skewness of normal distribution (should be 0): {}'.format( skew(error) ))
 
 
-def plot_age_on_map(age, geometry):
-    df = pd.concat([geometry[['id', 'geometry']].set_index('id'), age[['id', dataset.AGE_ATTRIBUTE]].set_index('id')], axis=1, join="inner", copy=True).reset_index()
-    df = df.dropna(subset=[dataset.AGE_ATTRIBUTE])
-
-    df = preprocessing.remove_outliers(df)
-    df = preprocessing.round_age(df)
-    df[dataset.AGE_ATTRIBUTE] = df[dataset.AGE_ATTRIBUTE].astype(str)
-
-    if not isinstance(df, gpd.GeoDataFrame):
-        df = utils.to_gdf(df)
-
-    _, ax = plt.subplots(1, 1)
-    df.plot(column=dataset.AGE_ATTRIBUTE,  ax=ax, legend=True)
+def plot_age_on_map(age_df, geometry_df):
+    age_df = age_df.dropna(subset=[dataset.AGE_ATTRIBUTE])
+    age_df = preprocessing.remove_outliers(age_df)
+    age_df = preprocessing.round_age(age_df)
+    age_df[dataset.AGE_ATTRIBUTE] = age_df[dataset.AGE_ATTRIBUTE].astype(str)
+    plot_attribute_on_map(age_df, geometry_df, dataset.AGE_ATTRIBUTE)
 
 
-def plot_prediction_error_on_map(prediction_error, geometry):
-    df = pd.concat([geometry.set_index('id'), prediction_error.set_index('id')], axis=1, join="inner").reset_index()
+def plot_prediction_error_on_map(prediction_error_df, geometry_df):
+    prediction_error_df['error'] = utils.custom_round(prediction_error_df['error'], base=20)
+    prediction_error_df['error'] = prediction_error_df['error'].astype(str)
+    plot_attribute_on_map(prediction_error_df, geometry_df, 'error')
 
-    df['error'] = utils.custom_round(df['error'], base=20)
-    df['error'] = df['error'].astype(str)
 
+def plot_attribute_on_map(attribute_df, geometry_df, attribute_name, boundaries_df=None, crs=2154, vmin=None, vmax=None):
+    df = pd.concat([geometry_df[['id', 'geometry']].set_index('id'), attribute_df.set_index('id')], axis=1, join="inner").reset_index()
 
     if not isinstance(df, gpd.GeoDataFrame):
-        df = utils.to_gdf(df)
+        df = utils.to_gdf(df, crs=crs)
 
     _, ax = plt.subplots(1, 1)
-    df.plot(column='error',  ax=ax, legend=True)
+    norm = colors.LogNorm(vmin=vmin, vmax=vmax) if vmin and vmax else None
+    df.plot(column=attribute_name,  ax=ax, legend=True, norm=norm)
+
+    if boundaries_df is not None:
+        boundaries_df.to_crs(crs).exterior.plot(ax=ax)
+    plt.show()
 
 
 class SubplotManager:
