@@ -133,6 +133,15 @@ class AgePredictor:
         return df
 
 
+    def prediction_error_distribution(self):
+        bins = [0, 10, 20, np.inf]
+        error_df = self.y_predict - self.y_test
+        prediction_error_bins = np.histogram(error_df[dataset.AGE_ATTRIBUTE].abs(), bins)[0] / len(error_df)
+        print(f'Distribution of prediction error: {error_df.describe()}')
+        print(f'Prediction error bins: {list(zip(utils.generate_labels(bins), np.around(prediction_error_bins, 2)))}')
+        return prediction_error_bins
+
+
     def calculate_SHAP_values(self):
         if self.shap_values is None:
             self.shap_explainer = shap.TreeExplainer(self.model)
@@ -216,11 +225,13 @@ class AgePredictor:
 
     def print_classification_report(self):
         print(metrics.classification_report(self.y_test, self.y_predict))
+        print(f"Cohen’s kappa: {metrics.cohen_kappa_score(self.y_test, self.y_predict)}")
 
 
 class AgeClassifier(AgePredictor):
 
     def __init__(self, bins=[], bin_config=None, predict_probabilities=False, *args, **kwargs):
+
         if not bins and bin_config is None or bins and bin_config:
             logger.exception('Please either specify the bins or define a bin config to have them generated automatically.')
 
@@ -259,9 +270,9 @@ class AgeClassifier(AgePredictor):
         if not self.predict_probabilities:
             return super()._predict()
 
-        self.class_probabilities = self.model.predict_proba(self.X_test)
-        class_drawn = np.apply_along_axis(self._sample_class_from_probabilities, axis=1, arr=self.class_probabilities).ravel()
-        self.y_predict = pd.DataFrame({dataset.AGE_ATTRIBUTE: class_drawn})
+        class_probabilities = self.model.predict_proba(self.X_test)
+        class_drawn = np.apply_along_axis(self._sample_class_from_probabilities, axis=1, arr=class_probabilities).ravel()
+        self.y_predict = pd.DataFrame({dataset.AGE_ATTRIBUTE: class_drawn, 'probabilities': list(class_probabilities)})
 
 
     def _sample_class_from_probabilities(self, prob):
