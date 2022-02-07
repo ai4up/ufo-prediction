@@ -1,11 +1,13 @@
 import dataset
 import preprocessing
 import utils
+import warnings
 
 import pandas as pd
 import numpy as np
 import seaborn as sns
 import matplotlib.pyplot as plt
+import matplotlib.colors as colors
 import geopandas as gpd
 from scipy.stats import kurtosis, skew, norm
 from sklearn import metrics
@@ -16,21 +18,21 @@ def plot_histogram(y_test, y_predict, bins=None, bin_labels=[], **kwargs):
         if bin_labels:
             ax.set_xticklabels([None] + bin_labels)
 
-        sns.distplot(
+        sns.histplot(
             y_predict,
             ax=ax,
-            hist=True,
             kde=False,
-            hist_kws=dict(edgecolor="k", linewidth=1),
+            line_kws=dict(edgecolor="k", linewidth=1),
+            palette='Set2',
             bins=bins,
             label='y_predict'
         )
-        sns.distplot(
+        sns.histplot(
             y_test,
             ax=ax,
-            hist=True,
             kde=False,
-            hist_kws=dict(edgecolor="k", linewidth=1),
+            line_kws=dict(edgecolor="k", linewidth=1),
+            palette='husl',
             bins=bins,
             label='y_test'
         )
@@ -40,17 +42,18 @@ def plot_histogram(y_test, y_predict, bins=None, bin_labels=[], **kwargs):
 
 def plot_distribution(data):
     fig, ax = plt.subplots(figsize=(10, 7))
-
-    for label, y in data.items():
-        sns.distplot(
-            y,
-            ax=ax,
-            hist=False,
-            kde=True,
-            norm_hist=True,
-            label=label,
-            hist_kws=dict(edgecolor="k", linewidth=1)
-        )
+    with warnings.catch_warnings():
+        warnings.filterwarnings("ignore")
+        for label, y in data.items():
+            sns.distplot(
+                y,
+                ax=ax,
+                hist=False,
+                kde=True,
+                norm_hist=True,
+                label=label,
+                hist_kws=dict(edgecolor="k", linewidth=1)
+            )
 
     ax.legend()
     plt.title('age distributions')
@@ -177,7 +180,9 @@ def plot_feature_over_time(df, feature_selection=None):
 def plot_prediction_error_histogram(y_test, y_predict):
     error = y_predict - y_test
     # error.hist(bins = 40)
-    sns.distplot(error, fit=norm, kde=False)
+    with warnings.catch_warnings():
+        warnings.filterwarnings("ignore")
+        sns.distplot(error, fit=norm, kde=False)
     plt.title('Histogram of prediction errors')
     plt.show()
     # A positively skewed distribution has a tail to the right, while a negative one has a tail to the left.
