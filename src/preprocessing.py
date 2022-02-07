@@ -36,6 +36,37 @@ def normalize_features(df_train, df_test):
     return df_train, df_test
 
 
+# TODO: fit only on training data to avoid information leakage into test set
+def normalize_centrality_features_citywise(df):
+    centrality_features = df.filter(regex='_buffer').columns
+    df[centrality_features] = df.groupby('city')[centrality_features].apply(normalize_columns)
+    return df
+
+
+def normalize_features_citywise(df, selection=None, regex=None):
+    features = selection or df.filter(regex=regex).columns
+    df[features] = df.groupby('city')[features].apply(normalize_columns)
+    return df
+
+
+def normalize_columns(df, columns=None):
+    columns = columns or df.columns
+    scaler = preprocessing.MinMaxScaler()
+    df[columns] = scaler.fit_transform(df[columns])
+    return df
+
+
+def filter_features(df, selection=[], regex=None):
+    non_feature_columns = set(df.columns) - set(dataset.FEATURES)
+    filtered_features = set(selection) or set(df.filter(regex=regex)).intersection(dataset.FEATURES)
+    return df[filtered_features.union(non_feature_columns)]
+
+
+def drop_features(df, selection=None, regex=None):
+    dropped_features = selection or set(df.filter(regex=regex)).intersection(dataset.FEATURES)
+    return df[df.columns.drop(dropped_features)]
+
+
 def drop_unimportant_features(df):
     return df[dataset.SELECTED_FEATURES + [dataset.AGE_ATTRIBUTE] + dataset.AUX_VARS]
 
@@ -72,6 +103,10 @@ def remove_outliers(df):
     df = df[df[dataset.AGE_ATTRIBUTE] > 1900]
     df = df[df[dataset.AGE_ATTRIBUTE] < 2020]
     return df
+
+
+def remove_non_residential_buildings(df):
+    return df[df['type_source'] == 'Résidentiel']
 
 
 def undersample_skewed_distribution(df):
