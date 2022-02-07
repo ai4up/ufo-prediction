@@ -281,6 +281,72 @@ class AgeClassifier(AgePredictor):
         return sampled_class
 
 
+class AgePredictorComparison:
+    def __init__(self, comparison_config, grid_comparison_config={'':{}}, compare_feature_importance=False, **baseline_kwargs) -> None:
+        self.comparison_config = comparison_config
+        self.grid_comparison_config = grid_comparison_config
+        self.compare_feature_importance = compare_feature_importance
+        self.baseline_kwargs = baseline_kwargs
+        self.predictors = {}
+        self.predictors['baseline'] = AgePredictor(**self.baseline_kwargs)
+
+        if self.compare_feature_importance:
+            self.predictors['baseline'].calculate_SHAP_values()
+
+        for grid_experiment_name, grid_experiment_kwargs in self.grid_comparison_config.items():
+            for experiment_name, experiment_kwargs in self.comparison_config.items():
+
+                kwargs = {**self.baseline_kwargs.copy(), **grid_experiment_kwargs, **experiment_kwargs}
+                self.predictors[f'{experiment_name}_{grid_experiment_name}'] = AgePredictor(**kwargs)
+
+                if self.compare_feature_importance:
+                    self.predictors[f'{experiment_name}_{grid_experiment_name}'].calculate_SHAP_values()
+
+
+    def evaluate_comparison(self):
+        age_distributions = {}
+        comparison_metrics = []
+        for name, predictor in self.predictors.items():
+            eval_metrics = {}
+            eval_metrics['name'] =  name
+            eval_metrics['R2'] =  metrics.r2_score(predictor.y_test, predictor.y_predict)
+            eval_metrics['MAE'] =  metrics.mean_absolute_error(predictor.y_test, predictor.y_predict)
+            eval_metrics['RMSE'] =  np.sqrt(metrics.mean_squared_error(predictor.y_test, predictor.y_predict))
+            comparison_metrics.append(eval_metrics)
+
+            age_distributions[f'{name}_predict'] = predictor.y_predict[dataset.AGE_ATTRIBUTE]
+            age_distributions[f'{name}_test'] = predictor.y_test[dataset.AGE_ATTRIBUTE]
+
+        visualizations.plot_distribution(age_distributions)
+        return pd.DataFrame(comparison_metrics).sort_values(by=['R2'])
+
+
+    def evaluate_feature_importance(self, normalize_by_number_of_features=True):
+        baseline_importance_df = self.predictors.get('baseline').normalized_feature_importance().set_index('feature')
+
+        for name, predictor in self.predictors.items():
+            importance_df = predictor.normalized_feature_importance().set_index('feature')
+            normalization_factor = len(importance_df) if normalize_by_number_of_features else 1
+            baseline_importance_df['diff_' + name] = (importance_df['normalized_importance'] - baseline_importance_df['normalized_importance']) * normalization_factor
+
+        baseline_importance_df['var'] = baseline_importance_df.var(axis=1)
+
+        for name in self.grid_comparison_config.keys():
+            columns = [c for c in baseline_importance_df.columns if name in c]
+            baseline_importance_df['agg_diff_' + name] = baseline_importance_df[columns].sum(axis=1)
+
+        return baseline_importance_df.sort_values(by='var', ascending=False)
+
+
+    def determine_predictor_identifier(self, param_name, param_value, baseline_value):
+        if param_name == 'preprocessing_stages':
+            additional_stages = list(set(param_value) - set(baseline_value))
+            stage_names = [getattr(stage, '__name__', stage) for stage in additional_stages]
+            return f'add_preprocessing:{stage_names}'
+
+        return f'{param_name}_{param_value}'
+
+
 def tune_hyperparameter(model, X, y):
     params = {
         'max_depth': [1, 3, 6, 10],  # try ada trees
