@@ -7,6 +7,7 @@ import numpy as np
 import pandas as pd
 import geopandas as gpd
 from shapely import wkt
+from sklearn import model_selection
 
 # Comments on binning / categorizing numeric variables
 #
@@ -52,6 +53,32 @@ def dummy_encoding(df, var):
 
 def custom_round(column, base=5):
     return column.apply(lambda x: int(base * round(float(x)/base)))
+
+
+def tune_hyperparameter(model, X, y):
+    params = {
+        'max_depth': [1, 3, 6, 10],  # try ada trees
+        'learning_rate': [0.05, 0.1, 0.3],
+        'n_estimators': [100, 500, 1000],
+        'colsample_bytree': [0.3, 0.5, 0.7],
+        'subsample': [0.7, 1.0],
+    }
+
+    # https://scikit-learn.org/stable/modules/model_evaluation.html#scoring-parameter
+    clf = model_selection.GridSearchCV(estimator=model,
+                                       param_grid=params,
+                                       scoring='neg_root_mean_squared_error',
+                                       verbose=1)
+    clf.fit(X, y)
+    print("Best parameters: ", clf.best_params_)
+    print("Lowest RMSE: ", np.sqrt(-clf.best_score_))
+
+    tuning_results = pd.concat([pd.DataFrame(clf.cv_results_["params"]), pd.DataFrame(
+        clf.cv_results_["mean_test_score"], columns=["Accuracy"])], axis=1)
+    tuning_results.to_csv('hyperparameter-tuning-results.csv', sep='\t')
+    print('All hyperparameter tuning results:\n', tuning_results)
+
+    return clf.best_params_
 
 
 def split_target_var(df):
