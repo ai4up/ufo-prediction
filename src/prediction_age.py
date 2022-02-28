@@ -21,11 +21,14 @@ class AgePredictor(Regressor):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs, target_attribute=dataset.AGE_ATTRIBUTE, initialize_only=True)
 
+        logger.info(f"Dataset standard deviation: {self.df[dataset.AGE_ATTRIBUTE].std()}")
+        logger.info(f"Dataset mean age: {self.df[dataset.AGE_ATTRIBUTE].mean()}")
+
         self._preprocess()
 
         # The standard deviation in the test set gives us an indication of a baseline. We want to be able to be substantially below that value.
-        logger.info(f"Standard deviation of test set after preprocessing: {self.y_test.std()}")
-        logger.info(f"Mean age of test set after preprocessing: {self.y_test.mean()}")
+        logger.info(f"Test dataset standard deviation after preprocessing: {self.y_test[dataset.AGE_ATTRIBUTE].std()}")
+        logger.info(f"Test dataset mean age after preprocessing: {self.y_test[dataset.AGE_ATTRIBUTE].mean()}")
 
         self._train()
         self._predict()

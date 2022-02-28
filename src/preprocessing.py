@@ -109,6 +109,16 @@ def remove_non_residential_buildings(df):
     return df[df['type_source'] == 'Résidentiel']
 
 
+def group_non_residential_buildings(df):
+    df['type_source'].loc[df['type_source'] != 'Résidentiel'] = 'non-residential'
+    return df
+
+
+def remove_buildings_with_unknown_type(df):
+    df = df[df['type_source'] != 'Indifférencié']
+    return df
+
+
 def undersample_skewed_distribution(df):
     rus = RandomUnderSampler(random_state=dataset.GLOBAL_REPRODUCIBILITY_SEED)
     X, y = utils.split_target_var(df)
@@ -119,6 +129,11 @@ def undersample_skewed_distribution(df):
 
     undersampled_df = pd.concat([undersampled_X, undersampled_y], axis=1, join="inner")
     return undersampled_df
+
+
+def categorical_to_int(df, var):
+    df[var] = df[var].astype('category').cat.codes
+    return df
 
 
 def categorize_age(df, bins):
