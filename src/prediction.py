@@ -247,7 +247,7 @@ class Classifier(Predictor):
 
 
     def print_classification_report(self):
-        print(metrics.classification_report(self.y_test, self.y_predict[[self.target_attribute]]))
+        print(metrics.classification_report(self.y_test, self.y_predict[[self.target_attribute]], target_names=self.labels))
         print(f"Cohen’s kappa: {metrics.cohen_kappa_score(self.y_test, self.y_predict[[self.target_attribute]])}")
 
 
