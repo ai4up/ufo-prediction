@@ -12,40 +12,32 @@ FRAGMENTED_CITY_REGEX = "(.*?)(-| +\d+er? +\(?)(Sud|Est|Ouest|Nord|Canton|arrond
 
 # find all cities which include Sud, Est, Ouest, Nord or Canton syllabus
 # group them based on their basename (also includes the city with just the basename if existing)
-def get_fragmented_level_4_cities_regex(data_gadm_boundaries):
+def get_fragmented_cities_regex(gadm_boundaries, level=4):
+    gadm_region_columns = [f'NAME_{l}' for l in range(level+1)]
+    gadm_boundaries = gadm_boundaries.drop_duplicates(subset=gadm_region_columns)
+
     # get fragmented city candidates based on regex
-    fragmented_city_candidates = defaultdict(list)
-    for city in data_gadm_boundaries['NAME_4'].unique():
+    frag_candidates = defaultdict(list)
+    for city in gadm_boundaries[gadm_region_columns[-1]].unique():
         match = re.match(FRAGMENTED_CITY_REGEX, city)
         if match is not None:
-            fragmented_city_candidates[match.group(1)].append(match.string)
+            frag_candidates[match.group(1)].append(match.string)
 
     # validate that fragmented city candidates are in same region
-    fragmented_city_candidates_clustered_by_region = []
-    for k, v in fragmented_city_candidates.items():
-        fragmented_city_candidates_clustered_by_region.extend(data_gadm_boundaries[data_gadm_boundaries['NAME_4'].isin([k]+v)].groupby('NAME_3')['NAME_4'].apply(list).values)
-    fragmented_cities = [c for c in fragmented_city_candidates_clustered_by_region if len(c) > 1]
+    frag_candidates_clustered_by_region = []
+    for k, v in frag_candidates.items():
+        gadm_boundaries_candidate = gadm_boundaries[gadm_boundaries[gadm_region_columns[-1]].isin([k]+v)]
+        frag_candidates_clustered_by_region.extend(gadm_boundaries_candidate.groupby(gadm_region_columns[:-1])[gadm_region_columns[-1]].apply(list).values)
 
+    fragmented_cities = [c for c in frag_candidates_clustered_by_region if len(c) > 1]
     return fragmented_cities
 
 
-# def get_fragmented_level_4_cities_clustering(data_boundaries):
 def get_fragmented_cities_clustering(data_boundaries, level=4):
     gadm_region_columns = [f'NAME_{l}' for l in range(level+1)]
     df = data_boundaries.drop_duplicates(subset=gadm_region_columns)
     cities_grouped_by_region = df.groupby(gadm_region_columns[:-1])[gadm_region_columns[-1]].apply(list).values
 
-    fragmented_city_candidates = []
-    for cities in cities_grouped_by_region:
-        regional_candidates = _cluster_cities_based_on_string_distance(cities)
-        fragmented_city_candidates.extend(regional_candidates.values())
-
-    return fragmented_city_candidates
-
-
-def get_fragmented_level_3_cities_clustering(data_boundaries):
-    df = data_boundaries.drop_duplicates(subset=['NAME_0', 'NAME_1', 'NAME_2', 'NAME_3'])
-    cities_grouped_by_region = df.groupby(['NAME_0', 'NAME_1', 'NAME_2'])['NAME_3'].apply(list).values
     fragmented_city_candidates = []
     for cities in cities_grouped_by_region:
         regional_candidates = _cluster_cities_based_on_string_distance(cities)
