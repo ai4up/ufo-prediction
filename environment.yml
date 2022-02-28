@@ -47,6 +47,7 @@ dependencies:
     - ipython==8.0.1
     - ipython-genutils==0.2.0
     - jedi==0.18.1
+    - jellyfish==0.9.0
     - jinja2==3.0.3
     - joblib==1.1.0
     - jsonschema==4.4.0
@@ -85,6 +86,7 @@ dependencies:
     - pygments==2.11.2
     - pyparsing==3.0.7
     - pyproj==3.3.0
+    - pyqt5==5.15.6
     - pyrsistent==0.18.1
     - python-dateutil==2.8.2
     - pytz==2021.3
