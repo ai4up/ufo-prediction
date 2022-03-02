@@ -14,17 +14,24 @@ from imblearn.under_sampling import RandomUnderSampler
 logger = logging.getLogger(__name__)
 
 
-def remove_other_attributes(df):
-    return df.drop(columns=dataset.OTHER_ATTRIBUTES)
+def remove_non_type_attributes(df):
+    return remove_other_attributes(df, target=dataset.TYPE_ATTRIBUTE)
+
+
+def remove_other_attributes(df, target=dataset.AGE_ATTRIBUTE):
+    other_attributes = dataset.TARGET_ATTRIBUTES.copy()
+    other_attributes.remove(target)
+    return df.drop(columns=other_attributes)
 
 
 def keep_other_attributes(df):
     # Remove all buildings that do not have one of our four variables (age/type/floor/height).
-    df = df.dropna(subset=dataset.OTHER_ATTRIBUTES+[dataset.AGE_ATTRIBUTE])
-    df = df[df[dataset.TYPE_ATTRIBUTE] != 'Indifférencié']
+    df = df.dropna(subset=dataset.TARGET_ATTRIBUTES)
+    df = remove_buildings_with_unknown_type(df)
 
-    # Encode 'usage type', which is a categorical variable, into multiple dummy variables.
-    df = utils.dummy_encoding(df, dataset.TYPE_ATTRIBUTE)
+    # Encode categorical variable building type
+    # df = utils.dummy_encoding(df, dataset.TYPE_ATTRIBUTE) # one-hot encoding
+    df = categorical_to_int(df, dataset.TYPE_ATTRIBUTE) # label encoding
     return df
 
 
@@ -106,16 +113,16 @@ def remove_outliers(df):
 
 
 def remove_non_residential_buildings(df):
-    return df[df['type_source'] == 'Résidentiel']
+    return df[df[dataset.TYPE_ATTRIBUTE] == 'Résidentiel']
 
 
 def group_non_residential_buildings(df):
-    df['type_source'].loc[df['type_source'] != 'Résidentiel'] = 'non-residential'
+    df[dataset.TYPE_ATTRIBUTE].loc[df[dataset.TYPE_ATTRIBUTE] != 'Résidentiel'] = 'non-residential'
     return df
 
 
 def remove_buildings_with_unknown_type(df):
-    df = df[df['type_source'] != 'Indifférencié']
+    df = df[df[dataset.TYPE_ATTRIBUTE] != 'Indifférencié']
     return df
 
 
