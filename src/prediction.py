@@ -3,12 +3,14 @@ import inspect
 
 import dataset
 import utils
+import visualizations
 
 import shap
 import pandas as pd
 import numpy as np
 import sklearn
 from sklearn import metrics
+import matplotlib.pyplot as plt
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -31,6 +33,7 @@ class Predictor:
         self.X_test = None
         self.y_test = None
         self.y_predict = None
+        self.evals_result = None
         self.shap_explainer = None
         self.shap_values = None
         self.sample_weights = None
@@ -42,6 +45,7 @@ class Predictor:
 
 
     def _preprocess(self):
+        # Cleaning
         self.df.dropna(subset=[self.target_attribute], inplace=True)
         self.df.drop_duplicates(subset=['id'], inplace=True)
         logger.info(f'Dataset length: {len(self.df)}')
@@ -51,7 +55,7 @@ class Predictor:
         logger.info(f'Training dataset length: {len(df_train)}')
         logger.info(f'Test dataset length: {len(df_test)}')
 
-        # Preprocessing & Cleaning
+        # Preprocessing
         for func in self.preprocessing_stages:
             params = inspect.signature(func).parameters
 
@@ -101,6 +105,7 @@ class Predictor:
         eval_set = [(self.X_train, self.y_train), (self.X_test, self.y_test)]
         early_stopping = self.model.n_estimators / 10
         self.model.fit(self.X_train, self.y_train, sample_weight=self.sample_weights, verbose=False, eval_set=eval_set, early_stopping_rounds=early_stopping)
+        self.evals_result = self.model.evals_result()
 
 
     def _predict(self):
@@ -164,7 +169,8 @@ class Predictor:
     def feature_dependence_plot(self, feature1, feature2, low_percentile=0, high_percentile=100, transparency=1):
         self.calculate_SHAP_values()
         shap.dependence_plot(feature1, self.shap_values, self.X_train, interaction_index=feature2,
-                             xmin=f"percentile({low_percentile})", xmax=f"percentile({high_percentile})", alpha=transparency)
+                            xmin=f"percentile({low_percentile})", xmax=f"percentile({high_percentile})", alpha=transparency)
+        plt.show()
 
 
     def neighborhood_feature_importance(self):
@@ -246,9 +252,44 @@ class Classifier(Predictor):
         return sampled_class
 
 
+    def normalized_feature_importance(self):
+        # Calculate feature importance based on SHAP values
+        self.calculate_SHAP_values()
+
+        # average across classes for multiclass classification
+        axis = (0,1) if np.array(self.shap_values).ndim == 3 else 0
+
+        avg_shap_value = np.abs(self.shap_values).mean(axis=axis)
+        normalized_shap_value = avg_shap_value / sum(avg_shap_value)
+        feature_names = self.X_train.columns
+
+        feature_importance = pd.DataFrame(
+            {'feature': feature_names, 'normalized_importance': normalized_shap_value})
+        return feature_importance.sort_values(by=['normalized_importance'], ascending=False)
+
+
+    def feature_dependence_plot(self, feature1, feature2, low_percentile=0, high_percentile=100, transparency=1):
+        self.calculate_SHAP_values()
+
+        # binary classification
+        if np.array(self.shap_values).ndim != 3:
+            shap.dependence_plot(feature1, self.shap_values, self.X_train, interaction_index=feature2,
+                            xmin=f"percentile({low_percentile})", xmax=f"percentile({high_percentile})", alpha=transparency)
+            return
+
+        # multiclass classification
+        axis = utils.grid_subplot(len(self.shap_values))
+        for idx, class_shap_values in enumerate(self.shap_values):
+            shap.dependence_plot(feature1, class_shap_values, self.X_train, interaction_index=feature2,
+                            xmin=f"percentile({low_percentile})", xmax=f"percentile({high_percentile})", alpha=transparency,
+                            ax=axis[idx], title=self.labels[idx], show=False)
+        plt.show()
+
+
     def print_classification_report(self):
         print(metrics.classification_report(self.y_test, self.y_predict[[self.target_attribute]], target_names=self.labels))
         print(f"Cohen’s kappa: {metrics.cohen_kappa_score(self.y_test, self.y_predict[[self.target_attribute]])}")
+        print(f"Matthews correlation coefficient (MCC): {metrics.matthews_corrcoef(self.y_test, self.y_predict[[self.target_attribute]])}")
 
 
 class PredictorComparison:
@@ -289,3 +330,9 @@ class PredictorComparison:
             baseline_importance_df['agg_diff_' + name] = baseline_importance_df[columns].sum(axis=1)
 
         return baseline_importance_df.sort_values(by='var', ascending=False)
+
+
+    def plot_feature_importance_changes(self):
+        dfs = [p.normalized_feature_importance() for p in self.predictors.values()]
+        all_top_5_features =  set().union(*[df[:5]['feature'].values for df in dfs])
+        visualizations.slope_chart(dfs, labels=self.predictors.keys(), feature_selection=all_top_5_features)

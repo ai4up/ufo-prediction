@@ -144,6 +144,18 @@ def plot_eval_metric(model, metric, title, scale_y_axis=False, **kwargs):
         ax.set_title('XGBoost ' + title)
 
 
+def plot_models_classification_error(evals_results, **kwargs):
+    with SubplotManager(**kwargs) as ax:
+        for name, result in evals_results.items():
+            x_axis = range(0, len(result))
+            ax.plot(x_axis, result, label=name)
+
+        ax.legend(loc='upper right')
+        ax.set_xlabel('epochs / trees')
+        ax.set_ylabel('error / merror')
+        ax.set_title('XGBoost Classification Error Comparison')
+
+
 def plot_confusion_matrix(y_test, y_predict, class_labels, **kwargs):
     with SubplotManager(**kwargs) as ax:
         cm = metrics.confusion_matrix(y_test, y_predict)
@@ -218,6 +230,26 @@ def plot_attribute_on_map(attribute_df, geometry_df, attribute_name, boundaries_
     if boundaries_df is not None:
         boundaries_df.to_crs(crs).exterior.plot(ax=ax)
     plt.show()
+
+
+def slope_chart(dfs, labels=None, feature_selection=None, **kwargs):
+    xticks = list(range(0, len(dfs)))
+    df = pd.concat(dfs, axis=0, keys=xticks).reset_index(level=[0])
+    df = df[df['feature'].isin(feature_selection)]
+
+    with SubplotManager(**kwargs) as ax:
+        for feature, group in df.groupby('feature'):
+            ax.plot(group['level_0'], group['normalized_importance'], marker='o', markersize=5)
+            ax.text(-0.05, group['normalized_importance'].values[0], feature, ha='right')
+            ax.text(len(dfs)-0.95, group['normalized_importance'].values[-1], feature, ha='left')
+
+        if labels:
+            ax.set_xticks(xticks, labels, rotation=45, ha='right', rotation_mode='anchor')
+        ax.set_xlim(-1, len(dfs))
+        ax.set_ylim(bottom=0.01)
+        ax.set_yscale('log')
+        ax.set_yticks(ticks=[0.01, 0.02, 0.05, 0.1, 0.2], labels=['1%', '2%', '5%', '10%', '20%'])
+        ax.set_title('Feature Importance Changes')
 
 
 class SubplotManager:

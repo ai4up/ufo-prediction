@@ -8,6 +8,7 @@ import pandas as pd
 import geopandas as gpd
 from shapely import wkt
 from sklearn import model_selection
+import matplotlib.pyplot as plt
 
 # Comments on binning / categorizing numeric variables
 #
@@ -91,6 +92,13 @@ def duplicates(df):
     print(len(df))
     print(len(df['id'].unique()))
     return df[df.duplicated(keep=False)]
+
+
+def grid_subplot(n_plots, n_cols=4):
+    ncols = n_cols if n_plots > n_cols else n_plots
+    nrows = math.ceil(n_plots / n_cols)
+    _, axis = plt.subplots(nrows, ncols, figsize=(30, 20), constrained_layout=True)
+    return [axis[idx // n_cols, idx % n_cols] if n_plots > n_cols else axis[idx % n_cols] for idx in range(0, n_plots)]
 
 
 def to_gdf(df, crs=2154):

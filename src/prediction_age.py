@@ -96,10 +96,10 @@ class AgePredictorComparison(PredictorComparison):
         comparison_metrics = []
         for name, predictor in self.predictors.items():
             eval_metrics = {}
-            eval_metrics['name'] =  name
-            eval_metrics['R2'] =  metrics.r2_score(predictor.y_test, predictor.y_predict)
-            eval_metrics['MAE'] =  metrics.mean_absolute_error(predictor.y_test, predictor.y_predict)
-            eval_metrics['RMSE'] =  np.sqrt(metrics.mean_squared_error(predictor.y_test, predictor.y_predict))
+            eval_metrics['name'] = name
+            eval_metrics['R2'] = metrics.r2_score(predictor.y_test, predictor.y_predict)
+            eval_metrics['MAE'] = metrics.mean_absolute_error(predictor.y_test, predictor.y_predict)
+            eval_metrics['RMSE'] = np.sqrt(metrics.mean_squared_error(predictor.y_test, predictor.y_predict))
             comparison_metrics.append(eval_metrics)
 
             age_distributions[f'{name}_predict'] = predictor.y_predict[dataset.AGE_ATTRIBUTE]
@@ -110,7 +110,7 @@ class AgePredictorComparison(PredictorComparison):
 
 
     def evaluate_comparison(self):
-        self.evaluate() # for backwards compatibility
+        return self.evaluate() # for backwards compatibility
 
 
     def determine_predictor_identifier(self, param_name, param_value, baseline_value):
