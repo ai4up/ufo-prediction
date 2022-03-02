@@ -12,7 +12,7 @@ from sklearn import cluster
 logger = logging.getLogger(__name__)
 
 # arronissement is added because of inconsistencies / typo in GADM data 3.6
-FRAGMENTED_CITY_REGEX = "(.*?)(-| +\d+er? +\(?)(Sud|Est|Ouest|Nord|arrondissement|arronissement)(-|\)| |$)"
+FRAGMENTED_CITY_REGEX = "(.*?)(-|,? +\d+er? +\(?)(Sud|Est|Ouest|Nord|arrondissement|arronissement)(-|\)| |$)"
 
 # find all cities which include Sud, Est, Ouest, Nord, Canton or arrondissement syllabus
 # group them based on their basename (also includes the city with just the basename if existing)
