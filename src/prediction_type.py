@@ -5,7 +5,7 @@ import utils
 import visualizations
 import dataset
 import preprocessing
-from prediction import Classifier, Regressor, PredictorComparison
+from prediction import Classifier, PredictorComparison
 
 import pandas as pd
 import numpy as np
@@ -26,9 +26,7 @@ class TypeClassifier(Classifier):
 
         self.preprocessing_stages.append(partial(preprocessing.categorical_to_int, var=self.target_attribute))
 
-        self._preprocess()
-        self._train()
-        self._predict()
+        self._e2e_training()
 
 
     def evaluate(self):

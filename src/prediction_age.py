@@ -19,19 +19,22 @@ logger.setLevel(logging.INFO)
 class AgePredictor(Regressor):
 
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs, target_attribute=dataset.AGE_ATTRIBUTE, initialize_only=True)
+        super().__init__(*args, **kwargs, target_attribute=dataset.AGE_ATTRIBUTE)
 
+
+    def _pre_preprocess_analysis_hook(self):
         logger.info(f"Dataset standard deviation: {self.df[dataset.AGE_ATTRIBUTE].std()}")
         logger.info(f"Dataset mean age: {self.df[dataset.AGE_ATTRIBUTE].mean()}")
+        logger.info(f'Training dataset length: {len(self.df_train)}')
+        logger.info(f'Test dataset length: {len(self.df_test)}')
 
-        self._preprocess()
 
+    def _post_preprocess_analysis_hook(self):
         # The standard deviation in the test set gives us an indication of a baseline. We want to be able to be substantially below that value.
-        logger.info(f"Test dataset standard deviation after preprocessing: {self.y_test[dataset.AGE_ATTRIBUTE].std()}")
-        logger.info(f"Test dataset mean age after preprocessing: {self.y_test[dataset.AGE_ATTRIBUTE].mean()}")
-
-        self._train()
-        self._predict()
+        logger.info(f"Test dataset standard deviation after preprocessing: {self.df_test[dataset.AGE_ATTRIBUTE].std()}")
+        logger.info(f"Test dataset mean age after preprocessing: {self.df_test[dataset.AGE_ATTRIBUTE].mean()}")
+        logger.info(f'Training dataset length after preprocessing: {len(self.df_train)}')
+        logger.info(f'Test dataset length after preprocessing: {len(self.df_test)}')
 
 
     def evaluate(self):
@@ -60,15 +63,12 @@ class AgeClassifier(Classifier):
 
         super().__init__(*args, **kwargs, target_attribute=dataset.AGE_ATTRIBUTE, labels=utils.generate_labels(self.bins), initialize_only=True)
 
-
         logger.info(f'Generated bins: {self.bins}')
         logger.info(f'Generated bins with the following labels: {self.labels}')
 
         self.preprocessing_stages.append(partial(preprocessing.categorize_age, bins=self.bins))
 
-        self._preprocess()
-        self._train()
-        self._predict()
+        self._e2e_training()
 
 
     def evaluate(self):

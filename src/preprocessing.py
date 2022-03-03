@@ -35,6 +35,18 @@ def keep_other_attributes(df):
     return df
 
 
+def city_cross_validation(df):
+    group_kfold = model_selection.GroupKFold(n_splits=5)
+    cities = df['city'].values
+    return group_kfold.split(df, groups=cities)
+
+
+def cross_validation(df):
+    kfold = model_selection.KFold(n_splits=5, shuffle=True, random_state=dataset.GLOBAL_REPRODUCIBILITY_SEED)
+    # cities = df['id'].values
+    return kfold.split(df)
+
+
 def normalize_features(df_train, df_test):
     scaler = preprocessing.MinMaxScaler()
     feature_columns = list(set(df_train.columns) - set(dataset.AUX_VARS) - set(dataset.TARGET_ATTRIBUTES))

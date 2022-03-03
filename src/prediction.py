@@ -18,10 +18,11 @@ logger.setLevel(logging.INFO)
 
 class Predictor:
 
-    def __init__(self, model, df, test_training_split, preprocessing_stages=[], target_attribute=None, mitigate_class_imbalance=False, hyperparameter_tuning=False, hyperparameters=None, initialize_only=False) -> None:
+    def __init__(self, model, df, test_training_split=None, cross_validatation_split=None, preprocessing_stages=[], target_attribute=None, mitigate_class_imbalance=False, hyperparameter_tuning=False, hyperparameters=None, initialize_only=False) -> None:
         self.model = model
         self.df = df.copy()
         self.test_training_split = test_training_split
+        self.cross_validatation_split = cross_validatation_split
         self.preprocessing_stages = preprocessing_stages
         self.target_attribute = target_attribute
         self.mitigate_class_imbalance = mitigate_class_imbalance
@@ -39,53 +40,60 @@ class Predictor:
         self.sample_weights = None
 
         if not initialize_only:
-            self._preprocess()
-            self._train()
-            self._predict()
+            self._e2e_training()
 
 
-    def _preprocess(self):
-        # Cleaning
+    def _e2e_training(self):
+            self._clean()
+            # self._preprocess_before_splitting()
+
+            for _ in self._cv_aware_split():
+                self._pre_preprocess_analysis_hook()
+                self._preprocess()
+                self._post_preprocess_analysis_hook()
+                self._train()
+                self._predict()
+
+
+    def _clean(self):
         self.df.dropna(subset=[self.target_attribute], inplace=True)
         self.df.drop_duplicates(subset=['id'], inplace=True)
         logger.info(f'Dataset length: {len(self.df)}')
 
-        # Test & Training Split
-        df_train, df_test = self.test_training_split(self.df)
-        logger.info(f'Training dataset length: {len(df_train)}')
-        logger.info(f'Test dataset length: {len(df_test)}')
 
-        # Preprocessing
+    def _pre_preprocess_analysis_hook(self):
+        logger.info(f'Training dataset length: {len(self.df_train)}')
+        logger.info(f'Test dataset length: {len(self.df_test)}')
+
+
+    def _post_preprocess_analysis_hook(self):
+        logger.info(f'Training dataset length after preprocessing: {len(self.df_train)}')
+        logger.info(f'Test dataset length after preprocessing: {len(self.df_test)}')
+
+
+    def _preprocess(self):
+
         for func in self.preprocessing_stages:
             params = inspect.signature(func).parameters
 
             if 'df_train' in params and 'df_test' in params:
-                df_train, df_test = func(df_train=df_train, df_test=df_test)
+                self.df_train, self.df_test = func(df_train=self.df_train, df_test=self.df_test)
             else:
-                df_train = func(df_train)
-                df_test = func(df_test)
+                self.df_train = func(self.df_train)
+                self.df_test = func(self.df_test)
 
-        logger.info(f'Training dataset length after preprocessing: {len(df_train)}')
-        logger.info(f'Test dataset length after preprocessing: {len(df_test)}')
 
-        df_train = sklearn.utils.shuffle(df_train, random_state=dataset.GLOBAL_REPRODUCIBILITY_SEED)
-        df_test = sklearn.utils.shuffle(df_test, random_state=dataset.GLOBAL_REPRODUCIBILITY_SEED)
+        self.df_train = sklearn.utils.shuffle(self.df_train, random_state=dataset.GLOBAL_REPRODUCIBILITY_SEED)
+        self.df_test = sklearn.utils.shuffle(self.df_test, random_state=dataset.GLOBAL_REPRODUCIBILITY_SEED)
 
-        self.aux_vars_train = df_train[dataset.AUX_VARS]
-        self.aux_vars_test = df_test[dataset.AUX_VARS]
+        self.aux_vars_train = self.df_train[dataset.AUX_VARS]
+        self.aux_vars_test = self.df_test[dataset.AUX_VARS]
 
-        self.X_train = df_train.drop(columns=dataset.AUX_VARS+[self.target_attribute])
-        self.y_train = df_train[[self.target_attribute]]
+        self.X_train = self.df_train.drop(columns=dataset.AUX_VARS+[self.target_attribute])
+        self.y_train = self.df_train[[self.target_attribute]]
 
-        self.X_test = df_test.drop(columns=dataset.AUX_VARS+[self.target_attribute])
-        self.y_test = df_test[[self.target_attribute]]
-
-        self.aux_vars_train.reset_index(drop=True, inplace=True)
-        self.aux_vars_test.reset_index(drop=True, inplace=True)
-        self.X_train.reset_index(drop=True, inplace=True)
-        self.y_train.reset_index(drop=True, inplace=True)
-        self.X_test.reset_index(drop=True, inplace=True)
-        self.y_test.reset_index(drop=True, inplace=True)
+        self.X_test = self.df_test.drop(columns=dataset.AUX_VARS+[self.target_attribute])
+        self.y_test = self.df_test[[self.target_attribute]]
 
 
     def _train(self):
@@ -111,6 +119,34 @@ class Predictor:
     def _predict(self):
         self.y_predict = pd.DataFrame(
             {self.target_attribute: self.model.predict(self.X_test)})
+
+
+    def _cv_aware_split(self):
+        if not self.test_training_split and not self.cross_validatation_split:
+            logger.exception('Please specify either a test_training_split or cross_validatation_split function.')
+
+        if self.test_training_split and self.cross_validatation_split:
+            logger.warning('Both, a test_training_split and cross_validatation_split function are specified. The cross_validatation_split function will take precedence and test_training_split will be ignored.')
+
+        if not self.cross_validatation_split:
+            self.df_train, self.df_test = self.test_training_split(self.df)
+            yield
+            return
+
+        y_predict_all_cv_folds = pd.DataFrame()
+        y_test_all_cf_folds = pd.DataFrame()
+
+        for train_idx, test_idx in self.cross_validatation_split(self.df):
+            self.df_train = self.df.iloc[train_idx]
+            self.df_test = self.df.iloc[test_idx]
+
+            yield
+
+            y_predict_all_cv_folds = pd.concat([y_predict_all_cv_folds, self.y_predict], axis=0)
+            y_test_all_cf_folds = pd.concat([y_test_all_cf_folds, self.y_test], axis=0)
+
+        self.y_test = y_test_all_cf_folds
+        self.y_predict = y_predict_all_cv_folds
 
 
     def evaluate(self):
@@ -232,9 +268,7 @@ class Classifier(Predictor):
         self.model.set_params(objective=objective, eval_metric=eval_metric, use_label_encoder=False)
 
         if not initialize_only:
-            self._preprocess()
-            self._train()
-            self._predict()
+            self._e2e_training()
 
 
     def _predict(self):
