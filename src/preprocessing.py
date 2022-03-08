@@ -192,9 +192,13 @@ def categorical_to_int(df, var):
 
 def categorize_age(df, bins):
     df[dataset.AGE_ATTRIBUTE] = pd.cut(df[dataset.AGE_ATTRIBUTE], bins, right=False).cat.codes
-    df = df[df[dataset.AGE_ATTRIBUTE] >= 0]
-    logger.info(f'{dataset.AGE_ATTRIBUTE} attribute has been categorized (lowest age included: {bins[0]}; highest age included: {bins[-1]-1}; other buildings have been removed).')
-    return df
+    df_filtered = df[df[dataset.AGE_ATTRIBUTE] >= 0]
+
+    logger.info(f'{dataset.AGE_ATTRIBUTE} attribute has been categorized (lowest age included: {bins[0]}; highest age included: {bins[-1]-1}).')
+    if n_buildings_removed := len(df) - len(df_filtered):
+        logger.warning(f'During {dataset.AGE_ATTRIBUTE} categorization {n_buildings_removed} buildings outside the age bins have been removed.')
+
+    return df_filtered
 
 
 def categorize_age_custom_bands(df):
