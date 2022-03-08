@@ -15,17 +15,20 @@ import matplotlib.pyplot as plt
 DATA_DIR = os.path.join('..', 'data')
 DATA_GEO_DIR = os.path.join(DATA_DIR, 'geographics')
 
-# Comments on binning / categorizing numeric variables
-#
-# np.histogram which is being used by plt.hist and sns.histplot defines bins to be left closed/inclusive,
-# except the last bin which is closed on both sides, e.g. [0,1,2,3] results in [[0,1), [1,2), [2,3]].
-#
-# To be consistent, left closed/inclusive intervals are used as well when categorizing numeric variables with pd.cut.
-# Methods, which determine bin edges/breaks, also assume subsequent left closed/inclusive binning.
+"""
+Comments on binning / categorizing numeric variables
 
+np.histogram which is being used by plt.hist and sns.histplot defines bins to be left closed/inclusive,
+except the last bin which is closed on both sides, e.g. [0,1,2,3] results in [[0,1), [1,2), [2,3]].
+
+To be consistent, left closed/inclusive intervals are used as well when categorizing numeric variables with pd.cut.
+Methods, which determine bin edges/breaks, also assume subsequent left closed/inclusive binning.
+"""
 def age_bins(y, bin_size=1):
-    min_age = math.floor(y[dataset.AGE_ATTRIBUTE].min()) # inclusive
-    max_age = math.ceil(y[dataset.AGE_ATTRIBUTE].max()) # inclusive for histogram plotting, exclusive for categorizing variables
+    # lower bound inclusive
+    min_age = math.floor(y[dataset.AGE_ATTRIBUTE].min())
+    # upper bound inclusive for histogram plotting, exclusive for categorizing variables
+    max_age = math.ceil(y[dataset.AGE_ATTRIBUTE].max())
     return list(range(min_age, max_age+1))[0::bin_size]
 
 

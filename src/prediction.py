@@ -43,17 +43,16 @@ class Predictor:
         if not initialize_only:
             self._e2e_training()
 
-
     def _e2e_training(self):
-            self._clean()
-            # self._preprocess_before_splitting()
+        self._clean()
+        # self._preprocess_before_splitting()
 
-            for _ in self._cv_aware_split():
-                self._pre_preprocess_analysis_hook()
-                self._preprocess()
-                self._post_preprocess_analysis_hook()
-                self._train()
-                self._predict()
+        for _ in self._cv_aware_split():
+            self._pre_preprocess_analysis_hook()
+            self._preprocess()
+            self._post_preprocess_analysis_hook()
+            self._train()
+            self._predict()
 
 
     def _clean(self):
@@ -151,7 +150,7 @@ class Predictor:
 
 
     def evaluate(self):
-        raise NotImplementedError("To be implemented.")
+        raise NotImplementedError('To be implemented.')
 
 
     def calculate_SHAP_values(self):
@@ -234,11 +233,12 @@ class Regressor(Predictor):
 
 
     def print_model_error(self):
-        print('MAE: {} y'.format(
-            metrics.mean_absolute_error(self.y_test, self.y_predict)))
-        print('RMSE: {} y'.format(
-            np.sqrt(metrics.mean_squared_error(self.y_test, self.y_predict))))
-        print('R2: {}'.format(metrics.r2_score(self.y_test, self.y_predict)))
+        mae = metrics.mean_absolute_error(self.y_test, self.y_predict)
+        rmse = np.sqrt(metrics.mean_squared_error(self.y_test, self.y_predict))
+        r2 = metrics.r2_score(self.y_test, self.y_predict)
+        print('MAE: {:.2f} y'.format(mae))
+        print('RMSE: {:.2f} y'.format(rmse))
+        print('R2: {:.4f}'.format(r2))
 
 
     def individual_prediction_error(self):
@@ -322,9 +322,12 @@ class Classifier(Predictor):
 
 
     def print_classification_report(self):
-        print(metrics.classification_report(self.y_test, self.y_predict[[self.target_attribute]], target_names=self.labels))
-        print(f"Cohen’s kappa: {metrics.cohen_kappa_score(self.y_test, self.y_predict[[self.target_attribute]])}")
-        print(f"Matthews correlation coefficient (MCC): {metrics.matthews_corrcoef(self.y_test, self.y_predict[[self.target_attribute]])}")
+        report = metrics.classification_report(self.y_test, self.y_predict[[self.target_attribute]], target_names=self.labels)
+        kappa = metrics.cohen_kappa_score(self.y_test, self.y_predict[[self.target_attribute]])
+        mcc = metrics.matthews_corrcoef(self.y_test, self.y_predict[[self.target_attribute]])
+        print(f'Classification report:\n {report}')
+        print(f'Cohen’s kappa: {kappa}')
+        print(f'Matthews correlation coefficient (MCC): {mcc}')
 
 
 class PredictorComparison:

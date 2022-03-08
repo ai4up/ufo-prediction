@@ -132,12 +132,14 @@ class AgeClassifierComparison(PredictorComparison):
         evals_results = {}
         comparison_metrics = []
         for name, predictor in self.predictors.items():
+            test, pred = predictor.y_test, predictor.y_predict[[predictor.target_attribute]]
+
             eval_metrics = {}
             eval_metrics['name'] = name
-            eval_metrics['MCC'] = metrics.matthews_corrcoef(predictor.y_test, predictor.y_predict[[predictor.target_attribute]])
-            eval_metrics['F1'] = metrics.f1_score(predictor.y_test, predictor.y_predict[[predictor.target_attribute]], average='macro')
+            eval_metrics['MCC'] = metrics.matthews_corrcoef(test, pred)
+            eval_metrics['F1'] = metrics.f1_score(test, pred, average='macro')
             for idx, label in enumerate(predictor.labels):
-                eval_metrics[f'Recall_{label}'] = metrics.recall_score(predictor.y_test, predictor.y_predict[[predictor.target_attribute]], pos_label=idx, labels=[idx], average='macro')
+                eval_metrics[f'Recall_{label}'] = metrics.recall_score(test, pred, pos_label=idx, labels=[idx], average='macro')
 
             comparison_metrics.append(eval_metrics)
 
