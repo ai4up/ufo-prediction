@@ -1,5 +1,6 @@
 import logging
 import inspect
+import copy
 
 import dataset
 import utils
@@ -334,7 +335,7 @@ class PredictorComparison:
         self.compare_feature_importance = compare_feature_importance
         self.baseline_kwargs = baseline_kwargs
         self.predictors = {}
-        self.predictors['baseline'] = predictor(**self.baseline_kwargs)
+        self.predictors['baseline'] = predictor(**copy.deepcopy(self.baseline_kwargs))
 
         if self.compare_feature_importance:
             self.predictors['baseline'].calculate_SHAP_values()
@@ -342,12 +343,15 @@ class PredictorComparison:
         for grid_experiment_name, grid_experiment_kwargs in self.grid_comparison_config.items():
             for experiment_name, experiment_kwargs in self.comparison_config.items():
 
-                kwargs = {**self.baseline_kwargs.copy(), **grid_experiment_kwargs, **experiment_kwargs}
-                self.predictors[f'{experiment_name}_{grid_experiment_name}'] = predictor(**kwargs)
+                name = f'{experiment_name}_{grid_experiment_name}'
+                kwargs = {**copy.deepcopy(self.baseline_kwargs), **grid_experiment_kwargs, **experiment_kwargs}
+                logger.info(f'Starting experiment {name}...')
+                logger.debug(f'Training predictor ({name}) with following args:\n{kwargs}')
+
+                self.predictors[name] = predictor(**kwargs)
 
                 if self.compare_feature_importance:
-                    self.predictors[f'{experiment_name}_{grid_experiment_name}'].calculate_SHAP_values()
-
+                    self.predictors[name].calculate_SHAP_values()
 
     def evaluate_feature_importance(self, normalize_by_number_of_features=True):
         baseline_importance_df = self.predictors.get('baseline').normalized_feature_importance().set_index('feature')
