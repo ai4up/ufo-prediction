@@ -120,3 +120,37 @@ class AgePredictorComparison(PredictorComparison):
             return f'add_preprocessing:{stage_names}'
 
         return f'{param_name}_{param_value}'
+
+
+class AgeClassifierComparison(PredictorComparison):
+
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs, predictor=AgeClassifier)
+
+
+    def evaluate(self):
+        evals_results = {}
+        comparison_metrics = []
+        for name, predictor in self.predictors.items():
+            eval_metrics = {}
+            eval_metrics['name'] = name
+            eval_metrics['MCC'] = metrics.matthews_corrcoef(predictor.y_test, predictor.y_predict[[predictor.target_attribute]])
+            eval_metrics['F1'] = metrics.f1_score(predictor.y_test, predictor.y_predict[[predictor.target_attribute]], average='macro')
+            for idx, label in enumerate(predictor.labels):
+                eval_metrics[f'Recall_{label}'] = metrics.recall_score(predictor.y_test, predictor.y_predict[[predictor.target_attribute]], pos_label=idx, labels=[idx], average='macro')
+
+            comparison_metrics.append(eval_metrics)
+
+            eval_metric = 'merror' if predictor.multiclass else 'error'
+            evals_results[f'{name}_train'] = predictor.evals_result['validation_0'][eval_metric]
+            evals_results[f'{name}_test'] = predictor.evals_result['validation_1'][eval_metric]
+
+        _, axis = plt.subplots(figsize=(6, 6), constrained_layout=True)
+        visualizations.plot_models_classification_error(evals_results, ax=axis)
+        plt.show()
+
+        return pd.DataFrame(comparison_metrics).sort_values(by=['MCC'])
+
+
+    def evaluate_comparison(self):
+        return self.evaluate() # for backwards compatibility

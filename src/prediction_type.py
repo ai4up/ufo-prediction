@@ -62,8 +62,9 @@ class TypeClassifierComparison(PredictorComparison):
 
             comparison_metrics.append(eval_metrics)
 
-            evals_results[f'{name}_train'] = predictor.evals_result['validation_0']['error']
-            evals_results[f'{name}_test'] = predictor.evals_result['validation_1']['error']
+            eval_metric = 'merror' if predictor.multiclass else 'error'
+            evals_results[f'{name}_train'] = predictor.evals_result['validation_0'][eval_metric]
+            evals_results[f'{name}_test'] = predictor.evals_result['validation_1'][eval_metric]
 
         _, axis = plt.subplots(figsize=(6, 6), constrained_layout=True)
         visualizations.plot_models_classification_error(evals_results, ax=axis)
