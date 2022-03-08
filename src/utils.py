@@ -7,6 +7,7 @@ import dataset
 import numpy as np
 import pandas as pd
 import geopandas as gpd
+from scipy.sparse import csgraph
 from shapely import wkt
 from sklearn import model_selection
 import matplotlib.pyplot as plt
@@ -117,11 +118,26 @@ def add_geometry_column(df):
 
 
 def load_street_polygons():
+    file_sbb = os.path.join(DATA_DIR, 'harmonized', 'sbb.csv')
+    df_sbb = pd.read_csv(file_sbb)
+    return to_gdf(df_sbb)
+
+
+def prepare_street_polygons_file():
     files_sbb = glob.glob(os.path.join(DATA_GEO_DIR, '*', '*_sbb.csv'))
     data_sbb = pd.concat((pd.read_csv(f) for f in files_sbb), ignore_index=True)
     gdf_sbb = to_gdf(data_sbb)
     gdf_sbb = gdf_sbb.drop_duplicates(subset=['geometry'])
-    return gdf_sbb.reset_index(drop=True)
+    gdf_sbb = merge_intersecting_geometries(gdf_sbb)
+    df = pd.DataFrame(gdf_sbb).reset_index(drop=True)
+    df.to_csv(os.path.join(DATA_DIR, 'harmonized', 'sbb.csv'), index=False)
+
+
+def merge_intersecting_geometries(gdf, aggfunc='first'):
+    overlap_matrix = gdf.geometry.apply(lambda x: gdf.intersects(x)).values.astype(int)
+    _, distinct_groups = csgraph.connected_components(overlap_matrix)
+    gdf['group'] = distinct_groups
+    return gdf.dissolve(by='group', aggfunc=aggfunc)
 
 
 def to_gdf(df, crs=2154):
