@@ -34,13 +34,15 @@ class TypeClassifier(Classifier):
         _, axis = plt.subplots(2, 2, figsize=(14, 10), constrained_layout=True)
         visualizations.plot_classification_error(self.model, multiclass=self.multiclass, ax=axis[0, 0])
         visualizations.plot_log_loss(self.model, multiclass=self.multiclass, ax=axis[0, 1])
-        visualizations.plot_histogram(self.y_test, self.y_predict[[self.target_attribute]], bins=[0,0.5,1], bin_labels=self.labels, ax=axis[1, 0])
-        visualizations.plot_confusion_matrix(self.y_test, self.y_predict[[self.target_attribute]], class_labels=self.labels, ax=axis[1, 1])
+        visualizations.plot_histogram(self.y_test, self.y_predict[[self.target_attribute]], bins=[
+                                      0, 0.5, 1], bin_labels=self.labels, ax=axis[1, 0])
+        visualizations.plot_confusion_matrix(
+            self.y_test, self.y_predict[[self.target_attribute]], class_labels=self.labels, ax=axis[1, 1])
         plt.show()
 
 
     def evaluate_classification(self):
-        self.evaluate() # for backwards compatibility
+        self.evaluate()  # for backwards compatibility
 
 
 class TypeClassifierComparison(PredictorComparison):
@@ -60,7 +62,8 @@ class TypeClassifierComparison(PredictorComparison):
             eval_metrics['MCC'] = metrics.matthews_corrcoef(test, pred)
             eval_metrics['F1'] = metrics.f1_score(test, pred, average='macro')
             for idx, label in enumerate(predictor.labels):
-                eval_metrics[f'Recall_{label}'] = metrics.recall_score(test, pred, pos_label=idx, labels=[idx], average='macro')
+                eval_metrics[f'Recall_{label}'] = metrics.recall_score(
+                    test, pred, pos_label=idx, labels=[idx], average='macro')
 
             comparison_metrics.append(eval_metrics)
 
@@ -76,4 +79,4 @@ class TypeClassifierComparison(PredictorComparison):
 
 
     def evaluate_comparison(self):
-        return self.evaluate() # for backwards compatibility
+        return self.evaluate()  # for backwards compatibility

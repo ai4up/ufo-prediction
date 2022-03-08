@@ -14,10 +14,14 @@ logger = logging.getLogger(__name__)
 # arronissement is added because of inconsistencies / typo in GADM data 3.6
 FRAGMENTED_CITY_REGEX = "(.*?)(-|,? +\d+er? +\(?)(Sud|Est|Ouest|Nord|arrondissement|arronissement)(-|\)| |$)"
 
-# find all cities which include Sud, Est, Ouest, Nord, Canton or arrondissement syllabus
-# group them based on their basename (also includes the city with just the basename if existing)
+
+
 def get_fragmented_cities_regex(gadm_boundaries, level=4):
-    gadm_region_columns = [f'NAME_{l}' for l in range(level+1)]
+    """
+    find all cities which include Sud, Est, Ouest, Nord, Canton or arrondissement syllabus
+    group them based on their basename (also includes the city with just the basename if existing)
+    """
+    gadm_region_columns = [f'NAME_{l}' for l in range(level + 1)]
     gadm_boundaries = gadm_boundaries.drop_duplicates(subset=gadm_region_columns)
 
     # get fragmented city candidates based on regex
@@ -30,8 +34,9 @@ def get_fragmented_cities_regex(gadm_boundaries, level=4):
     # validate that fragmented city candidates are in same region
     frag_candidates_clustered_by_region = []
     for k, v in frag_candidates.items():
-        gadm_boundaries_candidate = gadm_boundaries[gadm_boundaries[gadm_region_columns[-1]].isin([k]+v)]
-        frag_candidates_clustered = gadm_boundaries_candidate.groupby(gadm_region_columns[:-1])[gadm_region_columns[-1]].apply(list).values
+        gadm_boundaries_candidate = gadm_boundaries[gadm_boundaries[gadm_region_columns[-1]].isin([k] + v)]
+        frag_candidates_clustered = gadm_boundaries_candidate.groupby(
+            gadm_region_columns[:-1])[gadm_region_columns[-1]].apply(list).values
         frag_candidates_clustered_w_new_name = tuple((k, frag) for frag in frag_candidates_clustered)
 
         frag_candidates_clustered_by_region.extend(frag_candidates_clustered_w_new_name)
@@ -42,17 +47,18 @@ def get_fragmented_cities_regex(gadm_boundaries, level=4):
 
 def update_gadm_boundaries(gadm_boundaries, fragmented_cities, level=4):
     df = gadm_boundaries.copy()
-    gadm_region_columns = [f'NAME_{l}' for l in range(level+1)]
+    gadm_region_columns = [f'NAME_{l}' for l in range(level + 1)]
 
     for name, fragments in fragmented_cities:
         df.loc[df[f'NAME_{level}'].isin(fragments), f'NAME_{level}'] = name
 
-    logger.warning(f'Level {level}+ attributes of first fragment will be used when aggregating fragments, rendering attributes like GID_4 misleading.')
+    logger.warning(
+        f'Level {level}+ attributes of first fragment will be used when aggregating fragments, rendering attributes like GID_4 misleading.')
     return df.dissolve(gadm_region_columns, aggfunc='first').reset_index()
 
 
 def get_fragmented_cities_clustering(data_boundaries, level=4):
-    gadm_region_columns = [f'NAME_{l}' for l in range(level+1)]
+    gadm_region_columns = [f'NAME_{l}' for l in range(level + 1)]
     df = data_boundaries.drop_duplicates(subset=gadm_region_columns)
     cities_grouped_by_region = df.groupby(gadm_region_columns[:-1])[gadm_region_columns[-1]].apply(list).values
 
@@ -66,15 +72,15 @@ def get_fragmented_cities_clustering(data_boundaries, level=4):
 
 def _cluster_cities_based_on_string_distance(cities):
     def _lev_metric(x, y):
-            i, j = int(x[0]), int(y[0]) # extract indices
-            avg_length = (len(cities[i]) + len(cities[j])) / 2
-            return jellyfish.levenshtein_distance(cities[i], cities[j]) / avg_length
+        i, j = int(x[0]), int(y[0])  # extract indices
+        avg_length = (len(cities[i]) + len(cities[j])) / 2
+        return jellyfish.levenshtein_distance(cities[i], cities[j]) / avg_length
 
     def _jw_metric(x, y):
-            i, j = int(x[0]), int(y[0]) # extract indices
-            return 1 - jellyfish.jaro_winkler(cities[i], cities[j])
+        i, j = int(x[0]), int(y[0])  # extract indices
+        return 1 - jellyfish.jaro_winkler(cities[i], cities[j])
 
-    X =  np.arange(len(cities)).reshape(-1, 1)
+    X = np.arange(len(cities)).reshape(-1, 1)
     core_samples, labels = cluster.dbscan(X, metric=_jw_metric, eps=.1, min_samples=2)
 
     regional_candidates = defaultdict(list)

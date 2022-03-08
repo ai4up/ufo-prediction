@@ -13,6 +13,7 @@ from scipy.stats import kurtosis, skew, norm
 from sklearn import metrics
 from shapely import wkt
 
+
 def plot_histogram(y_test, y_predict, bins=None, bin_labels=[], **kwargs):
     with SubplotManager(**kwargs) as ax:
         if bin_labels:
@@ -93,7 +94,7 @@ def plot_grid(y_test, y_predict):
     g = sns.JointGrid(
         df_test['y_predict'], df_test['y_test'], xlim=time_range, ylim=time_range)
     g.plot_joint(plt.hexbin, cmap="Purples", gridsize=30,
-                 extent=time_range+time_range)
+                 extent=time_range + time_range)
 
     g.ax_joint.plot(time_range, time_range, color='grey', linewidth=1.5)
 
@@ -182,7 +183,9 @@ def plot_feature_over_time(df, feature_selection=None):
                 .fillna(0)
             sns.heatmap(feature_df, cmap="Blues", cbar_kws={"shrink": .7})
         else:
-            feature_df[feature] = feature_df[feature].clip(lower=feature_df[feature].quantile(0.005), upper=feature_df[feature].quantile(0.995))
+            feature_df[feature] = feature_df[feature].clip(
+                lower=feature_df[feature].quantile(0.005),
+                upper=feature_df[feature].quantile(0.995))
             sns.relplot(data=feature_df, x=dataset.AGE_ATTRIBUTE, ci=99, y=feature, kind="line")
         #   sns.relplot(data=df, x=dataset.AGE_ATTRIBUTE, y=feature) #, line_kws={"color": "red"}, scatter_kws={'s':2})
 
@@ -198,9 +201,10 @@ def plot_prediction_error_histogram(y_test, y_predict):
     plt.title('Histogram of prediction errors')
     plt.show()
     # A positively skewed distribution has a tail to the right, while a negative one has a tail to the left.
-    # If the distribution has positive kurtosis, it has fatter tails than the normal distribution; conversely, the tails would be thinner in a negative scenario.
-    print('Excess kurtosis of normal distribution (should be 0): {}'.format( kurtosis(error, fisher=True) ))
-    print('Skewness of normal distribution (should be 0): {}'.format( skew(error) ))
+    # If the distribution has positive kurtosis, it has fatter tails than the normal distribution; conversely,
+    # the tails would be thinner in negative scenario.
+    print('Excess kurtosis of normal distribution (should be 0): {}'.format(kurtosis(error, fisher=True)))
+    print('Skewness of normal distribution (should be 0): {}'.format(skew(error)))
 
 
 def plot_age_on_map(age_df, geometry_df):
@@ -217,15 +221,23 @@ def plot_prediction_error_on_map(prediction_error_df, geometry_df):
     plot_attribute_on_map(prediction_error_df, geometry_df, 'error')
 
 
-def plot_attribute_on_map(attribute_df, geometry_df, attribute_name, boundaries_df=None, crs=2154, vmin=None, vmax=None):
-    df = pd.concat([geometry_df[['id', 'geometry']].set_index('id'), attribute_df.set_index('id')], axis=1, join="inner").reset_index()
+def plot_attribute_on_map(
+        attribute_df,
+        geometry_df,
+        attribute_name,
+        boundaries_df=None,
+        crs=2154,
+        vmin=None,
+        vmax=None):
+    df = pd.concat([geometry_df[['id', 'geometry']].set_index('id'),
+                   attribute_df.set_index('id')], axis=1, join="inner").reset_index()
 
     if not isinstance(df, gpd.GeoDataFrame):
         df = utils.to_gdf(df, crs=crs)
 
     _, ax = plt.subplots(1, 1)
     norm = colors.LogNorm(vmin=vmin, vmax=vmax) if vmin and vmax else None
-    df.plot(column=attribute_name,  ax=ax, legend=True, norm=norm)
+    df.plot(column=attribute_name, ax=ax, legend=True, norm=norm)
 
     if boundaries_df is not None:
         boundaries_df.to_crs(crs).exterior.plot(ax=ax)
@@ -241,7 +253,7 @@ def slope_chart(dfs, labels=None, feature_selection=None, **kwargs):
         for feature, group in df.groupby('feature'):
             ax.plot(group['level_0'], group['normalized_importance'], marker='o', markersize=5)
             ax.text(-0.05, group['normalized_importance'].values[0], feature, ha='right')
-            ax.text(len(dfs)-0.95, group['normalized_importance'].values[-1], feature, ha='left')
+            ax.text(len(dfs) - 0.95, group['normalized_importance'].values[-1], feature, ha='left')
 
         if labels:
             ax.set_xticks(xticks, labels, rotation=45, ha='right', rotation_mode='anchor')

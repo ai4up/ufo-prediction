@@ -32,7 +32,7 @@ def keep_other_attributes(df):
 
     # Encode categorical variable building type
     # df = utils.dummy_encoding(df, dataset.TYPE_ATTRIBUTE) # one-hot encoding
-    df = categorical_to_int(df, dataset.TYPE_ATTRIBUTE) # label encoding
+    df = categorical_to_int(df, dataset.TYPE_ATTRIBUTE)  # label encoding
     return df
 
 
@@ -179,7 +179,8 @@ def undersample_skewed_distribution(df):
     undersampled_X, undersampled_y = rus.fit_resample(X, y)
 
     visualizations.plot_histogram(undersampled_y, y, bins=utils.age_bins(undersampled_y))
-    logger.info(f'Downsampling distribution results in: {sorted(Counter(undersampled_y[dataset.AGE_ATTRIBUTE]).items())}')
+    logger.info(
+        f'Downsampling distribution results in: {sorted(Counter(undersampled_y[dataset.AGE_ATTRIBUTE]).items())}')
 
     undersampled_df = pd.concat([undersampled_X, undersampled_y], axis=1, join="inner")
     return undersampled_df
@@ -194,9 +195,11 @@ def categorize_age(df, bins):
     df[dataset.AGE_ATTRIBUTE] = pd.cut(df[dataset.AGE_ATTRIBUTE], bins, right=False).cat.codes
     df_filtered = df[df[dataset.AGE_ATTRIBUTE] >= 0]
 
-    logger.info(f'{dataset.AGE_ATTRIBUTE} attribute has been categorized (lowest age included: {bins[0]}; highest age included: {bins[-1]-1}).')
+    logger.info(
+        f'{dataset.AGE_ATTRIBUTE} attribute has been categorized (lowest age included: {bins[0]}; highest age included: {bins[-1]-1}).')
     if n_buildings_removed := len(df) - len(df_filtered):
-        logger.warning(f'During {dataset.AGE_ATTRIBUTE} categorization {n_buildings_removed} buildings outside the age bins have been removed.')
+        logger.warning(
+            f'During {dataset.AGE_ATTRIBUTE} categorization {n_buildings_removed} buildings outside the age bins have been removed.')
 
     return df_filtered
 

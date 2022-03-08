@@ -7,7 +7,7 @@ EHS_AGE_BINS = [0, 1915, 1945, 1965, 1980, 2000, np.inf]
 CUSTOM_AGE_BINS = [0, 1915, 1960, np.inf]
 
 BUILDING_TYPES = ['Résidentiel', 'Indifférencié', 'Annexe', 'Agricole',
-       'Commercial et services', 'Industriel', 'Religieux', 'Sportif']
+                  'Commercial et services', 'Industriel', 'Religieux', 'Sportif']
 
 AGE_ATTRIBUTE = 'age'
 TYPE_ATTRIBUTE = 'type_source'

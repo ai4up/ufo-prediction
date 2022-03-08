@@ -30,7 +30,8 @@ class AgePredictor(Regressor):
 
 
     def _post_preprocess_analysis_hook(self):
-        # The standard deviation in the test set gives us an indication of a baseline. We want to be able to be substantially below that value.
+        # The standard deviation in the test set gives us an indication of a
+        # baseline. We want to be able to be substantially below that value.
         logger.info(f"Test dataset standard deviation after preprocessing: {self.df_test[dataset.AGE_ATTRIBUTE].std()}")
         logger.info(f"Test dataset mean age after preprocessing: {self.df_test[dataset.AGE_ATTRIBUTE].mean()}")
         logger.info(f'Training dataset length after preprocessing: {len(self.df_train)}')
@@ -49,7 +50,7 @@ class AgePredictor(Regressor):
 
 
     def evaluate_regression(self):
-        self.evaluate() # for backwards compatibility
+        self.evaluate()  # for backwards compatibility
 
 
 class AgeClassifier(Classifier):
@@ -61,7 +62,8 @@ class AgeClassifier(Classifier):
 
         self.bins = bins or utils.generate_bins(bin_config)
 
-        super().__init__(*args, **kwargs, target_attribute=dataset.AGE_ATTRIBUTE, labels=utils.generate_labels(self.bins), initialize_only=True)
+        super().__init__(*args, **kwargs, target_attribute=dataset.AGE_ATTRIBUTE,
+                         labels=utils.generate_labels(self.bins), initialize_only=True)
 
         logger.info(f'Generated bins: {self.bins}')
         logger.info(f'Generated bins with the following labels: {self.labels}')
@@ -76,13 +78,15 @@ class AgeClassifier(Classifier):
         _, axis = plt.subplots(2, 2, figsize=(14, 10), constrained_layout=True)
         visualizations.plot_classification_error(self.model, multiclass=self.multiclass, ax=axis[0, 0])
         visualizations.plot_log_loss(self.model, multiclass=self.multiclass, ax=axis[0, 1])
-        visualizations.plot_histogram(self.y_test, self.y_predict[[dataset.AGE_ATTRIBUTE]], bins=list(range(0, len(self.bins))), bin_labels=self.labels, ax=axis[1, 0])
-        visualizations.plot_confusion_matrix(self.y_test, self.y_predict[[dataset.AGE_ATTRIBUTE]], class_labels=self.labels, ax=axis[1, 1])
+        visualizations.plot_histogram(self.y_test, self.y_predict[[dataset.AGE_ATTRIBUTE]], bins=list(
+            range(0, len(self.bins))), bin_labels=self.labels, ax=axis[1, 0])
+        visualizations.plot_confusion_matrix(
+            self.y_test, self.y_predict[[dataset.AGE_ATTRIBUTE]], class_labels=self.labels, ax=axis[1, 1])
         plt.show()
 
 
     def evaluate_classification(self):
-        self.evaluate() # for backwards compatibility
+        self.evaluate()  # for backwards compatibility
 
 
 class AgePredictorComparison(PredictorComparison):
@@ -110,7 +114,7 @@ class AgePredictorComparison(PredictorComparison):
 
 
     def evaluate_comparison(self):
-        return self.evaluate() # for backwards compatibility
+        return self.evaluate()  # for backwards compatibility
 
 
     def determine_predictor_identifier(self, param_name, param_value, baseline_value):
@@ -139,7 +143,8 @@ class AgeClassifierComparison(PredictorComparison):
             eval_metrics['MCC'] = metrics.matthews_corrcoef(test, pred)
             eval_metrics['F1'] = metrics.f1_score(test, pred, average='macro')
             for idx, label in enumerate(predictor.labels):
-                eval_metrics[f'Recall_{label}'] = metrics.recall_score(test, pred, pos_label=idx, labels=[idx], average='macro')
+                eval_metrics[f'Recall_{label}'] = metrics.recall_score(
+                    test, pred, pos_label=idx, labels=[idx], average='macro')
 
             comparison_metrics.append(eval_metrics)
 
@@ -155,4 +160,4 @@ class AgeClassifierComparison(PredictorComparison):
 
 
     def evaluate_comparison(self):
-        return self.evaluate() # for backwards compatibility
+        return self.evaluate()  # for backwards compatibility

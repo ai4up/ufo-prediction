@@ -24,19 +24,21 @@ except the last bin which is closed on both sides, e.g. [0,1,2,3] results in [[0
 To be consistent, left closed/inclusive intervals are used as well when categorizing numeric variables with pd.cut.
 Methods, which determine bin edges/breaks, also assume subsequent left closed/inclusive binning.
 """
+
+
 def age_bins(y, bin_size=1):
     # lower bound inclusive
     min_age = math.floor(y[dataset.AGE_ATTRIBUTE].min())
     # upper bound inclusive for histogram plotting, exclusive for categorizing variables
     max_age = math.ceil(y[dataset.AGE_ATTRIBUTE].max())
-    return list(range(min_age, max_age+1))[0::bin_size]
+    return list(range(min_age, max_age + 1))[0::bin_size]
 
 
 def generate_bins(bin_config):
-    min_age = bin_config[0] # inclusive
-    bin_max = bin_config[1] # exclusive
+    min_age = bin_config[0]  # inclusive
+    bin_max = bin_config[1]  # exclusive
     bin_size = bin_config[2]
-    return list(range(min_age, bin_max+1))[0::bin_size]
+    return list(range(min_age, bin_max + 1))[0::bin_size]
 
 
 def generate_labels(bins):
@@ -61,7 +63,7 @@ def dummy_encoding(df, var):
 
 
 def custom_round(column, base=5):
-    return column.apply(lambda x: int(base * round(float(x)/base)))
+    return column.apply(lambda x: int(base * round(float(x) / base)))
 
 
 def tune_hyperparameter(model, X, y):
@@ -110,7 +112,8 @@ def grid_subplot(n_plots, n_cols=4):
 
 
 def add_geometry_column(df):
-    files_geom = glob.glob(os.path.join(DATA_GEO_DIR, '*', '*_geom.csv')) + glob.glob(os.path.join(DATA_GEO_DIR, '*_geom.csv'))
+    files_geom = glob.glob(os.path.join(DATA_GEO_DIR, '*', '*_geom.csv')) + \
+        glob.glob(os.path.join(DATA_GEO_DIR, '*_geom.csv'))
     data_geom = pd.concat((pd.read_csv(f) for f in files_geom), ignore_index=True)
     data_geom.drop_duplicates(subset=['id', 'geometry'], inplace=True)
 

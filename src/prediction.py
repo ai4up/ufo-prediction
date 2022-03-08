@@ -19,7 +19,20 @@ logger.setLevel(logging.INFO)
 
 class Predictor:
 
-    def __init__(self, model, df, test_training_split=None, cross_validatation_split=None, preprocessing_stages=[], target_attribute=None, mitigate_class_imbalance=False, early_stopping=True, hyperparameter_tuning=False, hyperparameters=None, initialize_only=False) -> None:
+    def __init__(
+            self,
+            model,
+            df,
+            test_training_split=None,
+            cross_validatation_split=None,
+            preprocessing_stages=[],
+            target_attribute=None,
+            mitigate_class_imbalance=False,
+            early_stopping=True,
+            hyperparameter_tuning=False,
+            hyperparameters=None,
+            initialize_only=False) -> None:
+
         self.model = model
         self.df = df.copy()
         self.test_training_split = test_training_split
@@ -90,10 +103,10 @@ class Predictor:
         self.aux_vars_train = self.df_train[dataset.AUX_VARS]
         self.aux_vars_test = self.df_test[dataset.AUX_VARS]
 
-        self.X_train = self.df_train.drop(columns=dataset.AUX_VARS+[self.target_attribute])
+        self.X_train = self.df_train.drop(columns=dataset.AUX_VARS + [self.target_attribute])
         self.y_train = self.df_train[[self.target_attribute]]
 
-        self.X_test = self.df_test.drop(columns=dataset.AUX_VARS+[self.target_attribute])
+        self.X_test = self.df_test.drop(columns=dataset.AUX_VARS + [self.target_attribute])
         self.y_test = self.df_test[[self.target_attribute]]
 
 
@@ -113,7 +126,8 @@ class Predictor:
 
         eval_set = [(self.X_train, self.y_train), (self.X_test, self.y_test)]
         early_stopping_rounds = self.model.n_estimators / 10 if self.early_stopping else None
-        self.model.fit(self.X_train, self.y_train, sample_weight=self.sample_weights, verbose=False, eval_set=eval_set, early_stopping_rounds=early_stopping_rounds)
+        self.model.fit(self.X_train, self.y_train, sample_weight=self.sample_weights, verbose=False,
+                       eval_set=eval_set, early_stopping_rounds=early_stopping_rounds)
         self.evals_result = self.model.evals_result()
 
 
@@ -205,8 +219,14 @@ class Predictor:
 
     def feature_dependence_plot(self, feature1, feature2, low_percentile=0, high_percentile=100, transparency=1):
         self.calculate_SHAP_values()
-        shap.dependence_plot(feature1, self.shap_values, self.X_train, interaction_index=feature2,
-                            xmin=f"percentile({low_percentile})", xmax=f"percentile({high_percentile})", alpha=transparency)
+        shap.dependence_plot(
+            feature1,
+            self.shap_values,
+            self.X_train,
+            interaction_index=feature2,
+            xmin=f"percentile({low_percentile})",
+            xmax=f"percentile({high_percentile})",
+            alpha=transparency)
         plt.show()
 
 
@@ -266,7 +286,7 @@ class Classifier(Predictor):
         self.predict_probabilities = predict_probabilities
 
         objective = 'multi:softprob' if self.multiclass else 'binary:logistic'
-        eval_metric = ['mlogloss', 'merror'] if self.multiclass else  ['logloss', 'error']
+        eval_metric = ['mlogloss', 'merror'] if self.multiclass else ['logloss', 'error']
         self.model.set_params(objective=objective, eval_metric=eval_metric, use_label_encoder=False)
 
         if not initialize_only:
@@ -278,7 +298,8 @@ class Classifier(Predictor):
             return super()._predict()
 
         class_probabilities = self.model.predict_proba(self.X_test)
-        class_drawn = np.apply_along_axis(self._sample_class_from_probabilities, axis=1, arr=class_probabilities).ravel()
+        class_drawn = np.apply_along_axis(self._sample_class_from_probabilities,
+                                          axis=1, arr=class_probabilities).ravel()
         self.y_predict = pd.DataFrame({self.target_attribute: class_drawn, 'probabilities': list(class_probabilities)})
 
 
@@ -293,7 +314,7 @@ class Classifier(Predictor):
         self.calculate_SHAP_values()
 
         # average across classes for multiclass classification
-        axis = (0,1) if np.array(self.shap_values).ndim == 3 else 0
+        axis = (0, 1) if np.array(self.shap_values).ndim == 3 else 0
 
         avg_shap_value = np.abs(self.shap_values).mean(axis=axis)
         normalized_shap_value = avg_shap_value / sum(avg_shap_value)
@@ -309,21 +330,36 @@ class Classifier(Predictor):
 
         # binary classification
         if np.array(self.shap_values).ndim != 3:
-            shap.dependence_plot(feature1, self.shap_values, self.X_train, interaction_index=feature2,
-                            xmin=f"percentile({low_percentile})", xmax=f"percentile({high_percentile})", alpha=transparency)
+            shap.dependence_plot(
+                feature1,
+                self.shap_values,
+                self.X_train,
+                interaction_index=feature2,
+                xmin=f"percentile({low_percentile})",
+                xmax=f"percentile({high_percentile})",
+                alpha=transparency)
             return
 
         # multiclass classification
         axis = utils.grid_subplot(len(self.shap_values))
         for idx, class_shap_values in enumerate(self.shap_values):
-            shap.dependence_plot(feature1, class_shap_values, self.X_train, interaction_index=feature2,
-                            xmin=f"percentile({low_percentile})", xmax=f"percentile({high_percentile})", alpha=transparency,
-                            ax=axis[idx], title=self.labels[idx], show=False)
+            shap.dependence_plot(
+                feature1,
+                class_shap_values,
+                self.X_train,
+                interaction_index=feature2,
+                xmin=f"percentile({low_percentile})",
+                xmax=f"percentile({high_percentile})",
+                alpha=transparency,
+                ax=axis[idx],
+                title=self.labels[idx],
+                show=False)
         plt.show()
 
 
     def print_classification_report(self):
-        report = metrics.classification_report(self.y_test, self.y_predict[[self.target_attribute]], target_names=self.labels)
+        report = metrics.classification_report(
+            self.y_test, self.y_predict[[self.target_attribute]], target_names=self.labels)
         kappa = metrics.cohen_kappa_score(self.y_test, self.y_predict[[self.target_attribute]])
         mcc = metrics.matthews_corrcoef(self.y_test, self.y_predict[[self.target_attribute]])
         print(f'Classification report:\n {report}')
@@ -333,7 +369,14 @@ class Classifier(Predictor):
 
 class PredictorComparison:
 
-    def __init__(self, predictor, comparison_config, grid_comparison_config={'':{}}, compare_feature_importance=False, **baseline_kwargs) -> None:
+    def __init__(
+            self,
+            predictor,
+            comparison_config,
+            grid_comparison_config={'': {}},
+            compare_feature_importance=False,
+            **baseline_kwargs) -> None:
+
         self.comparison_config = comparison_config
         self.grid_comparison_config = grid_comparison_config
         self.compare_feature_importance = compare_feature_importance
@@ -363,7 +406,8 @@ class PredictorComparison:
         for name, predictor in self.predictors.items():
             importance_df = predictor.normalized_feature_importance().set_index('feature')
             normalization_factor = len(importance_df) if normalize_by_number_of_features else 1
-            baseline_importance_df['diff_' + name] = (importance_df['normalized_importance'] - baseline_importance_df['normalized_importance']) * normalization_factor
+            baseline_importance_df['diff_' + name] = (importance_df['normalized_importance'] -
+                                                      baseline_importance_df['normalized_importance']) * normalization_factor
 
         baseline_importance_df['var'] = baseline_importance_df.var(axis=1)
 
@@ -376,5 +420,5 @@ class PredictorComparison:
 
     def plot_feature_importance_changes(self):
         dfs = [p.normalized_feature_importance() for p in self.predictors.values()]
-        all_top_5_features =  set().union(*[df[:5]['feature'].values for df in dfs])
+        all_top_5_features = set().union(*[df[:5]['feature'].values for df in dfs])
         visualizations.slope_chart(dfs, labels=self.predictors.keys(), feature_selection=all_top_5_features)
