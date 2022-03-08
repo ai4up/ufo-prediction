@@ -36,6 +36,10 @@ def keep_other_attributes(df):
     return df
 
 
+def shuffle_feature_values(df):
+    return df.apply(lambda col: np.random.permutation(col.values))
+
+
 def city_cross_validation(df):
     group_kfold = model_selection.GroupKFold(n_splits=5)
     cities = df['city'].values
