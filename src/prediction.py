@@ -19,7 +19,7 @@ logger.setLevel(logging.INFO)
 
 class Predictor:
 
-    def __init__(self, model, df, test_training_split=None, cross_validatation_split=None, preprocessing_stages=[], target_attribute=None, mitigate_class_imbalance=False, hyperparameter_tuning=False, hyperparameters=None, initialize_only=False) -> None:
+    def __init__(self, model, df, test_training_split=None, cross_validatation_split=None, preprocessing_stages=[], target_attribute=None, mitigate_class_imbalance=False, early_stopping=True, hyperparameter_tuning=False, hyperparameters=None, initialize_only=False) -> None:
         self.model = model
         self.df = df.copy()
         self.test_training_split = test_training_split
@@ -27,6 +27,7 @@ class Predictor:
         self.preprocessing_stages = preprocessing_stages
         self.target_attribute = target_attribute
         self.mitigate_class_imbalance = mitigate_class_imbalance
+        self.early_stopping = early_stopping
         self.hyperparameter_tuning = hyperparameter_tuning
         self.hyperparameters = hyperparameters
 
@@ -111,8 +112,8 @@ class Predictor:
             )
 
         eval_set = [(self.X_train, self.y_train), (self.X_test, self.y_test)]
-        early_stopping = self.model.n_estimators / 10
-        self.model.fit(self.X_train, self.y_train, sample_weight=self.sample_weights, verbose=False, eval_set=eval_set, early_stopping_rounds=early_stopping)
+        early_stopping_rounds = self.model.n_estimators / 10 if self.early_stopping else None
+        self.model.fit(self.X_train, self.y_train, sample_weight=self.sample_weights, verbose=False, eval_set=eval_set, early_stopping_rounds=early_stopping_rounds)
         self.evals_result = self.model.evals_result()
 
 
