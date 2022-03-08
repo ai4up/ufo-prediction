@@ -136,17 +136,17 @@ class Predictor:
         y_predict_all_cv_folds = pd.DataFrame()
         y_test_all_cf_folds = pd.DataFrame()
 
-        for train_idx, test_idx in self.cross_validatation_split(self.df):
-            self.df_train = self.df.iloc[train_idx]
-            self.df_test = self.df.iloc[test_idx]
+        for df_train, df_test in self.cross_validatation_split(self.df):
+            self.df_train = df_train
+            self.df_test = df_test
 
             yield
 
             y_predict_all_cv_folds = pd.concat([y_predict_all_cv_folds, self.y_predict], axis=0)
             y_test_all_cf_folds = pd.concat([y_test_all_cf_folds, self.y_test], axis=0)
 
-        self.y_test = y_test_all_cf_folds
-        self.y_predict = y_predict_all_cv_folds
+        self.y_test = y_test_all_cf_folds.reset_index(drop=True)
+        self.y_predict = y_predict_all_cv_folds.reset_index(drop=True)
 
 
     def evaluate(self):

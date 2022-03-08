@@ -1,3 +1,4 @@
+import os
 import math
 import glob
 
@@ -9,6 +10,9 @@ import geopandas as gpd
 from shapely import wkt
 from sklearn import model_selection
 import matplotlib.pyplot as plt
+
+DATA_DIR = os.path.join('..', 'data')
+DATA_GEO_DIR = os.path.join(DATA_DIR, 'geographics')
 
 # Comments on binning / categorizing numeric variables
 #
@@ -99,6 +103,25 @@ def grid_subplot(n_plots, n_cols=4):
     nrows = math.ceil(n_plots / n_cols)
     _, axis = plt.subplots(nrows, ncols, figsize=(30, 20), constrained_layout=True)
     return [axis[idx // n_cols, idx % n_cols] if n_plots > n_cols else axis[idx % n_cols] for idx in range(0, n_plots)]
+
+
+def add_geometry_column(df):
+    files_geom = glob.glob(os.path.join(DATA_GEO_DIR, '*', '*_geom.csv')) + glob.glob(os.path.join(DATA_GEO_DIR, '*_geom.csv'))
+    data_geom = pd.concat((pd.read_csv(f) for f in files_geom), ignore_index=True)
+    data_geom.drop_duplicates(subset=['id', 'geometry'], inplace=True)
+
+    data_geom['id'] = data_geom['id'].astype(str)
+    df['id'] = df['id'].astype(str)
+    df_w_geometry = df.reset_index().merge(data_geom[['id', 'geometry']], on='id', how="inner").set_index('index')
+    return df_w_geometry
+
+
+def load_street_polygons():
+    files_sbb = glob.glob(os.path.join(DATA_GEO_DIR, '*', '*_sbb.csv'))
+    data_sbb = pd.concat((pd.read_csv(f) for f in files_sbb), ignore_index=True)
+    gdf_sbb = to_gdf(data_sbb)
+    gdf_sbb = gdf_sbb.drop_duplicates(subset=['geometry'])
+    return gdf_sbb.reset_index(drop=True)
 
 
 def to_gdf(df, crs=2154):

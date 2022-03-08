@@ -6,8 +6,9 @@ import utils
 import dataset
 import visualizations
 
-import pandas as pd
 import numpy as np
+import pandas as pd
+import geopandas as gpd
 from sklearn import model_selection, preprocessing
 from imblearn.under_sampling import RandomUnderSampler
 
@@ -38,13 +39,43 @@ def keep_other_attributes(df):
 def city_cross_validation(df):
     group_kfold = model_selection.GroupKFold(n_splits=5)
     cities = df['city'].values
-    return group_kfold.split(df, groups=cities)
+
+    for train_idx, test_idx in group_kfold.split(df, groups=cities):
+        yield df.iloc[train_idx], df.iloc[test_idx]
+
+
+def sbb_cross_validation(df):
+    if 'sbb' in df.columns:
+        logger.info('Reusing street-based block (sbb) column existing in data.')
+    else:
+        df = add_street_block_feature(df)
+
+    group_kfold = model_selection.GroupKFold(n_splits=5)
+    street_blocks = df['sbb'].values
+
+    for train_idx, test_idx in group_kfold.split(df, groups=street_blocks):
+        yield df.iloc[train_idx], df.iloc[test_idx]
+
+
+def block_cross_validation(df):
+    if 'block' in df.columns:
+        logger.info('Reusing urban block (based on TouchesIndexes) column existing in data.')
+    else:
+        df = add_block_feature(df)
+
+    group_kfold = model_selection.GroupKFold(n_splits=5)
+    building_blocks = df['block'].values
+
+    for train_idx, test_idx in group_kfold.split(df, groups=building_blocks):
+        yield df.iloc[train_idx], df.iloc[test_idx]
 
 
 def cross_validation(df):
     kfold = model_selection.KFold(n_splits=5, shuffle=True, random_state=dataset.GLOBAL_REPRODUCIBILITY_SEED)
-    # cities = df['id'].values
-    return kfold.split(df)
+
+    for train_idx, test_idx in kfold.split(df):
+        yield df.iloc[train_idx], df.iloc[test_idx]
+
 
 
 def normalize_features(df_train, df_test):
@@ -188,6 +219,30 @@ def round_age(df):
 def add_noise_feature(df):
     df["feature_noise"] = np.random.normal(size=len(df))
     return df
+
+
+def add_block_feature(df):
+    df['block'] = df.groupby(df['TouchesIndexes'].map(hash)).ngroup()
+    return df
+
+
+def add_street_block_feature(df):
+    columns = list(df.columns)
+    df_geo = utils.add_geometry_column(df)
+    df_gdf = utils.to_gdf(df_geo)
+    sbb_gdf = utils.load_street_polygons()
+
+    joined_gdf = gpd.sjoin(df_gdf, sbb_gdf[['geometry']], how="left", op="within")
+    joined_gdf.rename(columns={'index_right': 'sbb'}, inplace=True)
+    joined_gdf.dropna(subset=['sbb'], inplace=True)
+    joined_gdf['sbb'] = joined_gdf['sbb'].astype(int)
+
+    if any(joined_gdf.duplicated(subset='id')):
+        logger.warning('Spatial joining resulted in duplicate buildings in dataset. Most likely street polygons were overlapping and buildings were assigned to more than one during gpd.sjoin().')
+        logger.info('Removing duplicated buildings, keeping only first one.')
+        joined_gdf.drop_duplicates(subset='id', keep='first', inplace=True)
+
+    return joined_gdf[columns + ['sbb']]
 
 
 def split_80_20(df):
