@@ -24,7 +24,7 @@ class Predictor:
             model,
             df,
             test_training_split=None,
-            cross_validatation_split=None,
+            cross_validation_split=None,
             preprocessing_stages=[],
             target_attribute=None,
             mitigate_class_imbalance=False,
@@ -36,7 +36,7 @@ class Predictor:
         self.model = model
         self.df = df.copy()
         self.test_training_split = test_training_split
-        self.cross_validatation_split = cross_validatation_split
+        self.cross_validation_split = cross_validation_split
         self.preprocessing_stages = preprocessing_stages
         self.target_attribute = target_attribute
         self.mitigate_class_imbalance = mitigate_class_imbalance
@@ -137,13 +137,13 @@ class Predictor:
 
 
     def _cv_aware_split(self):
-        if not self.test_training_split and not self.cross_validatation_split:
-            logger.exception('Please specify either a test_training_split or cross_validatation_split function.')
+        if not self.test_training_split and not self.cross_validation_split:
+            logger.exception('Please specify either a test_training_split or cross_validation_split function.')
 
-        if self.test_training_split and self.cross_validatation_split:
-            logger.warning('Both, a test_training_split and cross_validatation_split function are specified. The cross_validatation_split function will take precedence and test_training_split will be ignored.')
+        if self.test_training_split and self.cross_validation_split:
+            logger.warning('Both, a test_training_split and cross_validation_split function are specified. The cross_validation_split function will take precedence and test_training_split will be ignored.')
 
-        if not self.cross_validatation_split:
+        if not self.cross_validation_split:
             self.df_train, self.df_test = self.test_training_split(self.df)
             yield
             return
@@ -151,7 +151,7 @@ class Predictor:
         y_predict_all_cv_folds = pd.DataFrame()
         y_test_all_cf_folds = pd.DataFrame()
 
-        for df_train, df_test in self.cross_validatation_split(self.df):
+        for df_train, df_test in self.cross_validation_split(self.df):
             self.df_train = df_train
             self.df_test = df_test
 
