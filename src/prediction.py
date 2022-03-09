@@ -254,12 +254,21 @@ class Regressor(Predictor):
 
 
     def print_model_error(self):
-        mae = metrics.mean_absolute_error(self.y_test, self.y_predict)
-        rmse = np.sqrt(metrics.mean_squared_error(self.y_test, self.y_predict))
-        r2 = metrics.r2_score(self.y_test, self.y_predict)
-        print('MAE: {:.2f} y'.format(mae))
-        print('RMSE: {:.2f} y'.format(rmse))
-        print('R2: {:.4f}'.format(r2))
+        print('MAE: {:.2f} y'.format(self.mae()))
+        print('RMSE: {:.2f} y'.format(self.rmse()))
+        print('R2: {:.4f}'.format(self.r2()))
+
+
+    def mae(self):
+        return metrics.mean_absolute_error(self.y_test, self.y_predict)
+
+
+    def rmse(self):
+        return np.sqrt(metrics.mean_squared_error(self.y_test, self.y_predict))
+
+
+    def r2(self):
+        return metrics.r2_score(self.y_test, self.y_predict)
 
 
     def individual_prediction_error(self):
@@ -309,6 +318,25 @@ class Classifier(Predictor):
         return sampled_class
 
 
+    def classification_report(self):
+        return metrics.classification_report(
+            self.y_test, self.y_predict[[self.target_attribute]], target_names=self.labels)
+
+
+    def kappa(self):
+        return metrics.cohen_kappa_score(self.y_test, self.y_predict[[self.target_attribute]])
+
+
+    def mcc(self):
+        return metrics.matthews_corrcoef(self.y_test, self.y_predict[[self.target_attribute]])
+
+
+    def print_classification_report(self):
+        print(f'Classification report:\n {self.classification_report()}')
+        print(f'Cohen’s kappa: {self.kappa()}')
+        print(f'Matthews correlation coefficient (MCC): {self.mcc()}')
+
+
     def normalized_feature_importance(self):
         # Calculate feature importance based on SHAP values
         self.calculate_SHAP_values()
@@ -355,16 +383,6 @@ class Classifier(Predictor):
                 title=self.labels[idx],
                 show=False)
         plt.show()
-
-
-    def print_classification_report(self):
-        report = metrics.classification_report(
-            self.y_test, self.y_predict[[self.target_attribute]], target_names=self.labels)
-        kappa = metrics.cohen_kappa_score(self.y_test, self.y_predict[[self.target_attribute]])
-        mcc = metrics.matthews_corrcoef(self.y_test, self.y_predict[[self.target_attribute]])
-        print(f'Classification report:\n {report}')
-        print(f'Cohen’s kappa: {kappa}')
-        print(f'Matthews correlation coefficient (MCC): {mcc}')
 
 
 class PredictorComparison:
