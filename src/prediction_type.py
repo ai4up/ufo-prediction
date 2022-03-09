@@ -20,9 +20,12 @@ class TypeClassifier(Classifier):
 
     def __init__(self, binary=True, *args, **kwargs):
         self.binary = binary
-        labels = ['res', 'non-res'] if binary else dataset.BUILDING_TYPES
+        labels = ['res', 'non-res'] if self.binary else dataset.BUILDING_TYPES
 
         super().__init__(*args, **kwargs, target_attribute=dataset.TYPE_ATTRIBUTE, labels=labels, initialize_only=True)
+
+        if self.binary:
+            self.preprocessing_stages.append(preprocessing.group_non_residential_buildings)
 
         self.preprocessing_stages.append(partial(preprocessing.categorical_to_int, var=self.target_attribute))
 
