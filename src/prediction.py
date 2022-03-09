@@ -313,6 +313,7 @@ class Classifier(Predictor):
 
 
     def _sample_class_from_probabilities(self, prob):
+        np.random.seed(dataset.GLOBAL_REPRODUCIBILITY_SEED)
         classes = list(range(0, len(self.labels)))
         sampled_class = np.random.choice(classes, 1, p=prob)
         return sampled_class
