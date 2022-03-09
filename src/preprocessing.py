@@ -113,7 +113,7 @@ def normalize_columns(df, columns=None):
 def filter_features(df, selection=[], regex=None):
     non_feature_columns = set(df.columns) - set(dataset.FEATURES)
     filtered_features = set(selection) or set(df.filter(regex=regex)).intersection(dataset.FEATURES)
-    return df[filtered_features.union(non_feature_columns)]
+    return df[sorted(filtered_features.union(non_feature_columns))]
 
 
 def drop_features(df, selection=None, regex=None):
@@ -233,7 +233,7 @@ def add_noise_feature(df):
 
 
 def add_block_feature(df):
-    df['block'] = df.groupby(df['TouchesIndexes'].map(hash)).ngroup()
+    df['block'] = df.groupby(df['TouchesIndexes']).ngroup()
     return df
 
 
