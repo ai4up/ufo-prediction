@@ -233,7 +233,7 @@ def add_noise_feature(df):
 
 
 def add_block_feature(df):
-    df['block'] = df.groupby(df['TouchesIndexes']).ngroup()
+    df['block'] = df.groupby(['city', 'TouchesIndexes']).ngroup()
     return df
 
 

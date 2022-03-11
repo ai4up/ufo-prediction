@@ -67,7 +67,7 @@ def test_age_regression_preprocessing_stages(stage, r2):
     (cross_validation, 0.23502689287489764),
     (city_cross_validation, 0.3036658508998582),
     (sbb_cross_validation, 0.3202048287778162),
-    (block_cross_validation, 0.2602900356132133),
+    (block_cross_validation, 0.3004533353681359),
 ])
 def test_cross_validation(cv, r2, mock_sbb):
     predictor = AgePredictor(
