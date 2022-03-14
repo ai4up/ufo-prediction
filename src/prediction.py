@@ -133,7 +133,7 @@ class Predictor:
 
     def _predict(self):
         self.y_predict = pd.DataFrame(
-            {self.target_attribute: self.model.predict(self.X_test)})
+            {self.target_attribute: self.model.predict(self.X_test)}, index=self.X_test.index)
 
 
     def _cv_aware_split(self):
