@@ -27,6 +27,7 @@ class TypeClassifier(Classifier):
         if self.binary:
             self.preprocessing_stages.append(preprocessing.group_non_residential_buildings)
 
+        self.preprocessing_stages.insert(0, preprocessing.remove_buildings_with_unknown_type)
         self.preprocessing_stages.append(partial(preprocessing.categorical_to_int, var=self.target_attribute))
 
         self._e2e_training()
