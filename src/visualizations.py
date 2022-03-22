@@ -1,7 +1,9 @@
+import warnings
+
 import dataset
 import preprocessing
 import utils
-import warnings
+import geometry
 
 import pandas as pd
 import numpy as np
@@ -229,11 +231,12 @@ def plot_attribute_on_map(
         crs=2154,
         vmin=None,
         vmax=None):
+
     df = pd.concat([geometry_df[['id', 'geometry']].set_index('id'),
                    attribute_df.set_index('id')], axis=1, join="inner").reset_index()
 
     if not isinstance(df, gpd.GeoDataFrame):
-        df = utils.to_gdf(df, crs=crs)
+        df = geometry.to_gdf(df, crs=crs)
 
     _, ax = plt.subplots(1, 1)
     norm = colors.LogNorm(vmin=vmin, vmax=vmax) if vmin and vmax else None
