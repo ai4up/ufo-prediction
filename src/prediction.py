@@ -100,13 +100,14 @@ class Predictor:
         self.df_train = sklearn.utils.shuffle(self.df_train, random_state=dataset.GLOBAL_REPRODUCIBILITY_SEED)
         self.df_test = sklearn.utils.shuffle(self.df_test, random_state=dataset.GLOBAL_REPRODUCIBILITY_SEED)
 
-        self.aux_vars_train = self.df_train[dataset.AUX_VARS]
-        self.aux_vars_test = self.df_test[dataset.AUX_VARS]
+        aux_cols = list(set(self.df_test.columns).intersection(dataset.AUX_VARS))
+        self.aux_vars_train = self.df_train[aux_cols]
+        self.aux_vars_test = self.df_test[aux_cols]
 
-        self.X_train = self.df_train.drop(columns=dataset.AUX_VARS + [self.target_attribute])
+        self.X_train = self.df_train.drop(columns=aux_cols + [self.target_attribute])
         self.y_train = self.df_train[[self.target_attribute]]
 
-        self.X_test = self.df_test.drop(columns=dataset.AUX_VARS + [self.target_attribute])
+        self.X_test = self.df_test.drop(columns=aux_cols + [self.target_attribute])
         self.y_test = self.df_test[[self.target_attribute]]
 
 
@@ -150,6 +151,7 @@ class Predictor:
 
         y_predict_all_cv_folds = pd.DataFrame()
         y_test_all_cf_folds = pd.DataFrame()
+        aux_vars_test_all_cf_folds = pd.DataFrame()
 
         for df_train, df_test in self.cross_validation_split(self.df):
             self.df_train = df_train
@@ -159,9 +161,11 @@ class Predictor:
 
             y_predict_all_cv_folds = pd.concat([y_predict_all_cv_folds, self.y_predict], axis=0)
             y_test_all_cf_folds = pd.concat([y_test_all_cf_folds, self.y_test], axis=0)
+            aux_vars_test_all_cf_folds = pd.concat([aux_vars_test_all_cf_folds, self.aux_vars_test], axis=0)
 
         self.y_test = y_test_all_cf_folds.reset_index(drop=True)
         self.y_predict = y_predict_all_cv_folds.reset_index(drop=True)
+        self.aux_vars_test = aux_vars_test_all_cf_folds.reset_index(drop=True)
 
 
     def evaluate(self):
@@ -272,7 +276,8 @@ class Regressor(Predictor):
 
 
     def individual_prediction_error(self):
-        df = self.aux_vars_test[['id']]
+        df = pd.DataFrame()
+        df['id'] = self.aux_vars_test['id']
         df['error'] = self.y_predict - self.y_test
         return df
 
@@ -280,8 +285,8 @@ class Regressor(Predictor):
     def prediction_error_distribution(self, bins=[0, 10, 20, np.inf]):
         error_df = self.y_predict - self.y_test
         prediction_error_bins = np.histogram(error_df[dataset.AGE_ATTRIBUTE].abs(), bins)[0] / len(error_df)
-        print(f'Distribution of prediction error: {error_df.describe()}')
-        print(f'Prediction error bins: {list(zip(utils.generate_labels(bins), np.around(prediction_error_bins, 2)))}')
+        logger.info(f'Distribution of prediction error: {error_df.describe()}')
+        logger.info(f'Prediction error bins: {list(zip(utils.generate_labels(bins), np.around(prediction_error_bins, 2)))}')
         return prediction_error_bins
 
 
@@ -334,8 +339,8 @@ class Classifier(Predictor):
 
     def print_classification_report(self):
         print(f'Classification report:\n {self.classification_report()}')
-        print(f'Cohen’s kappa: {self.kappa()}')
-        print(f'Matthews correlation coefficient (MCC): {self.mcc()}')
+        print(f'Cohen’s kappa: {self.kappa():.4f}')
+        print(f'Matthews correlation coefficient (MCC): {self.mcc():.4f}')
 
 
     def normalized_feature_importance(self):
@@ -418,6 +423,7 @@ class PredictorComparison:
 
                 if self.compare_feature_importance:
                     self.predictors[name].calculate_SHAP_values()
+
 
     def evaluate_feature_importance(self, normalize_by_number_of_features=True):
         baseline_importance_df = self.predictors.get('baseline').normalized_feature_importance().set_index('feature')
