@@ -36,6 +36,7 @@ dependencies:
     - decorator==5.1.1
     - defusedxml==0.7.1
     - entrypoints==0.4
+    - esda==2.4.1
     - executing==0.8.2
     - fiona==1.8.20
     - fonttools==4.29.1
@@ -56,6 +57,7 @@ dependencies:
     - jupyter-core==4.9.1
     - jupyterlab-pygments==0.1.2
     - kiwisolver==1.3.2
+    - libpysal==4.6.2
     - llvmlite==0.38.0
     - markupsafe==2.0.1
     - matplotlib==3.5.1

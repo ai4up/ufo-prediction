@@ -11,6 +11,7 @@ import pandas as pd
 import numpy as np
 from sklearn import metrics
 import matplotlib.pyplot as plt
+import scipy.stats
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -95,7 +96,7 @@ class AgePredictorComparison(PredictorComparison):
         super().__init__(*args, **kwargs, predictor=AgePredictor)
 
 
-    def evaluate(self):
+    def evaluate(self, include_plot=False, include_error_distribution=False, include_spatial_autocorrelation=False):
         age_distributions = {}
         comparison_metrics = []
         for name, predictor in self.predictors.items():
@@ -104,17 +105,33 @@ class AgePredictorComparison(PredictorComparison):
             eval_metrics['R2'] = metrics.r2_score(predictor.y_test, predictor.y_predict)
             eval_metrics['MAE'] = metrics.mean_absolute_error(predictor.y_test, predictor.y_predict)
             eval_metrics['RMSE'] = np.sqrt(metrics.mean_squared_error(predictor.y_test, predictor.y_predict))
+
+            if include_error_distribution:
+                eval_metrics['skew'] = scipy.stats.skew(predictor.y_test - predictor.y_predict)[0]
+                eval_metrics['kurtosis'] = scipy.stats.kurtosis(predictor.y_test - predictor.y_predict)[0]
+
+            if include_spatial_autocorrelation:
+                eval_metrics['residuals_moranI_KNN'] = predictor.spatial_autocorrelation_moran('error', 'knn').I
+                eval_metrics['residuals_moranI_block'] = predictor.spatial_autocorrelation_moran('error', 'block').I
+                eval_metrics['residuals_moranI_distance'] = predictor.spatial_autocorrelation_moran('error', 'distance').I
+                eval_metrics['prediction_moranI_KNN'] = predictor.spatial_autocorrelation_moran(predictor.target_attribute, 'knn').I
+                eval_metrics['prediction_moranI_block'] = predictor.spatial_autocorrelation_moran(predictor.target_attribute, 'block').I
+                eval_metrics['prediction_moranI_distance'] = predictor.spatial_autocorrelation_moran(predictor.target_attribute, 'distance').I
+
+            if include_plot:
+                age_distributions[f'{name}_predict'] = predictor.y_predict[dataset.AGE_ATTRIBUTE]
+                age_distributions[f'{name}_test'] = predictor.y_test[dataset.AGE_ATTRIBUTE]
+
             comparison_metrics.append(eval_metrics)
 
-            age_distributions[f'{name}_predict'] = predictor.y_predict[dataset.AGE_ATTRIBUTE]
-            age_distributions[f'{name}_test'] = predictor.y_test[dataset.AGE_ATTRIBUTE]
+        if include_plot:
+            visualizations.plot_distribution(age_distributions)
 
-        visualizations.plot_distribution(age_distributions)
         return pd.DataFrame(comparison_metrics).sort_values(by=['R2'])
 
 
-    def evaluate_comparison(self):
-        return self.evaluate()  # for backwards compatibility
+    def evaluate_comparison(self, *args, **kwargs):
+        return self.evaluate(*args, **kwargs)  # for backwards compatibility
 
 
     def determine_predictor_identifier(self, param_name, param_value, baseline_value):

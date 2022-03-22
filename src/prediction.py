@@ -5,6 +5,8 @@ import copy
 import dataset
 import utils
 import visualizations
+import spatial_autocorrelation
+import geometry
 
 import shap
 import pandas as pd
@@ -280,6 +282,28 @@ class Regressor(Predictor):
         df['id'] = self.aux_vars_test['id']
         df['error'] = self.y_predict - self.y_test
         return df
+
+
+    def spatial_autocorrelation_moran(self, attribute, type):
+        if attribute == 'error':
+            aux_df = self.individual_prediction_error().merge(self.aux_vars_test, on='id', how="inner")
+            # aux_df = pd.concat([self.individual_prediction_error(), self.aux_vars_test], axis=1, join="inner")
+        elif attribute == self.target_attribute:
+            aux_df = pd.concat([self.y_predict, self.aux_vars_test], axis=1, join="inner")
+        else:
+            raise Exception(f'Please specify either "error" or "{self.target_attribute}" as the attribute for calculation spatial autocorrelation.')
+
+        if type == 'block':
+            moran = spatial_autocorrelation.moran_within_block(aux_df, attribute=attribute)
+        elif type == 'knn':
+            moran = spatial_autocorrelation.moran_knn(geometry.to_gdf(aux_df), attribute=attribute)
+        elif type == 'distance':
+            moran = spatial_autocorrelation.moran_distance(geometry.to_gdf(aux_df), attribute=attribute)
+        else:
+            raise Exception('Please specify either "knn", "block" or "distance", as type for calculation spatial autocorrelation.')
+
+        logger.info(f'Moran I for spatial autocorrelation of {attribute}: {moran.I} ({type} weights with p value of {moran.p_norm})')
+        return moran
 
 
     def prediction_error_distribution(self, bins=[0, 10, 20, np.inf]):
