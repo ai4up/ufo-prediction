@@ -2,6 +2,7 @@ import os
 from functools import partial
 
 import dataset
+import preparation
 from prediction_age import AgePredictor, AgeClassifier, AgePredictorComparison, AgeClassifierComparison
 from prediction_type import TypeClassifier
 from preprocessing import *
@@ -21,12 +22,12 @@ def mock_plotting(mocker):
 
 @pytest.fixture
 def mock_sbb(mocker):
-    def mock_add_street_block_feature(df):
+    def mock_add_street_block_column(df):
         np.random.seed(dataset.GLOBAL_REPRODUCIBILITY_SEED)
         df['sbb'] = np.random.randint(1, 50, df.shape[0])
         return df
 
-    mocker.patch("preprocessing.add_street_block_feature", side_effect=mock_add_street_block_feature)
+    mocker.patch("preparation.add_street_block_column", side_effect=mock_add_street_block_column)
 
 
 @pytest.mark.parametrize("kwargs, r2", [

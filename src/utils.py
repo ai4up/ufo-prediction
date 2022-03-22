@@ -108,3 +108,21 @@ def grid_subplot(n_plots, n_cols=4):
     nrows = math.ceil(n_plots / n_cols)
     _, axis = plt.subplots(nrows, ncols, figsize=(30, 20), constrained_layout=True)
     return [axis[idx // n_cols, idx % n_cols] if n_plots > n_cols else axis[idx % n_cols] for idx in range(0, n_plots)]
+
+
+def flatten(list_of_lists):
+    return [val for sublist in list_of_lists for val in sublist]
+
+
+def sample_cities(df, frac):
+    cities = sorted(df['city'].unique())
+    n_sampled_cities = round(frac * len(cities))
+
+    if n_sampled_cities == 0:
+        logger.warning(f'Provided fraction ({frac}) is too small. Increasing fraction to {1 / len(cities)} to include at least one city in the sample.')
+        n_sampled_cities = 1
+
+    random.seed(dataset.GLOBAL_REPRODUCIBILITY_SEED)
+    sampled_cities = random.sample(cities, n_sampled_cities)
+
+    return df[df['city'].isin(sampled_cities)]

@@ -1,9 +1,12 @@
 import logging
 from datetime import date
 from collections import Counter
+import random
 
 import utils
 import dataset
+import geometry
+import preparation
 import visualizations
 
 import numpy as np
@@ -40,6 +43,44 @@ def shuffle_feature_values(df):
     return df.apply(lambda col: np.random.permutation(col.values))
 
 
+def split_80_20(df):
+    return model_selection.train_test_split(df, test_size=0.2, random_state=dataset.GLOBAL_REPRODUCIBILITY_SEED)
+
+
+def split_50_50(df):
+    return model_selection.train_test_split(df, test_size=0.5, random_state=dataset.GLOBAL_REPRODUCIBILITY_SEED)
+
+
+def split_by_city(df, frac=0.8):
+    return split(df, 'city', frac)
+
+
+def split_by_block(df, frac=0.8):
+    return split(df, 'block', frac)
+
+
+def split(df, attribute, frac):
+    values = sorted(df[attribute].unique())
+    n = round(frac * len(values))
+
+    if len(values) < 2:
+        raise Exception(f'At least two distinct values of "{attribute}" are required to split the dataset. Found only {values}.')
+
+    if n == 0:
+        logger.warning(f'Provided fraction ({frac}) is too small. Increasing fraction to {1 / len(values)} to include at least one distinct "{attribute}" value per split.')
+        n = 1
+
+    if n == len(values):
+        logger.warning(f'Provided fraction ({frac}) is too big. Decreasing fraction to {(len(values) - 1) / len(values)} to include at least one distinct "{attribute}" value per split.')
+        n = len(values) - 1
+
+    random.seed(dataset.GLOBAL_REPRODUCIBILITY_SEED)
+    sampled_values = random.sample(values, n)
+
+    filter_mask = df[attribute].isin(sampled_values)
+    return df[filter_mask], df[~filter_mask]
+
+
 def city_cross_validation(df):
     group_kfold = model_selection.GroupKFold(n_splits=5)
     cities = df['city'].values
@@ -52,7 +93,7 @@ def sbb_cross_validation(df):
     if 'sbb' in df.columns:
         logger.info('Reusing street-based block (sbb) column existing in data.')
     else:
-        df = add_street_block_feature(df)
+        df = preparation.add_street_block_column(df)
 
     group_kfold = model_selection.GroupKFold(n_splits=5)
     street_blocks = df['sbb'].values
@@ -65,7 +106,7 @@ def block_cross_validation(df):
     if 'block' in df.columns:
         logger.info('Reusing urban block (based on TouchesIndexes) column existing in data.')
     else:
-        df = add_block_feature(df)
+        df = preparation.add_block_column(df)
 
     group_kfold = model_selection.GroupKFold(n_splits=5)
     building_blocks = df['block'].values
@@ -81,12 +122,10 @@ def cross_validation(df):
         yield df.iloc[train_idx], df.iloc[test_idx]
 
 
-
 def normalize_features(df_train, df_test):
     scaler = preprocessing.MinMaxScaler()
-    feature_columns = list(set(df_train.columns) - set(dataset.AUX_VARS) - set(dataset.TARGET_ATTRIBUTES))
-    df_train[feature_columns] = scaler.fit_transform(df_train[feature_columns])
-    df_test[feature_columns] = scaler.transform(df_test[feature_columns])
+    df_train[dataset.FEATURES] = scaler.fit_transform(df_train[dataset.FEATURES])
+    df_test[dataset.FEATURES] = scaler.transform(df_test[dataset.FEATURES])
     return df_train, df_test
 
 
@@ -118,11 +157,11 @@ def filter_features(df, selection=[], regex=None):
 
 def drop_features(df, selection=None, regex=None):
     dropped_features = selection or set(df.filter(regex=regex)).intersection(dataset.FEATURES)
-    return df[df.columns.drop(dropped_features)]
+    return df.drop(columns=dropped_features)
 
 
 def drop_unimportant_features(df):
-    return df[dataset.SELECTED_FEATURES + [dataset.AGE_ATTRIBUTE] + dataset.AUX_VARS]
+    return df.drop(columns=set(dataset.FEATURES) - dataset.SELECTED_FEATURES)
 
 
 def remove_buildings_pre_1850(df):
@@ -171,6 +210,14 @@ def group_non_residential_buildings(df):
 def remove_buildings_with_unknown_type(df):
     df = df[df[dataset.TYPE_ATTRIBUTE] != 'Indifférencié']
     return df
+
+
+def keep_only_one_building_per_block(df):
+    return df.drop_duplicates(subset=['block'], keep='first')
+
+
+def keep_only_one_building_per_sbb(df):
+    return df.drop_duplicates(subset=['sbb'], keep='first')
 
 
 def undersample_skewed_distribution(df):
@@ -232,38 +279,6 @@ def add_noise_feature(df):
     return df
 
 
-def add_block_feature(df):
-    df['block'] = df.groupby(['city', 'TouchesIndexes']).ngroup()
-    return df
-
-
-def add_street_block_feature(df):
-    columns = list(df.columns)
-    df_geo = utils.add_geometry_column(df)
-    df_gdf = utils.to_gdf(df_geo)
-    sbb_gdf = utils.load_street_polygons()
-
-    joined_gdf = gpd.sjoin(df_gdf, sbb_gdf[['geometry']], how="left", op="within")
-    joined_gdf.rename(columns={'index_right': 'sbb'}, inplace=True)
-    joined_gdf.dropna(subset=['sbb'], inplace=True)
-    joined_gdf['sbb'] = joined_gdf['sbb'].astype(int)
-
-    if any(joined_gdf.duplicated(subset='id')):
-        logger.warning('Spatial joining resulted in duplicate buildings in dataset. Most likely street polygons were overlapping and buildings were assigned to more than one during gpd.sjoin().')
-        logger.info('Removing duplicated buildings, keeping only first one.')
-        joined_gdf.drop_duplicates(subset='id', keep='first', inplace=True)
-
-    return joined_gdf[columns + ['sbb']]
-
-
-def split_80_20(df):
-    return model_selection.train_test_split(df, test_size=0.2, random_state=dataset.GLOBAL_REPRODUCIBILITY_SEED)
-
-
-def split_50_50(df):
-    return model_selection.train_test_split(df, test_size=0.5, random_state=dataset.GLOBAL_REPRODUCIBILITY_SEED)
-
-
 def split_by_region(df):
     # We aim to cross-validate our results using five French sub-regions 'departement' listed below.
     # one geographic region for validation, rest for testing
@@ -286,11 +301,4 @@ def split_and_filter_by_french_medium_sized_cities_with_old_center(df):
     city_names.remove(test_city)
     df_test = df[df['city'] == test_city]
     df_train = df[df['city'].isin(city_names)]
-    return df_train, df_test
-
-
-def split_by_city(df):
-    cities = sorted(df['city'].unique())
-    df_test = df[df['city'] == cities[dataset.GLOBAL_REPRODUCIBILITY_SEED % len(cities)]]
-    df_train = df[~df.index.isin(df_test.index)]
     return df_train, df_test
