@@ -102,9 +102,9 @@ class AgePredictorComparison(PredictorComparison):
         for name, predictor in self.predictors.items():
             eval_metrics = {}
             eval_metrics['name'] = name
-            eval_metrics['R2'] = metrics.r2_score(predictor.y_test, predictor.y_predict)
-            eval_metrics['MAE'] = metrics.mean_absolute_error(predictor.y_test, predictor.y_predict)
-            eval_metrics['RMSE'] = np.sqrt(metrics.mean_squared_error(predictor.y_test, predictor.y_predict))
+            eval_metrics['R2'] = predictor.r2()
+            eval_metrics['MAE'] = predictor.mae()
+            eval_metrics['RMSE'] = predictor.rmse()
 
             if include_error_distribution:
                 eval_metrics['skew'] = scipy.stats.skew(predictor.y_test - predictor.y_predict)[0]

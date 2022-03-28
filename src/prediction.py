@@ -302,7 +302,7 @@ class Regressor(Predictor):
         else:
             raise Exception('Please specify either "knn", "block" or "distance", as type for calculation spatial autocorrelation.')
 
-        logger.info(f'Moran I for spatial autocorrelation of {attribute}: {moran.I} ({type} weights with p value of {moran.p_norm})')
+        logger.info(f'Moran I for spatial autocorrelation of {attribute}: {moran.I:.4f} ({type} weights with p value of {moran.p_norm:.4f})')
         return moran
 
 
@@ -359,6 +359,14 @@ class Classifier(Predictor):
 
     def mcc(self):
         return metrics.matthews_corrcoef(self.y_test, self.y_predict[[self.target_attribute]])
+
+
+    def f1(self):
+        return metrics.f1_score(self.y_test, self.y_predict[[self.target_attribute]], average='macro')
+
+
+    def recall(self, label_idx):
+        return metrics.recall_score(self.y_test, self.y_predict[[self.target_attribute]], pos_label=label_idx, labels=[label_idx], average='macro')
 
 
     def print_classification_report(self):

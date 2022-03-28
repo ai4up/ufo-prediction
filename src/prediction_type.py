@@ -1,15 +1,12 @@
 import logging
 from functools import partial
 
-import utils
 import visualizations
 import dataset
 import preprocessing
 from prediction import Classifier, PredictorComparison
 
 import pandas as pd
-import numpy as np
-from sklearn import metrics
 import matplotlib.pyplot as plt
 
 logger = logging.getLogger(__name__)
@@ -59,15 +56,13 @@ class TypeClassifierComparison(PredictorComparison):
         evals_results = {}
         comparison_metrics = []
         for name, predictor in self.predictors.items():
-            test, pred = predictor.y_test, predictor.y_predict[[predictor.target_attribute]]
 
             eval_metrics = {}
             eval_metrics['name'] = name
-            eval_metrics['MCC'] = metrics.matthews_corrcoef(test, pred)
-            eval_metrics['F1'] = metrics.f1_score(test, pred, average='macro')
+            eval_metrics['MCC'] = predictor.mcc()
+            eval_metrics['F1'] = predictor.f1()
             for idx, label in enumerate(predictor.labels):
-                eval_metrics[f'Recall_{label}'] = metrics.recall_score(
-                    test, pred, pos_label=idx, labels=[idx], average='macro')
+                eval_metrics[f'Recall_{label}'] = predictor.recall(idx)
 
             comparison_metrics.append(eval_metrics)
 
