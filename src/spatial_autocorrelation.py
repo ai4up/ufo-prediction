@@ -12,6 +12,8 @@ logger = logging.getLogger(__name__)
 
 
 def moran_within_block(df, attribute=dataset.AGE_ATTRIBUTE):
+    df = df.dropna(subset=[attribute])
+
     if not 'block_bld_ids' in df.columns:
         df = preparation.add_block_building_ids_column(df)
 
@@ -20,6 +22,8 @@ def moran_within_block(df, attribute=dataset.AGE_ATTRIBUTE):
 
 
 def moran_within_sbb(df, attribute=dataset.AGE_ATTRIBUTE):
+    df = df.dropna(subset=[attribute])
+
     if not 'sbb_bld_ids' in df.columns:
         df = preparation.add_sbb_building_ids_column(df)
 
@@ -28,6 +32,8 @@ def moran_within_sbb(df, attribute=dataset.AGE_ATTRIBUTE):
 
 
 def moran_between_blocks(df, attribute=dataset.AGE_ATTRIBUTE):
+    df = df.dropna(subset=[attribute])
+
     if not 'block' in df.columns:
         df = preparation.add_block_column(df)
 
@@ -36,6 +42,8 @@ def moran_between_blocks(df, attribute=dataset.AGE_ATTRIBUTE):
 
 
 def moran_between_sbbs(df, attribute=dataset.AGE_ATTRIBUTE):
+    df = df.dropna(subset=[attribute])
+
     if not 'sbb' in df.columns:
         df = preparation.add_street_block_column(df)
 
@@ -44,11 +52,15 @@ def moran_between_sbbs(df, attribute=dataset.AGE_ATTRIBUTE):
 
 
 def moran_distance(gdf, distance_threshold=15, attribute=dataset.AGE_ATTRIBUTE):
+    gdf = gdf.dropna(subset=[attribute])
+
     weights = _distance_weights(gdf, distance_threshold)
     return Moran(gdf[attribute], weights)
 
 
 def moran_knn(gdf, k=4, attribute=dataset.AGE_ATTRIBUTE):
+    gdf = gdf.dropna(subset=[attribute])
+
     weights = _knn_weights(gdf, k)
     return Moran(gdf[attribute], weights)
 
