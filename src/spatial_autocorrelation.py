@@ -71,23 +71,23 @@ def _within_block_weights(df):
     neighbors = df[['id', 'block_bld_ids']].set_index('id').to_dict()['block_bld_ids']
     _remove_neighbors_missing_in_dataset(neighbors)
     neighbors_exc_self = {k: v[1:] for k, v in neighbors.items()}
-    return lps.weights.W(neighbors_exc_self, ids=neighbors_exc_self.keys(), silence_warnings=True)
+    return lps.weights.W(neighbors_exc_self, id_order=df['id'].values, silence_warnings=True)
 
 
 def _within_sbb_weights(df):
     neighbors = df[['id', 'sbb_bld_ids']].set_index('id').to_dict()['sbb_bld_ids']
     neighbors_exc_self = {k: v[1:] for k, v in neighbors.items()}
-    return lps.weights.W(neighbors_exc_self, ids=neighbors_exc_self.keys(), silence_warnings=True)
+    return lps.weights.W(neighbors_exc_self, id_order=df['id'].values, silence_warnings=True)
 
 
 def _between_blocks_weights(df):
     neighbors = _neighboring_blocks_buildings(df, 'block', 50)
-    return lps.weights.W(neighbors, ids=neighbors.keys(), silence_warnings=True)
+    return lps.weights.W(neighbors, id_order=df['id'].values, silence_warnings=True)
 
 
 def _between_sbbs_weights(df):
     neighbors = _neighboring_blocks_buildings(df, 'sbb', 100)
-    return lps.weights.W(neighbors, ids=neighbors.keys(), silence_warnings=True)
+    return lps.weights.W(neighbors, id_order=df['id'].values, silence_warnings=True)
 
 
 def _distance_weights(gdf, distance_threshold):
