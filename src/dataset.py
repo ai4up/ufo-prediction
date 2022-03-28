@@ -12,7 +12,7 @@ BUILDING_TYPES = ['Résidentiel', 'Annexe', 'Agricole',
 AGE_ATTRIBUTE = 'age'
 TYPE_ATTRIBUTE = 'type_source'
 HEIGHT_ATTRIBUTE = 'height'
-AUX_VARS = ['id', 'source_file', 'city', 'TouchesIndexes', 'type']  # 'age_wsf'] #'type_source'
+AUX_VARS = ['id', 'source_file', 'city', 'TouchesIndexes', 'type', 'age_wsf', 'block', 'block_bld_ids', 'sbb', 'sbb_bld_ids', 'geometry', 'country'] #'type_source'
 BUILDING_FEATURES = [
     'FootprintArea',
     'Perimeter',

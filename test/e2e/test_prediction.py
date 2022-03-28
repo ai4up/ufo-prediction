@@ -67,8 +67,8 @@ def test_age_regression_preprocessing_stages(stage, r2):
 @pytest.mark.parametrize("cv, r2", [
     (cross_validation, 0.23502689287489764),
     (city_cross_validation, 0.3036658508998582),
-    (sbb_cross_validation, 0.3202048287778162),
-    (block_cross_validation, 0.3004533353681359),
+    (sbb_cross_validation, 0.3400676581605353),
+    (block_cross_validation, 0.3014533981996247),
 ])
 def test_cross_validation(cv, r2, mock_sbb):
     predictor = AgePredictor(
