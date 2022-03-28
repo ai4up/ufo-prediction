@@ -51,10 +51,14 @@ def moran_between_sbbs(df, attribute=dataset.AGE_ATTRIBUTE):
     return Moran(df[attribute], weights)
 
 
-def moran_distance(gdf, distance_threshold=15, attribute=dataset.AGE_ATTRIBUTE):
+def moran_distance(gdf, distance_threshold=15, attribute=dataset.AGE_ATTRIBUTE, exc_block_type=None):
     gdf = gdf.dropna(subset=[attribute])
 
-    weights = _distance_weights(gdf, distance_threshold)
+    if exc_block_type:
+        weights = _distance_weights_exc_block(gdf, exc_block_type, distance_threshold)
+    else:
+        weights = _distance_weights(gdf, distance_threshold)
+
     return Moran(gdf[attribute], weights)
 
 
@@ -106,6 +110,21 @@ def _distance_weights(gdf, distance_threshold):
     return lps.weights.DistanceBand.from_dataframe(gdf, threshold=distance_threshold, silence_warnings=True)
 
 
+def _distance_weights_exc_block(gdf, block_type, distance_threshold):
+    if not block_type in gdf.columns:
+        raise Exception(f'block_type {block_type} not found in columns. Consider executing add_block_column() or add_street_block_column() to prepare the dataset.')
+
+    dis = lps.weights.DistanceBand.from_dataframe(gdf, threshold=distance_threshold, ids=gdf['id'].values, silence_warnings=True)
+    id_to_block = gdf[['id', block_type]].set_index('id').to_dict()[block_type]
+
+    neighbors_exc_block = {}
+    for building_id, neighbor_ids in dis.neighbors.items():
+        own_block = id_to_block[building_id]
+        neighbors_exc_block[building_id] = [id for id in neighbor_ids if id_to_block[id] != own_block]
+
+    return lps.weights.W(neighbors_exc_block, id_order=gdf['id'].values, silence_warnings=True)
+
+
 def _knn_weights(gdf, k):
     return lps.weights.distance.KNN.from_dataframe(gdf, k=k, silence_warnings=True)
 
@@ -117,11 +136,11 @@ def _remove_neighbors_missing_in_dataset(neighbors_dict):
                 neighbors.remove(n)
 
 
-def _neighboring_blocks_buildings(df, block_type, threshold_distance):
+def _neighboring_blocks_buildings(df, block_type, distance_threshold):
     if not block_type in df.columns:
         raise Exception(f'block_type {block_type} not found in columns. Consider executing add_block_column() or add_street_block_column() to prepare the dataset.')
 
-    dis = lps.weights.DistanceBand.from_dataframe(df, threshold=threshold_distance, ids=df['id'].values, silence_warnings=True)
+    dis = lps.weights.DistanceBand.from_dataframe(df, threshold=distance_threshold, ids=df['id'].values, silence_warnings=True)
     id_to_block = df[['id', block_type]].set_index('id').to_dict()[block_type]
 
     neighbor_blocks = {}
