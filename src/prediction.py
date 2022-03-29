@@ -102,6 +102,9 @@ class Predictor:
         self.df_train = sklearn.utils.shuffle(self.df_train, random_state=dataset.GLOBAL_REPRODUCIBILITY_SEED)
         self.df_test = sklearn.utils.shuffle(self.df_test, random_state=dataset.GLOBAL_REPRODUCIBILITY_SEED)
 
+        self.df_train = self.df_train.set_index('id')
+        self.df_test = self.df_test.set_index('id')
+
         aux_cols = list(set(self.df_test.columns).intersection(dataset.AUX_VARS))
         self.aux_vars_train = self.df_train[aux_cols]
         self.aux_vars_test = self.df_test[aux_cols]
@@ -165,9 +168,9 @@ class Predictor:
             y_test_all_cf_folds = pd.concat([y_test_all_cf_folds, self.y_test], axis=0)
             aux_vars_test_all_cf_folds = pd.concat([aux_vars_test_all_cf_folds, self.aux_vars_test], axis=0)
 
-        self.y_test = y_test_all_cf_folds.reset_index(drop=True)
-        self.y_predict = y_predict_all_cv_folds.reset_index(drop=True)
-        self.aux_vars_test = aux_vars_test_all_cf_folds.reset_index(drop=True)
+        self.y_test = y_test_all_cf_folds
+        self.y_predict = y_predict_all_cv_folds
+        self.aux_vars_test = aux_vars_test_all_cf_folds
 
 
     def evaluate(self):
@@ -278,20 +281,20 @@ class Regressor(Predictor):
 
 
     def individual_prediction_error(self):
-        df = pd.DataFrame()
-        df['id'] = self.aux_vars_test['id']
-        df['error'] = self.y_predict - self.y_test
+        df = self.y_predict - self.y_test
+        df = df.rename(columns={'age': 'error'})
         return df
 
 
     def spatial_autocorrelation_moran(self, attribute, type):
         if attribute == 'error':
-            aux_df = self.individual_prediction_error().merge(self.aux_vars_test, on='id', how="inner")
-            # aux_df = pd.concat([self.individual_prediction_error(), self.aux_vars_test], axis=1, join="inner")
+            y = self.individual_prediction_error()
         elif attribute == self.target_attribute:
-            aux_df = pd.concat([self.y_predict, self.aux_vars_test], axis=1, join="inner")
+            y = self.y_predict
         else:
             raise Exception(f'Please specify either "error" or "{self.target_attribute}" as the attribute for calculation spatial autocorrelation.')
+
+        aux_df = pd.concat([y, self.aux_vars_test], axis=1, join="inner").reset_index()
 
         if type == 'block':
             moran = spatial_autocorrelation.moran_within_block(aux_df, attribute=attribute)
