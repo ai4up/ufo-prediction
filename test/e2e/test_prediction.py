@@ -64,20 +64,22 @@ def test_age_regression_preprocessing_stages(stage, r2):
     assert predictor.r2() == r2
 
 
-@pytest.mark.parametrize("cv, r2", [
-    (cross_validation, 0.23502689287489764),
-    (city_cross_validation, 0.3036658508998582),
-    (sbb_cross_validation, 0.3400676581605353),
-    (block_cross_validation, 0.3014533981996247),
+@pytest.mark.parametrize("cv, across_folds, r2", [
+    (cross_validation, False, 0.23502689287489764),
+    (city_cross_validation, False, 0.3036658508998582),
+    (sbb_cross_validation, False, 0.3400676581605353),
+    (block_cross_validation, False, 0.3014533981996247),
+    (cross_validation, True, [0.04565479372169401, 0.1722800380072198,
+     0.4754341489702153, -0.03752063302810904, 0.2744060675109399]),
 ])
-def test_cross_validation(cv, r2, mock_sbb):
+def test_cross_validation(cv, across_folds, r2, mock_sbb):
     predictor = AgePredictor(
         model=XGBRegressor(),
         df=test_data,
         cross_validation_split=cv,
         preprocessing_stages=[remove_other_attributes],
     )
-    assert predictor.r2() == r2
+    assert predictor.r2(across_folds=across_folds) == r2
 
 
 @pytest.mark.parametrize("kwargs, mcc", [
@@ -149,7 +151,8 @@ def test_regression_comparison():
         comparison_config=comparison_config,
         grid_comparison_config=grid_comparison_config,
     )
-    assert list(comparison_regression.evaluate()['R2'].values) == [-0.026387288084199323, 0.03767797982924315, 0.045654793721693565, 0.1263538449657533, 0.16138557969070444]
+    assert list(comparison_regression.evaluate()['R2'].values) == [
+        -0.026387288084199323, 0.03767797982924315, 0.045654793721693565, 0.1263538449657533, 0.16138557969070444]
 
 
 def test_classification_comparison():
@@ -171,4 +174,5 @@ def test_classification_comparison():
         comparison_config=comparison_config,
         grid_comparison_config=grid_comparison_config,
     )
-    assert list(comparison_classification.evaluate()['MCC'].values) == [0.50202154565679, 0.5342540437527113, 0.5637492018857397, 0.5683885528165616, 0.5832512879458551]
+    assert list(comparison_classification.evaluate()['MCC'].values) == [
+        0.50202154565679, 0.5342540437527113, 0.5637492018857397, 0.5683885528165616, 0.5832512879458551]

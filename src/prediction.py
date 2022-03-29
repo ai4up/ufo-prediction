@@ -1,6 +1,7 @@
 import logging
 import inspect
 import copy
+from functools import wraps
 
 import dataset
 import utils
@@ -158,11 +159,13 @@ class Predictor:
         y_test_all_cf_folds = pd.DataFrame()
         aux_vars_test_all_cf_folds = pd.DataFrame()
 
-        for df_train, df_test in self.cross_validation_split(self.df):
+        for fold_idx, (df_train, df_test) in enumerate(self.cross_validation_split(self.df)):
             self.df_train = df_train
             self.df_test = df_test
 
             yield
+
+            self.aux_vars_test['cv_fold_idx'] = fold_idx
 
             y_predict_all_cv_folds = pd.concat([y_predict_all_cv_folds, self.y_predict], axis=0)
             y_test_all_cf_folds = pd.concat([y_test_all_cf_folds, self.y_test], axis=0)
@@ -171,6 +174,36 @@ class Predictor:
         self.y_test = y_test_all_cf_folds
         self.y_predict = y_predict_all_cv_folds
         self.aux_vars_test = aux_vars_test_all_cf_folds
+
+
+    def _do_across_folds(self, func, *args, **kwargs):
+        results = []
+        y_test = self.y_test
+        y_predict = self.y_predict
+        try:
+            for _, fold in self.aux_vars_test.groupby('cv_fold_idx'):
+                ids = fold.index.values
+                self.y_test = y_test.loc[ids]
+                self.y_predict = y_predict.loc[ids]
+
+                results.append(func(self, *args, **kwargs))
+
+        finally:
+            self.y_test = y_test
+            self.y_predict = y_predict
+
+        return results
+
+
+    def cv_aware(f):
+        @wraps(f)
+        def wrapped(self, *args, **kwargs):
+            if kwargs.pop('across_folds', None) == True:
+                return self._do_across_folds(f, *args, **kwargs)
+
+            return f(self, *args, **kwargs)
+
+        return wrapped
 
 
     def evaluate(self):
@@ -262,20 +295,24 @@ class Regressor(Predictor):
         super().__init__(*args, **kwargs)
 
 
+    @Predictor.cv_aware
     def print_model_error(self):
         print('MAE: {:.2f} y'.format(self.mae()))
         print('RMSE: {:.2f} y'.format(self.rmse()))
         print('R2: {:.4f}'.format(self.r2()))
 
 
+    @Predictor.cv_aware
     def mae(self):
         return metrics.mean_absolute_error(self.y_test, self.y_predict)
 
 
+    @Predictor.cv_aware
     def rmse(self):
         return np.sqrt(metrics.mean_squared_error(self.y_test, self.y_predict))
 
 
+    @Predictor.cv_aware
     def r2(self):
         return metrics.r2_score(self.y_test, self.y_predict)
 
@@ -286,6 +323,7 @@ class Regressor(Predictor):
         return df
 
 
+    @Predictor.cv_aware
     def spatial_autocorrelation_moran(self, attribute, type):
         if attribute == 'error':
             y = self.individual_prediction_error()
@@ -309,6 +347,7 @@ class Regressor(Predictor):
         return moran
 
 
+    @Predictor.cv_aware
     def prediction_error_distribution(self, bins=[0, 10, 20, np.inf]):
         error_df = self.y_predict - self.y_test
         prediction_error_bins = np.histogram(error_df[dataset.AGE_ATTRIBUTE].abs(), bins)[0] / len(error_df)
