@@ -8,7 +8,6 @@ import preprocessing
 from prediction import Classifier, Regressor, PredictorComparison
 
 import pandas as pd
-import numpy as np
 from sklearn import metrics
 import matplotlib.pyplot as plt
 import scipy.stats

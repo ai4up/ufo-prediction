@@ -13,7 +13,6 @@ import matplotlib.colors as colors
 import geopandas as gpd
 from scipy.stats import kurtosis, skew, norm
 from sklearn import metrics
-from shapely import wkt
 
 
 def plot_histogram(y_test, y_predict, bins=None, bin_labels=[], **kwargs):
