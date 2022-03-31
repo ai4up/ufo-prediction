@@ -6,6 +6,7 @@ import utils
 
 import pandas as pd
 import libpysal as lps
+import splot
 from esda.moran import Moran
 
 logger = logging.getLogger(__name__)
@@ -81,6 +82,34 @@ def features_moran_I(df, weight_func, features=dataset.FEATURES):
         m_features.append({'feature': feat, 'moran_I': m.I, 'moran_p': m.p_sim})
 
     return pd.DataFrame(m_features).sort_values(by='moran_I', ascending=False)
+
+
+def plot_correlogram_over_distance(df, attributes, distances=None):
+    distances = distances or [2 ** i for i in range(2, 10)]
+    coefficients = []
+    for dis in distances:
+        weights = _distance_weights(df, distance_threshold=dis)
+        coefficients.append({attr: Moran(df[attr], weights).I for attr in attributes})
+
+    df = pd.DataFrame(coefficients, index=distances)
+    ax = df.plot(kind='line', title='Spatial autocorrelation over distance')
+    ax.set_ylabel("Moran's I")
+    ax.set_xlabel('distance [m]')
+    return df
+
+
+def plot_neighbors_histogram(weights, bin_size=5):
+    n_neighbors = pd.Series(len(l) for l in weights.neighbors.values())
+    hist = utils.custom_round(n_neighbors, base=bin_size).value_counts(normalize=True).sort_index()
+    hist.plot(kind='bar', title='Histogram of spatial weight neighbors')
+    return hist
+
+
+def plot_few_spatial_weights(weights, gdf, every_n=100):
+    few_ids = list(weights.neighbors.keys())[dataset.GLOBAL_REPRODUCIBILITY_SEED::every_n]
+    few_neighbors = {k: v for k, v in weights.neighbors.items() if k in few_ids}
+    few_dis = lps.weights.W(few_neighbors, ids=few_neighbors.keys(), silence_warnings=True)
+    splot.libpysal.plot_spatial_weights(few_dis, gdf, indexed_on='id')
 
 
 def _within_block_weights(df):
