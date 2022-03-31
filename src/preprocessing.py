@@ -79,11 +79,7 @@ def split(df, attribute, frac):
 
 
 def city_cross_validation(df):
-    group_kfold = model_selection.GroupKFold(n_splits=5)
-    cities = df['city'].values
-
-    for train_idx, test_idx in group_kfold.split(df, groups=cities):
-        yield df.iloc[train_idx], df.iloc[test_idx]
+    return _group_cross_validation(df, 'city')
 
 
 def sbb_cross_validation(df):
@@ -92,11 +88,7 @@ def sbb_cross_validation(df):
     else:
         df = preparation.add_street_block_column(df)
 
-    group_kfold = model_selection.GroupKFold(n_splits=5)
-    street_blocks = df['sbb'].values
-
-    for train_idx, test_idx in group_kfold.split(df, groups=street_blocks):
-        yield df.iloc[train_idx], df.iloc[test_idx]
+    return _group_cross_validation(df, 'sbb')
 
 
 def block_cross_validation(df):
@@ -105,10 +97,22 @@ def block_cross_validation(df):
     else:
         df = preparation.add_block_column(df)
 
-    group_kfold = model_selection.GroupKFold(n_splits=5)
-    building_blocks = df['block'].values
+    return _group_cross_validation(df, 'block')
 
-    for train_idx, test_idx in group_kfold.split(df, groups=building_blocks):
+
+def neighborhood_cross_validation(df):
+    if 'neighborhood' in df.columns:
+        logger.info('Reusing neighborhood column existing in data.')
+    else:
+        df = preparation.add_neighborhood_column(df)
+
+    return _group_cross_validation(df, 'neighborhood')
+
+
+def _group_cross_validation(df, attribute):
+    group_kfold = model_selection.GroupKFold(n_splits=5)
+
+    for train_idx, test_idx in group_kfold.split(df, groups=df[attribute].values):
         yield df.iloc[train_idx], df.iloc[test_idx]
 
 

@@ -3,6 +3,9 @@ import logging
 import geometry
 
 import geopandas as gpd
+from sklearn.cluster import AgglomerativeClustering
+from scipy.spatial.distance import pdist, squareform
+from haversine import haversine
 
 logger = logging.getLogger(__name__)
 
@@ -11,12 +14,34 @@ def prepare(df):
     df = geometry.add_geometry_column(df, crs=3035)
     df = add_block_column(df)
     df = add_street_block_column(df)
+    df = add_neighborhood_column(df)
     return df
 
 
 def add_block_column(df):
     df['block'] = df.groupby(['city', 'TouchesIndexes']).ngroup()
     return df
+
+
+def add_neighborhood_column(gdf, max_neighborhood_size_km=1):
+    columns = list(gdf.columns)
+    if not isinstance(gdf, gpd.GeoDataFrame):
+        logger.info('Using lat lon coordinates of building instead of full geometry to determine street block centroids. The result may vary slightly.')
+        gdf = gpd.GeoDataFrame(gdf, geometry=gpd.points_from_xy(gdf['lon'], gdf['lat']))
+
+
+    sbb_centroids = gdf.dissolve(by='sbb').to_crs(4326).centroid
+    coords = list(zip(sbb_centroids.x , sbb_centroids.y))
+
+    distance_matrix = squareform(pdist(coords, haversine))
+    ac = AgglomerativeClustering(n_clusters=None, affinity='precomputed', linkage='average', distance_threshold=max_neighborhood_size_km).fit(distance_matrix)
+
+    logger.info(f'On average {int(len(ac.labels_) / len(set(ac.labels_)))} street blocks have been assigned per neighborbood cluster.')
+
+    sbb_to_neighborhood = dict(zip(sbb_centroids.index, ac.labels_))
+    gdf['neighborhood'] = gdf['sbb'].map(sbb_to_neighborhood)
+
+    return gdf[columns + ['neighborhood']]
 
 
 def add_street_block_column(df):
