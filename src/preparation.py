@@ -4,8 +4,6 @@ import geometry
 
 import geopandas as gpd
 from sklearn.cluster import AgglomerativeClustering
-from scipy.spatial.distance import pdist, squareform
-from haversine import haversine
 
 logger = logging.getLogger(__name__)
 
@@ -31,14 +29,14 @@ def add_neighborhood_column(gdf, max_neighborhood_size_km=1):
 
 
     sbb_centroids = gdf.dissolve(by='sbb').to_crs(4326).centroid
-    coords = list(zip(sbb_centroids.x , sbb_centroids.y))
+    distance_matrix = geometry.distance_matrix(sbb_centroids)
 
-    distance_matrix = squareform(pdist(coords, haversine))
-    ac = AgglomerativeClustering(n_clusters=None, affinity='precomputed', linkage='average', distance_threshold=max_neighborhood_size_km).fit(distance_matrix)
+    ac = AgglomerativeClustering(n_clusters=None, affinity='precomputed', linkage='average', distance_threshold=max_neighborhood_size_km)
+    clusters = ac.fit(distance_matrix)
 
-    logger.info(f'On average {int(len(ac.labels_) / len(set(ac.labels_)))} street blocks have been assigned per neighborbood cluster.')
+    logger.info(f'On average {int(len(clusters.labels_) / len(set(clusters.labels_)))} street blocks have been assigned per neighborbood cluster.')
 
-    sbb_to_neighborhood = dict(zip(sbb_centroids.index, ac.labels_))
+    sbb_to_neighborhood = dict(zip(sbb_centroids.index, clusters.labels_))
     gdf['neighborhood'] = gdf['sbb'].map(sbb_to_neighborhood)
 
     return gdf[columns + ['neighborhood']]

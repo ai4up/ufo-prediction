@@ -6,6 +6,8 @@ import pandas as pd
 import geopandas as gpd
 from scipy.sparse import csgraph
 from shapely import wkt
+from scipy.spatial.distance import pdist, squareform
+from haversine import haversine
 
 logger = logging.getLogger(__name__)
 
@@ -34,6 +36,11 @@ def add_geometry_column(df, crs=3035, countries=[]):
     df = df.reset_index()
     df_w_geometry = data_geom[['id', 'geometry']].merge(df, on='id', how="inner")
     return df_w_geometry.set_index('index')
+
+
+def distance_matrix(geometry):
+    coords = list(zip(geometry.x, geometry.y))
+    return squareform(pdist(coords, haversine))
 
 
 def load_building_geometry(crs=3035, countries=[], cities=[]):
