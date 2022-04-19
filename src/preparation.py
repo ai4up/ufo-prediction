@@ -25,7 +25,7 @@ def add_neighborhood_column(gdf, max_neighborhood_size_km=1):
     columns = list(gdf.columns)
     if not isinstance(gdf, gpd.GeoDataFrame):
         logger.info('Using lat lon coordinates of building instead of full geometry to determine street block centroids. The result may vary slightly.')
-        gdf = gpd.GeoDataFrame(gdf, geometry=gpd.points_from_xy(gdf['lon'], gdf['lat']))
+        gdf = gpd.GeoDataFrame(gdf.copy(), geometry=gpd.points_from_xy(gdf['lon'], gdf['lat']), crs=4326)
 
 
     sbb_centroids = gdf.dissolve(by='sbb').to_crs(4326).centroid
