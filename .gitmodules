@@ -1,3 +1,6 @@
 [submodule "src/ufo-map"]
 	path = src/ufo_map
 	url = git@gitlab.pik-potsdam.de:nikolami/ufo-map.git
+[submodule "cluster-utils"]
+	path = cluster-utils
+	url = git@github.com:FlorianNachtigall/cluster-utils.git

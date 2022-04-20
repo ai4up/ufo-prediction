@@ -78,49 +78,75 @@ def split(df, attribute, frac):
     return df[filter_mask], df[~filter_mask]
 
 
-def city_cross_validation(df):
-    return _group_cross_validation(df, 'city')
+def cross_validation(df, balanced=False):
+    if balanced:
+        kfold = model_selection.StratifiedKFold(n_splits=5, shuffle=True, random_state=dataset.GLOBAL_REPRODUCIBILITY_SEED)
+    else:
+        kfold = model_selection.KFold(n_splits=5, shuffle=True, random_state=dataset.GLOBAL_REPRODUCIBILITY_SEED)
+
+    for train_idx, test_idx in kfold.split(df):
+        yield df.iloc[train_idx], df.iloc[test_idx]
 
 
-def sbb_cross_validation(df):
+def city_cross_validation(df, balanced=False):
+    return _group_cross_validation(df, 'city', balanced)
+
+
+def sbb_cross_validation(df, balanced=False):
     if 'sbb' in df.columns:
         logger.info('Reusing street-based block (sbb) column existing in data.')
     else:
         df = preparation.add_street_block_column(df)
 
-    return _group_cross_validation(df, 'sbb')
+    return _group_cross_validation(df, 'sbb', balanced)
 
 
-def block_cross_validation(df):
+def block_cross_validation(df, balanced=False):
     if 'block' in df.columns:
         logger.info('Reusing urban block (based on TouchesIndexes) column existing in data.')
     else:
         df = preparation.add_block_column(df)
 
-    return _group_cross_validation(df, 'block')
+    return _group_cross_validation(df, 'block', balanced)
 
 
-def neighborhood_cross_validation(df):
+def neighborhood_cross_validation(df, balanced=False):
     if 'neighborhood' in df.columns:
         logger.info('Reusing neighborhood column existing in data.')
     else:
         df = preparation.add_neighborhood_column(df)
 
-    return _group_cross_validation(df, 'neighborhood')
+    return _group_cross_validation(df, 'neighborhood', balanced)
 
 
-def _group_cross_validation(df, attribute):
-    group_kfold = model_selection.GroupKFold(n_splits=5)
+def _group_cross_validation(df, attribute, balanced=False):
+    if balanced:
+        group_kfold = model_selection.StratifiedGroupKFold(n_splits=5)
+    else:
+        group_kfold = model_selection.GroupKFold(n_splits=5)
 
     for train_idx, test_idx in group_kfold.split(df, groups=df[attribute].values):
         yield df.iloc[train_idx], df.iloc[test_idx]
 
 
-def cross_validation(df):
-    kfold = model_selection.KFold(n_splits=5, shuffle=True, random_state=dataset.GLOBAL_REPRODUCIBILITY_SEED)
+def balanced_cross_validation(df):
+    return cross_validation(df, balanced=True)
 
-    for train_idx, test_idx in kfold.split(df):
-        yield df.iloc[train_idx], df.iloc[test_idx]
+
+def balanced_city_cross_validation(df):
+    return city_cross_validation(df, balanced=True)
+
+
+def balanced_sbb_cross_validation(df):
+    return sbb_cross_validation(df, balanced=True)
+
+
+def balanced_block_cross_validation(df):
+    return block_cross_validation(df, balanced=True)
+
+
+def balanced_neighborhood_cross_validation(df):
+    return neighborhood_cross_validation(df, balanced=True)
 
 
 def normalize_features(df_train, df_test):
