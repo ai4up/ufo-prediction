@@ -350,7 +350,7 @@ class Regressor(Predictor):
     @Predictor.cv_aware
     def prediction_error_distribution(self, bins=[0, 10, 20, np.inf]):
         error_df = self.y_predict - self.y_test
-        prediction_error_bins = np.histogram(error_df[dataset.AGE_ATTRIBUTE].abs(), bins)[0] / len(error_df)
+        prediction_error_bins = np.histogram(error_df[self.target_attribute].abs(), bins)[0] / len(error_df)
         logger.info(f'Distribution of prediction error: {error_df.describe()}')
         logger.info(f'Prediction error bins: {list(zip(utils.generate_labels(bins), np.around(prediction_error_bins, 2)))}')
         return prediction_error_bins

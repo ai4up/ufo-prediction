@@ -23,8 +23,8 @@ class AgePredictor(Regressor):
 
 
     def _pre_preprocess_analysis_hook(self):
-        logger.info(f"Dataset standard deviation: {self.df[dataset.AGE_ATTRIBUTE].std()}")
-        logger.info(f"Dataset mean age: {self.df[dataset.AGE_ATTRIBUTE].mean()}")
+        logger.info(f"Dataset standard deviation: {self.df[self.target_attribute].std()}")
+        logger.info(f"Dataset mean age: {self.df[self.target_attribute].mean()}")
         logger.info(f'Training dataset length: {len(self.df_train)}')
         logger.info(f'Test dataset length: {len(self.df_test)}')
 
@@ -32,8 +32,8 @@ class AgePredictor(Regressor):
     def _post_preprocess_analysis_hook(self):
         # The standard deviation in the test set gives us an indication of a
         # baseline. We want to be able to be substantially below that value.
-        logger.info(f"Test dataset standard deviation after preprocessing: {self.df_test[dataset.AGE_ATTRIBUTE].std()}")
-        logger.info(f"Test dataset mean age after preprocessing: {self.df_test[dataset.AGE_ATTRIBUTE].mean()}")
+        logger.info(f"Test dataset standard deviation after preprocessing: {self.df_test[self.target_attribute].std()}")
+        logger.info(f"Test dataset mean age after preprocessing: {self.df_test[self.target_attribute].mean()}")
         logger.info(f'Training dataset length after preprocessing: {len(self.df_train)}')
         logger.info(f'Test dataset length after preprocessing: {len(self.df_test)}')
 
@@ -78,10 +78,10 @@ class AgeClassifier(Classifier):
         _, axis = plt.subplots(2, 2, figsize=(14, 10), constrained_layout=True)
         visualizations.plot_classification_error(self.model, multiclass=self.multiclass, ax=axis[0, 0])
         visualizations.plot_log_loss(self.model, multiclass=self.multiclass, ax=axis[0, 1])
-        visualizations.plot_histogram(self.y_test, self.y_predict[[dataset.AGE_ATTRIBUTE]], bins=list(
+        visualizations.plot_histogram(self.y_test, self.y_predict[[self.target_attribute]], bins=list(
             range(0, len(self.bins))), bin_labels=self.labels, ax=axis[1, 0])
         visualizations.plot_confusion_matrix(
-            self.y_test, self.y_predict[[dataset.AGE_ATTRIBUTE]], class_labels=self.labels, ax=axis[1, 1])
+            self.y_test, self.y_predict[[self.target_attribute]], class_labels=self.labels, ax=axis[1, 1])
         plt.show()
 
 
@@ -118,8 +118,8 @@ class AgePredictorComparison(PredictorComparison):
                 eval_metrics['prediction_moranI_distance'] = predictor.spatial_autocorrelation_moran(predictor.target_attribute, 'distance').I
 
             if include_plot:
-                age_distributions[f'{name}_predict'] = predictor.y_predict[dataset.AGE_ATTRIBUTE]
-                age_distributions[f'{name}_test'] = predictor.y_test[dataset.AGE_ATTRIBUTE]
+                age_distributions[f'{name}_predict'] = predictor.y_predict[predictor.target_attribute]
+                age_distributions[f'{name}_test'] = predictor.y_test[predictor.target_attribute]
 
             comparison_metrics.append(eval_metrics)
 
