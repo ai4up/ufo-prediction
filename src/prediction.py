@@ -1,5 +1,6 @@
 import logging
 import inspect
+import pickle
 import copy
 from functools import wraps
 
@@ -194,6 +195,20 @@ class Predictor:
             self.y_predict = y_predict
 
         return results
+
+
+    @staticmethod
+    def load(path):
+        predictor = pickle.load(open(path, 'rb'))
+
+        if isinstance(predictor, Predictor):
+            return predictor
+
+        logger.error(f'The object loaded from {path} is not a Predictor instance.')
+
+
+    def save(self, path):
+        pickle.dump(self, open(path, 'wb'))
 
 
     def cv_aware(f):
