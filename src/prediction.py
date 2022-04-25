@@ -56,6 +56,7 @@ class Predictor:
         self.shap_explainer = None
         self.shap_values = None
         self.sample_weights = None
+        self.aux_vars = dataset.AUX_VARS
 
         if not initialize_only:
             self._e2e_training()
@@ -106,7 +107,7 @@ class Predictor:
         self.df_train = self.df_train.set_index('id')
         self.df_test = self.df_test.set_index('id')
 
-        aux_cols = list(set(self.df_test.columns).intersection(dataset.AUX_VARS))
+        aux_cols = list(set(self.df_test.columns).intersection(self.aux_vars))
         self.aux_vars_train = self.df_train[aux_cols]
         self.aux_vars_test = self.df_test[aux_cols]
 

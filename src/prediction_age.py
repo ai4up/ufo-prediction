@@ -68,7 +68,9 @@ class AgeClassifier(Classifier):
         logger.info(f'Generated bins: {self.bins}')
         logger.info(f'Generated bins with the following labels: {self.labels}')
 
-        self.preprocessing_stages.append(partial(preprocessing.categorize_age, bins=self.bins))
+        self.metric_target_attribute = 'age_metric'
+        self.preprocessing_stages.append(partial(preprocessing.categorize_age, bins=self.bins, metric_col=self.metric_target_attribute))
+        self.aux_vars.append(self.metric_target_attribute)
 
         self._e2e_training()
 
