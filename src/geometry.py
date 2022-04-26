@@ -28,6 +28,10 @@ def to_gdf(df, crs=3035):
     return gpd.GeoDataFrame(df, geometry=geo_wkt, crs=crs)
 
 
+def lat_lon_to_gdf(df, crs=3035):
+    return gpd.GeoDataFrame(df, geometry=gpd.points_from_xy(df['lon'], df['lat']), crs=4326).to_crs(crs)
+
+
 def add_geometry_column(df, crs=3035, countries=[]):
     cities = list(df['city'].values) if 'city' in df.columns else []
     data_geom = load_building_geometry(crs, countries, cities)
