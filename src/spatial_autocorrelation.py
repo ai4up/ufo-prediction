@@ -52,6 +52,21 @@ def moran_between_sbbs(df, attribute=dataset.AGE_ATTRIBUTE):
     return Moran(df[attribute], weights)
 
 
+def moran_between_groups(df_group_1, df_group_2, attribute=dataset.AGE_ATTRIBUTE):
+    df_group_1 = df_group_1.dropna(subset=[attribute])
+    df_group_2 = df_group_2.dropna(subset=[attribute])
+
+    ids_train = df_group_1['id'].values
+    ids_test = df_group_2['id'].values
+
+    df = pd.concat([df_group_1, df_group_2], axis=0, ignore_index=True)
+
+    neighbors = {**dict.fromkeys(ids_train, ids_test), **dict.fromkeys(ids_test, ids_train)}
+    weights = lps.weights.W(neighbors, id_order=df['id'].values, silence_warnings=True)
+
+    return Moran(df[attribute], weights)
+
+
 def moran_distance(gdf, distance_threshold=15, attribute=dataset.AGE_ATTRIBUTE, exc_block_type=None):
     gdf = gdf.dropna(subset=[attribute])
 
