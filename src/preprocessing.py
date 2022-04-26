@@ -6,6 +6,7 @@ import utils
 import dataset
 import preparation
 import visualizations
+import geometry
 
 import numpy as np
 import pandas as pd
@@ -78,55 +79,66 @@ def split(df, attribute, frac):
     return df[filter_mask], df[~filter_mask]
 
 
-def cross_validation(df, balanced=False):
-    if balanced:
+def cross_validation(df, balanced_attribute=None):
+    if balanced_attribute:
         kfold = model_selection.StratifiedKFold(n_splits=5, shuffle=True, random_state=dataset.GLOBAL_REPRODUCIBILITY_SEED)
+        iterator = kfold.split(df, df[balanced_attribute])
     else:
         kfold = model_selection.KFold(n_splits=5, shuffle=True, random_state=dataset.GLOBAL_REPRODUCIBILITY_SEED)
+        iterator = kfold.split(df)
 
-    for train_idx, test_idx in kfold.split(df):
+    for train_idx, test_idx in iterator:
         yield df.iloc[train_idx], df.iloc[test_idx]
 
 
-def city_cross_validation(df, balanced=False):
-    return _group_cross_validation(df, 'city', balanced)
+def city_cross_validation(df, balanced_attribute=None, spatial_buffer_size=None):
+    return _group_cross_validation(df, 'city', balanced_attribute, spatial_buffer_size)
 
 
-def sbb_cross_validation(df, balanced=False):
+def sbb_cross_validation(df, balanced_attribute=None, spatial_buffer_size=None):
     if 'sbb' in df.columns:
         logger.info('Reusing street-based block (sbb) column existing in data.')
     else:
         df = preparation.add_street_block_column(df)
 
-    return _group_cross_validation(df, 'sbb', balanced)
+    return _group_cross_validation(df, 'sbb', balanced_attribute, spatial_buffer_size)
 
 
-def block_cross_validation(df, balanced=False):
+def block_cross_validation(df, balanced_attribute=None, spatial_buffer_size=None):
     if 'block' in df.columns:
         logger.info('Reusing urban block (based on TouchesIndexes) column existing in data.')
     else:
         df = preparation.add_block_column(df)
 
-    return _group_cross_validation(df, 'block', balanced)
+    return _group_cross_validation(df, 'block', balanced_attribute, spatial_buffer_size)
 
 
-def neighborhood_cross_validation(df, balanced=False):
+def neighborhood_cross_validation(df, balanced_attribute=None, spatial_buffer_size=None):
     if 'neighborhood' in df.columns:
         logger.info('Reusing neighborhood column existing in data.')
     else:
         df = preparation.add_neighborhood_column(df)
 
-    return _group_cross_validation(df, 'neighborhood', balanced)
+    return _group_cross_validation(df, 'neighborhood', balanced_attribute, spatial_buffer_size)
 
 
-def _group_cross_validation(df, attribute, balanced=False):
-    if balanced:
-        group_kfold = model_selection.StratifiedGroupKFold(n_splits=5)
+def _group_cross_validation(df, attribute, balanced_attribute=None, spatial_buffer_size=None):
+    if balanced_attribute:
+        group_kfold = model_selection.StratifiedGroupKFold(n_splits=5, shuffle=True, random_state=dataset.GLOBAL_REPRODUCIBILITY_SEED)
+        iterator = group_kfold.split(df, df[balanced_attribute], groups=df[attribute].values)
     else:
         group_kfold = model_selection.GroupKFold(n_splits=5)
+        iterator = group_kfold.split(df, groups=df[attribute].values)
 
-    for train_idx, test_idx in group_kfold.split(df, groups=df[attribute].values):
-        yield df.iloc[train_idx], df.iloc[test_idx]
+    for train_idx, test_idx in iterator:
+        train_df = df.iloc[train_idx]
+        test_df = df.iloc[test_idx]
+
+        if spatial_buffer_size:
+            buffer_ids = geometry.spatial_buffer_around_block(df, block_type=attribute, buffer_size_meters=spatial_buffer_size, block_ids=test_df[attribute].unique())
+            train_df = train_df[train_df['id'].isin(buffer_ids)]
+
+        yield train_df, test_df
 
 
 def balanced_cross_validation(df):

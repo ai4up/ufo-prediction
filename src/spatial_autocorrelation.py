@@ -144,12 +144,7 @@ def _distance_weights_exc_block(gdf, block_type, distance_threshold):
         raise Exception(f'block_type {block_type} not found in columns. Consider executing add_block_column() or add_street_block_column() to prepare the dataset.')
 
     dis = lps.weights.DistanceBand.from_dataframe(gdf, threshold=distance_threshold, ids=gdf['id'].values, silence_warnings=True)
-    id_to_block = gdf[['id', block_type]].set_index('id').to_dict()[block_type]
-
-    neighbors_exc_block = {}
-    for building_id, neighbor_ids in dis.neighbors.items():
-        own_block = id_to_block[building_id]
-        neighbors_exc_block[building_id] = [id for id in neighbor_ids if id_to_block[id] != own_block]
+    neighbors_exc_block = utils.exclude_neighbors_from_own_block(dis.neighbors, gdf, block_type)
 
     return lps.weights.W(neighbors_exc_block, id_order=gdf['id'].values, silence_warnings=True)
 

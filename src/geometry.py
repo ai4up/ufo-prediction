@@ -2,11 +2,12 @@ import os
 import glob
 import logging
 
+import numpy as np
 import pandas as pd
 import geopandas as gpd
 from scipy.sparse import csgraph
+from scipy.spatial.distance import pdist, cdist, squareform
 from shapely import wkt
-from scipy.spatial.distance import pdist, squareform
 from haversine import haversine
 
 logger = logging.getLogger(__name__)
@@ -38,9 +39,66 @@ def add_geometry_column(df, crs=3035, countries=[]):
     return df_w_geometry.set_index('index')
 
 
+def nearest_neighbors(df, distance_threshold, identifier='id'):
+    neighbors = {}
+    ids = list(df[identifier].values)
+    matrix = distance_matrix(df['geometry'].centroid)
+
+    for building_idx, building_neighbors in enumerate(matrix):
+        neighbors[ids[building_idx]] = [ids[idx] for idx, dis in enumerate(building_neighbors) if dis < distance_threshold and idx != building_idx]
+
+    return neighbors
+
+
+def knn(df, k, identifier='id'):
+    neighbors = {}
+    ids = list(df[identifier].values)
+    matrix = distance_matrix(df['geometry'].centroid)
+
+    for building_idx, building_neighbors in enumerate(matrix):
+        knn_indices = np.argsort(building_neighbors)[1:k+1]
+        neighbors[ids[building_idx]] = [ids[idx] for idx in knn_indices]
+
+    return neighbors
+
+
+def spatial_buffer_around_block(df, block_type, buffer_size_meters, block_ids=None):
+    if isinstance(df, gpd.GeoDataFrame):
+        gdf = df.copy().to_crs(4326)
+    else:
+        logger.info('Using lat lon coordinates of building instead of full geometry to determine street block centroids. The result may vary slightly.')
+        gdf = gpd.GeoDataFrame(df[['id', block_type]], geometry=gpd.points_from_xy(df['lon'], df['lat']), crs=4326)
+
+    # improve runtime by considering only buildings from k nearest blocks when determining neighbors instead of all available buildings
+    block_centroids = gdf.dissolve(by=block_type).reset_index()
+    k_nearest_blocks = knn(block_centroids, k=8, identifier=block_type)
+
+    buildings_in_buffer = []
+    for block, nearest_blocks in k_nearest_blocks.items():
+        if block_ids is None or block in block_ids:
+            nearest_blocks_gdf = gdf[gdf[block_type].isin(nearest_blocks)]
+            block_gdf = gdf[gdf[block_type] == block]
+            building_ids = list(nearest_blocks_gdf['id'].values)
+
+            nearest_blocks_geom = nearest_blocks_gdf['geometry'].centroid
+            block_geom = block_gdf['geometry'].centroid
+            matrix = pairwise_distance_matrix(block_geom, nearest_blocks_geom)
+
+            for building_neighbors in matrix:
+                buildings_in_buffer.extend([building_ids[idx] for idx, dis in enumerate(building_neighbors) if dis < buffer_size_meters / 1000])
+
+    return buildings_in_buffer
+
+
 def distance_matrix(geometry):
     coords = list(zip(geometry.x, geometry.y))
     return squareform(pdist(coords, haversine))
+
+
+def pairwise_distance_matrix(geometry_1, geometry_2):
+    coords_1 = list(zip(geometry_1.x, geometry_1.y))
+    coords_2 = list(zip(geometry_2.x, geometry_2.y))
+    return cdist(coords_1, coords_2, haversine)
 
 
 def load_building_geometry(crs=3035, countries=[], cities=[]):
@@ -60,26 +118,26 @@ def load_street_geometry(crs=3035, countries=[]):
     return gdf
 
 
-def prepare_street_polygons_file(crs=3035):
-    gdf_sbb = _load_geometry('sbb', crs)
-    gdf_sbb = gdf_sbb.drop_duplicates(subset=['geometry'])
-    gdf_sbb = merge_intersecting_geometries(gdf_sbb)
-    df = pd.DataFrame(gdf_sbb).reset_index(drop=True)
-    df.to_csv(os.path.join(DATA_DIR, 'harmonized', 'sbb.csv'), index=False)
-
-
-def merge_intersecting_geometries(gdf, aggfunc='first'):
-    overlap_matrix = gdf.geometry.apply(lambda x: gdf.intersects(x)).values.astype(int)
-    _, distinct_groups = csgraph.connected_components(overlap_matrix)
-    gdf['group'] = distinct_groups
-    return gdf.dissolve(by='group', aggfunc=aggfunc)
-
-
 def ensure_same_crs(gdf_1, gdf_2):
     if not isinstance(gdf_1, gpd.GeoDataFrame) or not isinstance(gdf_2, gpd.GeoDataFrame):
         raise Exception('Passed dataframes must be Geopandas dataframe.')
 
     gdf_2 = gdf_2.to_crs(gdf_1.crs)
+
+
+def prepare_street_polygons_file(crs=3035):
+    gdf_sbb = _load_geometry('sbb', crs)
+    gdf_sbb = gdf_sbb.drop_duplicates(subset=['geometry'])
+    gdf_sbb = _merge_intersecting_geometries(gdf_sbb)
+    df = pd.DataFrame(gdf_sbb).reset_index(drop=True)
+    df.to_csv(os.path.join(DATA_DIR, 'harmonized', 'sbb.csv'), index=False)
+
+
+def _merge_intersecting_geometries(gdf, aggfunc='first'):
+    overlap_matrix = gdf.geometry.apply(lambda x: gdf.intersects(x)).values.astype(int)
+    _, distinct_groups = csgraph.connected_components(overlap_matrix)
+    gdf['group'] = distinct_groups
+    return gdf.dissolve(by='group', aggfunc=aggfunc)
 
 
 def _determine_crs(country):

@@ -126,3 +126,14 @@ def sample_cities(df, frac):
     sampled_cities = random.sample(cities, n_sampled_cities)
 
     return df[df['city'].isin(sampled_cities)]
+
+
+def exclude_neighbors_from_own_block(neighbors, df, block_type):
+    id_to_block = df[['id', block_type]].set_index('id').to_dict()[block_type]
+
+    neighbors_exc_block = {}
+    for building_id, neighbor_ids in neighbors.items():
+        own_block = id_to_block[building_id]
+        neighbors_exc_block[building_id] = [id for id in neighbor_ids if id_to_block[id] != own_block]
+
+    return neighbors_exc_block
