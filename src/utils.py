@@ -114,6 +114,27 @@ def flatten(list_of_lists):
     return [val for sublist in list_of_lists for val in sublist]
 
 
+def stratified_sampling(df, group, frac=None, n=None):
+    return df.groupby(group, group_keys=False).apply(lambda x: x.sample(frac=frac, n=min(len(x), n)))
+
+
+def stratified_city_sampling(df, group, frac):
+    return df.groupby(group, group_keys=False).apply(lambda x: sample_cities(x, frac))
+
+
+def sample_cities_with_distributional_constraint(df, frac, attr, min_samples_per_group=100):
+    if 1 / frac > min_samples_per_group:
+        logger.warning('A bias may be introduced because the sampling fraction is too small for the min_samples_per_group parameter. Consider increasing the min_samples_per_group or the sampling fraction.')
+
+    n_groups = int(len(df[attr]) / min_samples_per_group)  # every quantile group should have at least min_samples_per_group samples
+
+    if n_groups < 2:
+        raise Exception(f'The dataframe only has {len(df)} samples. Please specify a lower number of min_samples_per_group than {min_samples_per_group} to yield at least two quantiles to sample from.')
+
+    df['group'] = pd.qcut(df[attr].rank(method='first'), n_groups, labels=False)
+    return stratified_city_sampling(df, 'group', frac)
+
+
 def sample_cities(df, frac):
     cities = sorted(df['city'].unique())
     n_sampled_cities = round(frac * len(cities))
