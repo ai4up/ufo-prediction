@@ -78,6 +78,7 @@ class Predictor:
         self.df.dropna(subset=[self.target_attribute], inplace=True)
         self.df.drop_duplicates(subset=['id'], inplace=True)
         logger.info(f'Dataset length: {len(self.df)}')
+        logger.info(f'Dataset allocated memory: {self.df.memory_usage(index=True).sum()}')
 
 
     def _pre_preprocess_analysis_hook(self):
