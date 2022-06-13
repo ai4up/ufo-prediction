@@ -57,7 +57,6 @@ class Predictor:
         self.shap_explainer = None
         self.shap_values = None
         self.sample_weights = None
-        self.aux_vars = dataset.AUX_VARS
 
         if not initialize_only:
             self._e2e_training()
@@ -106,17 +105,18 @@ class Predictor:
         self.df_train = sklearn.utils.shuffle(self.df_train, random_state=dataset.GLOBAL_REPRODUCIBILITY_SEED)
         self.df_test = sklearn.utils.shuffle(self.df_test, random_state=dataset.GLOBAL_REPRODUCIBILITY_SEED)
 
-        self.df_train = self.df_train.set_index('id')
-        self.df_test = self.df_test.set_index('id')
+        self.df_train = self.df_train.set_index('id', drop=False)
+        self.df_test = self.df_test.set_index('id', drop=False)
 
-        aux_cols = list(set(self.df_test.columns).intersection(self.aux_vars))
-        self.aux_vars_train = self.df_train[aux_cols]
-        self.aux_vars_test = self.df_test[aux_cols]
+        feature_cols = self.df_test.columns.intersection(dataset.FEATURES)
 
-        self.X_train = self.df_train.drop(columns=aux_cols + [self.target_attribute])
+        self.aux_vars_train = self.df_train.drop(columns=feature_cols + [self.target_attribute])
+        self.aux_vars_test = self.df_test.drop(columns=feature_cols + [self.target_attribute])
+
+        self.X_train = self.df_train[feature_cols]
         self.y_train = self.df_train[[self.target_attribute]]
 
-        self.X_test = self.df_test.drop(columns=aux_cols + [self.target_attribute])
+        self.X_test = self.df_test[feature_cols]
         self.y_test = self.df_test[[self.target_attribute]]
 
 
