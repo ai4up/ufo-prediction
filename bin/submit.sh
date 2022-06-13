@@ -12,7 +12,7 @@
 #SBATCH --workdir=/p/tmp/floriann/ml-training
 
 conda_env="uf-ml"
-repo_dir="/p/projects/eubucco/mcc-master-thesis"
+repo_dir="/p/projects/eubucco/ufo-prediction"
 
 module load anaconda
 
