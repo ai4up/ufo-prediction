@@ -6,13 +6,36 @@ GLOBAL_REPRODUCIBILITY_SEED = 1
 EHS_AGE_BINS = [0, 1915, 1945, 1965, 1980, 2000, np.inf]
 CUSTOM_AGE_BINS = [0, 1915, 1960, np.inf]
 
-BUILDING_TYPES = ['Résidentiel', 'Annexe', 'Agricole',
-                  'Commercial et services', 'Industriel', 'Religieux', 'Sportif'] # Indifférencié == n.a.
+BUILDING_TYPES = [
+    'Résidentiel',
+    'Annexe',
+    'Agricole',
+    'Commercial et services',
+    'Industriel',
+    'Religieux',
+    'Sportif',
+    # Indifférencié == n.a.
+]
 
 AGE_ATTRIBUTE = 'age'
 TYPE_ATTRIBUTE = 'type_source'
 HEIGHT_ATTRIBUTE = 'height'
-AUX_VARS = ['id', 'source_file', 'city', 'TouchesIndexes', 'type', 'age_wsf', 'block', 'block_bld_ids', 'sbb', 'sbb_bld_ids', 'geometry', 'country'] #'type_source'
+AUX_VARS = [
+    'id',
+    'id_source',
+    'source_file',
+    'city',
+    'TouchesIndexes',
+    'type',
+    'type_source',
+    'age_wsf',
+    'block',
+    'block_bld_ids',
+    'sbb',
+    'sbb_bld_ids',
+    'geometry',
+    'country',
+]
 BUILDING_FEATURES = [
     'FootprintArea',
     'Perimeter',
