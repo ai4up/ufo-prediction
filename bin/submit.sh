@@ -25,6 +25,8 @@ srun \
   --qos io \
   --time 5 \
   --cpus-per-task=1 \
-  pip install -r "${repo_dir}/requirements.txt"
+  /bin/bash -c "
+  pip install -r "${repo_dir}/requirements.txt"; \
+  pip install -r "${repo_dir}/cluster-utils/requirements.txt""
 
 "${repo_dir}/bin/train.py"
