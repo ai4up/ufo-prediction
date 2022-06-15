@@ -29,4 +29,9 @@ srun \
   pip install -r "${repo_dir}/requirements.txt"; \
   pip install -r "${repo_dir}/cluster-utils/requirements.txt""
 
-"${repo_dir}/bin/train.py"
+if [[ -z "${PROFILE_MEMORY}" ]]; then
+  python "${repo_dir}/bin/train.py"
+else
+  mprof run "${repo_dir}/bin/train.py"
+  mprof plot --output mem_usage_over_time.png
+fi
