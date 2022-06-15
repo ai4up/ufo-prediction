@@ -33,8 +33,17 @@ logger.setLevel(logging.INFO)
 slack_channel = os.environ.get('SLACK_CHANNEL')
 slack_token = os.environ.get('SLACK_TOKEN')
 
+
 logger.info('Extracting features...')
-df = cluster_dataset.load(country_name=COUNTRY, path=DATA_DIR, cities=CITIES, n_cities=N_CITIES, seed=dataset.GLOBAL_REPRODUCIBILITY_SEED)
+df = cluster_dataset.load(
+    country_name=COUNTRY,
+    path=DATA_DIR,
+    cities=CITIES,
+    n_cities=N_CITIES,
+    dropna_for_col=dataset.AGE_ATTRIBUTE,
+    seed=dataset.GLOBAL_REPRODUCIBILITY_SEED
+    )
+
 
 logger.info('Training model...')
 predictor = AgePredictor(
@@ -44,10 +53,12 @@ predictor = AgePredictor(
     preprocessing_stages=[pp.remove_outliers, pp.remove_other_attributes]
 )
 
+
 logger.info('Saving model...')
 timestr = time.strftime('%Y%m%d-%H-%M-%S')
 model_path = f'{RESULT_DIR}/model-{COUNTRY}-{N_CITIES or len(CITIES)}-{timestr}.pkl'
 predictor.save(model_path, results_only=True)
+
 
 logger.info('Sending slack notification...')
 try:
