@@ -21,8 +21,8 @@ from prediction_age import AgePredictor
 import cluster_utils.dataset as cluster_dataset
 import cluster_utils.slack_notifications as slack
 
-COUNTRY = 'spain'
-N_CITIES = 4000
+COUNTRY = 'france'
+N_CITIES = 20
 CITIES = []
 DATA_DIR = '/p/projects/eubucco/data/2-database-city-level-v0_1'
 RESULT_DIR = '/p/tmp/floriann/ml-training'
