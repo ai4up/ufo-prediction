@@ -3,10 +3,10 @@
 #SBATCH --job-name=ml-training
 #SBATCH --account=eubucco
 #SBATCH --qos=short
-#SBATCH --time=24:00:00
+#SBATCH --time=00:30:00
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
-#SBATCH --cpus-per-task=16
+#SBATCH --cpus-per-task=1
 #SBATCH --output=ml-training-%j.stdout
 #SBATCH --error=ml-training-%j.stderr
 #SBATCH --workdir=/p/tmp/floriann/ml-training
@@ -26,7 +26,12 @@ srun \
   --time 5 \
   --cpus-per-task=1 \
   /bin/bash -c "
-  pip install -r "${repo_dir}/requirements.txt"; \
-  pip install -r "${repo_dir}/cluster-utils/requirements.txt""
+  pip install -r "${repo_dir}/cluster-utils/requirements.txt"; \
+  pip install -r "${repo_dir}/requirements.txt""
 
-"${repo_dir}/bin/train.py"
+if [[ -z "${PROFILE_MEMORY}" ]]; then
+  python "${repo_dir}/bin/train.py"
+else
+  mprof run "${repo_dir}/bin/train.py"
+  mprof plot --output memory_plot.png
+fi

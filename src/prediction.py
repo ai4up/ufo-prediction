@@ -16,6 +16,7 @@ import numpy as np
 import sklearn
 from sklearn import metrics
 import matplotlib.pyplot as plt
+from memory_profiler import profile
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -23,6 +24,7 @@ logger.setLevel(logging.INFO)
 
 class Predictor:
 
+    @profile
     def __init__(
             self,
             model,
@@ -61,6 +63,7 @@ class Predictor:
         if not initialize_only:
             self._e2e_training()
 
+    @profile
     def _e2e_training(self):
         self._clean()
         # self._preprocess_before_splitting()
@@ -90,6 +93,7 @@ class Predictor:
         logger.info(f'Test dataset length after preprocessing: {len(self.df_test)}')
 
 
+    @profile
     def _preprocess(self):
 
         for func in self.preprocessing_stages:
@@ -120,6 +124,7 @@ class Predictor:
         self.y_test = self.df_test[[self.target_attribute]]
 
 
+    @profile
     def _train(self):
         if self.hyperparameter_tuning:
             self.hyperparameters = utils.tune_hyperparameter(
