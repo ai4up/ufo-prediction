@@ -29,6 +29,7 @@ class AgePredictor(Regressor):
         logger.info(f"Dataset mean age: {self.df[self.target_attribute].mean()}")
         logger.info(f'Training dataset length: {len(self.df_train)}')
         logger.info(f'Test dataset length: {len(self.df_test)}')
+        logger.info(f'Test cities: {self.df_test["city"].unique()}')
 
 
     def _post_preprocess_analysis_hook(self):
@@ -77,7 +78,7 @@ class AgeClassifier(Classifier):
 
 
     def evaluate(self):
-        self.print_classification_report()
+        self.print_model_error()
         _, axis = plt.subplots(2, 2, figsize=(14, 10), constrained_layout=True)
         visualizations.plot_classification_error(self.model, multiclass=self.multiclass, ax=axis[0, 0])
         visualizations.plot_log_loss(self.model, multiclass=self.multiclass, ax=axis[0, 1])

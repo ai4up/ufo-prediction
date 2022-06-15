@@ -85,6 +85,7 @@ class Predictor:
     def _pre_preprocess_analysis_hook(self):
         logger.info(f'Training dataset length: {len(self.df_train)}')
         logger.info(f'Test dataset length: {len(self.df_test)}')
+        logger.info(f'Test cities: {self.df_test["city"].unique()}')
 
 
     def _post_preprocess_analysis_hook(self):
@@ -442,7 +443,7 @@ class Classifier(Predictor):
         return metrics.recall_score(self.y_test, self.y_predict[[self.target_attribute]], pos_label=label_idx, labels=[label_idx], average='macro')
 
 
-    def print_classification_report(self):
+    def print_model_error(self):
         print(f'Classification report:\n {self.classification_report()}')
         print(f'Cohen’s kappa: {self.kappa():.4f}')
         print(f'Matthews correlation coefficient (MCC): {self.mcc():.4f}')

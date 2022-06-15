@@ -321,7 +321,9 @@ def round_age(df):
 
 
 def add_noise_feature(df):
-    df["feature_noise"] = np.random.normal(size=len(df))
+    np.random.seed(dataset.GLOBAL_REPRODUCIBILITY_SEED)
+    df['feature_noise'] = np.random.normal(size=len(df))
+    dataset.FEATURES.append('feature_noise')
     return df
 
 

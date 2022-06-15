@@ -31,7 +31,7 @@ class TypeClassifier(Classifier):
 
 
     def evaluate(self):
-        self.print_classification_report()
+        self.print_model_error()
         _, axis = plt.subplots(2, 2, figsize=(14, 10), constrained_layout=True)
         visualizations.plot_classification_error(self.model, multiclass=self.multiclass, ax=axis[0, 0])
         visualizations.plot_log_loss(self.model, multiclass=self.multiclass, ax=axis[0, 1])
