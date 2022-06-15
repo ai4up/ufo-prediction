@@ -1,3 +1,4 @@
+import gc
 import logging
 import inspect
 import pickle
@@ -60,6 +61,7 @@ class Predictor:
 
         if not initialize_only:
             self._e2e_training()
+
 
     def _e2e_training(self):
         self._clean()
@@ -208,7 +210,19 @@ class Predictor:
         logger.error(f'The object loaded from {path} is not a Predictor instance.')
 
 
-    def save(self, path):
+    def save(self, path, results_only=False):
+        if results_only:
+            del self.df
+            del self.df_test
+            del self.df_train
+            del self.X_test
+            del self.X_train
+            del self.y_train
+            del self.sample_weights
+            del self.aux_vars_train
+            del self.aux_vars_test
+            gc.collect()
+
         pickle.dump(self, open(path, 'wb'))
 
 

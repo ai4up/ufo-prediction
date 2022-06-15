@@ -47,7 +47,7 @@ predictor = AgePredictor(
 logger.info('Saving model...')
 timestr = time.strftime('%Y%m%d-%H-%M-%S')
 model_path = f'{RESULT_DIR}/model-{COUNTRY}-{N_CITIES or len(CITIES)}-{timestr}.pkl'
-predictor.save(model_path)
+predictor.save(model_path, results_only=True)
 
 logger.info('Sending slack notification...')
 try:
