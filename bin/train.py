@@ -15,6 +15,7 @@ sys.path.append(SUBMODULE)
 
 from xgboost import XGBRegressor
 
+import dataset
 import preprocessing as pp
 from prediction_age import AgePredictor
 import cluster_utils.dataset as cluster_dataset
@@ -33,7 +34,7 @@ slack_channel = os.environ.get('SLACK_CHANNEL')
 slack_token = os.environ.get('SLACK_TOKEN')
 
 logger.info('Extracting features...')
-df = cluster_dataset.load(country_name=COUNTRY, path=DATA_DIR, cities=CITIES, n_cities=N_CITIES)
+df = cluster_dataset.load(country_name=COUNTRY, path=DATA_DIR, cities=CITIES, n_cities=N_CITIES, seed=dataset.GLOBAL_REPRODUCIBILITY_SEED)
 
 logger.info('Training model...')
 predictor = AgePredictor(
