@@ -108,7 +108,7 @@ class Predictor:
         self.df_train = self.df_train.set_index('id', drop=False)
         self.df_test = self.df_test.set_index('id', drop=False)
 
-        feature_cols = self.df_test.columns.intersection(dataset.FEATURES)
+        feature_cols = list(self.df_test.columns.intersection(dataset.FEATURES))
 
         self.aux_vars_train = self.df_train.drop(columns=feature_cols + [self.target_attribute])
         self.aux_vars_test = self.df_test.drop(columns=feature_cols + [self.target_attribute])
