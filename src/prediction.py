@@ -38,7 +38,7 @@ class Predictor:
             initialize_only=False) -> None:
 
         self.model = model
-        self.df = df.copy()
+        self.df = df
         self.test_training_split = test_training_split
         self.cross_validation_split = cross_validation_split
         self.preprocessing_stages = preprocessing_stages
