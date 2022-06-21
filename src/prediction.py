@@ -27,7 +27,8 @@ class Predictor:
     def __init__(
             self,
             model,
-            df,
+            df=None,
+            df_path='',
             test_training_split=None,
             cross_validation_split=None,
             preprocessing_stages=[],
@@ -40,6 +41,7 @@ class Predictor:
 
         self.model = model
         self.df = df
+        self.df_path = df_path
         self.test_training_split = test_training_split
         self.cross_validation_split = cross_validation_split
         self.preprocessing_stages = preprocessing_stages
@@ -64,6 +66,7 @@ class Predictor:
 
 
     def _e2e_training(self):
+        self._load()
         self._clean()
         # self._preprocess_before_splitting()
 
@@ -73,6 +76,17 @@ class Predictor:
             self._post_preprocess_analysis_hook()
             self._train()
             self._predict()
+
+
+    def _load(self):
+        if '.csv' in self.df_path:
+            self.df = pd.read_csv(self.df_path)
+        elif '.pkl' in self.df_path:
+            self.df = pd.read_pickle(self.df_path)
+        elif '.parquet' in self.df_path:
+            self.df = pd.read_parquet(self.df_path)
+        elif self.df is None:
+            raise Exception('Please specify df or df_path (currently supported file types: .csv, .pkl, .parquet)')
 
 
     def _clean(self):
