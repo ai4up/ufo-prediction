@@ -259,14 +259,14 @@ class Predictor:
     def calculate_SHAP_values(self):
         if self.shap_values is None:
             self.shap_explainer = shap.TreeExplainer(self.model)
-            self.shap_values = self.shap_explainer.shap_values(self.X_train)
+            self.shap_values = self.shap_explainer.shap_values(self.X_test)
         return self.shap_values
 
 
     def SHAP_analysis(self):
         self.calculate_SHAP_values()
-        shap.summary_plot(self.shap_values, self.X_train)
-        shap.summary_plot(self.shap_values, self.X_train, plot_type='bar')
+        shap.summary_plot(self.shap_values, self.X_test)
+        shap.summary_plot(self.shap_values, self.X_test, plot_type='bar')
 
 
     def normalized_feature_importance(self):
@@ -275,7 +275,7 @@ class Predictor:
 
         avg_shap_value = np.abs(self.shap_values).mean(0)
         normalized_shap_value = avg_shap_value / sum(avg_shap_value)
-        feature_names = self.X_train.columns
+        feature_names = self.X_test.columns
 
         feature_importance = pd.DataFrame(
             {'feature': feature_names, 'normalized_importance': normalized_shap_value})
@@ -283,7 +283,7 @@ class Predictor:
 
 
     def feature_selection(self):
-        if 'feature_noise' not in self.X_train.columns:
+        if 'feature_noise' not in self.X_test.columns:
             raise Exception(
                 "feature_noise column missing. Please add 'add_noise_feature' preprocessing step before doing feature selection.")
 
@@ -299,7 +299,7 @@ class Predictor:
         # remove noise feature from this list
         excluded_features = df_fi[~threshold].iloc[1:]
 
-        print(f'{len(excluded_features)} of {len(self.X_train.columns)-1} features have been excluded:')
+        print(f'{len(excluded_features)} of {len(self.X_test.columns)-1} features have been excluded:')
         print(excluded_features)
 
         return selected_features, excluded_features
@@ -310,7 +310,7 @@ class Predictor:
         shap.dependence_plot(
             feature1,
             self.shap_values,
-            self.X_train,
+            self.X_test,
             interaction_index=feature2,
             xmin=f"percentile({low_percentile})",
             xmax=f"percentile({high_percentile})",
