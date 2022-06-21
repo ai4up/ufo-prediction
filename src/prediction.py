@@ -1,3 +1,4 @@
+import os
 import gc
 import logging
 import inspect
@@ -215,6 +216,19 @@ class Predictor:
         return results
 
 
+    def _garbage_collect(self):
+        del self.df
+        del self.df_test
+        del self.df_train
+        del self.X_test
+        del self.X_train
+        del self.y_train
+        del self.sample_weights
+        del self.aux_vars_train
+        del self.aux_vars_test
+        gc.collect()
+
+
     @staticmethod
     def load(path):
         predictor = pickle.load(open(path, 'rb'))
@@ -227,16 +241,7 @@ class Predictor:
 
     def save(self, path, results_only=False):
         if results_only:
-            del self.df
-            del self.df_test
-            del self.df_train
-            del self.X_test
-            del self.X_train
-            del self.y_train
-            del self.sample_weights
-            del self.aux_vars_train
-            del self.aux_vars_test
-            gc.collect()
+            self._garbage_collect()
 
         pickle.dump(self, open(path, 'wb'))
 
@@ -520,11 +525,13 @@ class PredictorComparison:
             comparison_config,
             grid_comparison_config={'': {}},
             compare_feature_importance=False,
+            garbage_collect_after_training=False,
             **baseline_kwargs) -> None:
 
         self.comparison_config = comparison_config
         self.grid_comparison_config = grid_comparison_config
         self.compare_feature_importance = compare_feature_importance
+        self.garbage_collect_after_training = garbage_collect_after_training
         self.baseline_kwargs = baseline_kwargs
         self.predictors = {}
         self.predictors['baseline'] = predictor(**copy.deepcopy(self.baseline_kwargs))
@@ -544,6 +551,15 @@ class PredictorComparison:
 
                 if self.compare_feature_importance:
                     self.predictors[name].calculate_SHAP_values()
+
+                if self.garbage_collect_after_training:
+                    self.predictors[name]._garbage_collect()
+
+
+    def save(self, path, results_only=False):
+        for name, predictor in self.predictors.items():
+            file_name, ext = os.path.splitext(path)
+            predictor.save(f'{file_name}_{name}{ext}', results_only)
 
 
     def evaluate_feature_importance(self, normalize_by_number_of_features=True):

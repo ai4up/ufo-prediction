@@ -93,20 +93,17 @@ class AgeClassifier(Classifier):
         self.evaluate()  # for backwards compatibility
 
 
-    def save(self, path, results_only=False):
-        if results_only:
-            del self.df
-            del self.df_test
-            del self.df_train
-            del self.X_test
-            del self.X_train
-            del self.y_train
-            del self.sample_weights
-            del self.aux_vars_train
-            # do not delete self.aux_vars_test because of metric_target_attribute
-            gc.collect()
-
-        pickle.dump(self, open(path, 'wb'))
+    def _garbage_collect(self):
+        del self.df
+        del self.df_test
+        del self.df_train
+        del self.X_test
+        del self.X_train
+        del self.y_train
+        del self.sample_weights
+        del self.aux_vars_train
+        # do not delete self.aux_vars_test because of metric_target_attribute
+        gc.collect()
 
 
 class AgePredictorComparison(PredictorComparison):
