@@ -437,8 +437,9 @@ class Classifier(Predictor):
 
 
     def classification_report(self):
-        return metrics.classification_report(
-            self.y_test, self.y_predict[[self.target_attribute]], target_names=self.labels)
+        report = metrics.classification_report(
+            self.y_test, self.y_predict[[self.target_attribute]], target_names=self.labels, output_dict=True)
+        return pd.DataFrame(report).transpose().astype({'support': int})
 
 
     def kappa(self):
