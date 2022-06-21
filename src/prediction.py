@@ -526,18 +526,22 @@ class PredictorComparison:
             grid_comparison_config={'': {}},
             compare_feature_importance=False,
             garbage_collect_after_training=False,
+            include_baseline=True,
             **baseline_kwargs) -> None:
 
         self.comparison_config = comparison_config
         self.grid_comparison_config = grid_comparison_config
         self.compare_feature_importance = compare_feature_importance
         self.garbage_collect_after_training = garbage_collect_after_training
+        self.include_baseline = include_baseline
         self.baseline_kwargs = baseline_kwargs
         self.predictors = {}
-        self.predictors['baseline'] = predictor(**copy.deepcopy(self.baseline_kwargs))
 
-        if self.compare_feature_importance:
-            self.predictors['baseline'].calculate_SHAP_values()
+        if self.include_baseline:
+            self.predictors['baseline'] = predictor(**copy.deepcopy(self.baseline_kwargs))
+
+            if self.compare_feature_importance:
+                self.predictors['baseline'].calculate_SHAP_values()
 
         for grid_experiment_name, grid_experiment_kwargs in self.grid_comparison_config.items():
             for experiment_name, experiment_kwargs in self.comparison_config.items():
@@ -563,6 +567,9 @@ class PredictorComparison:
 
 
     def evaluate_feature_importance(self, normalize_by_number_of_features=True):
+        if not self.include_baseline:
+            raise Exception('Evaluating feature importance changes is only possible if a baseline prediction is defined.')
+
         baseline_importance_df = self.predictors.get('baseline').normalized_feature_importance().set_index('feature')
 
         for name, predictor in self.predictors.items():
