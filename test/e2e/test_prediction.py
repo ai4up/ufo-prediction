@@ -40,7 +40,7 @@ def test_age_regression(kwargs, r2):
         model=XGBRegressor(),
         df=test_data,
         test_training_split=split_80_20,
-        preprocessing_stages=[remove_other_attributes],
+        preprocessing_stages=[],
         **kwargs,
     )
     assert predictor.r2() == r2
@@ -48,7 +48,7 @@ def test_age_regression(kwargs, r2):
 
 @pytest.mark.parametrize("stage, r2", [
     (remove_outliers, 0.06812998958856764),
-    (keep_other_attributes, 0.07966057676899851),
+    (use_other_attributes_as_features, 0.23734541196012648),
     (remove_non_residential_buildings, 0.1573732054114514),
     (remove_buildings_with_unknown_type, 0.07966057676899851),
     (partial(filter_features, selection=dataset.STREET_FEATURES_CENTRALITY), 0.16069264681349593),
@@ -59,7 +59,7 @@ def test_age_regression_preprocessing_stages(stage, r2):
         model=XGBRegressor(),
         df=test_data,
         test_training_split=split_80_20,
-        preprocessing_stages=[stage, remove_other_attributes],
+        preprocessing_stages=[stage],
     )
     assert predictor.r2() == r2
 
@@ -77,7 +77,7 @@ def test_cross_validation(cv, across_folds, r2, mock_sbb):
         model=XGBRegressor(),
         df=test_data,
         cross_validation_split=cv,
-        preprocessing_stages=[remove_other_attributes],
+        preprocessing_stages=[],
     )
     assert predictor.r2(across_folds=across_folds) == r2
 
@@ -93,7 +93,7 @@ def test_age_classification(kwargs, mcc):
         model=XGBClassifier(),
         df=test_data,
         test_training_split=split_80_20,
-        preprocessing_stages=[remove_other_attributes],
+        preprocessing_stages=[],
         bins=dataset.EHS_AGE_BINS,
         **kwargs,
     )
@@ -109,7 +109,7 @@ def test_age_classification_bin_config(bin_config, mcc):
         model=XGBClassifier(),
         df=test_data,
         test_training_split=split_80_20,
-        preprocessing_stages=[remove_other_attributes],
+        preprocessing_stages=[],
         bin_config=bin_config,
     )
     assert classifier.mcc() == mcc
@@ -127,7 +127,7 @@ def test_type_classification(kwargs, mcc):
         model=XGBClassifier(),
         df=test_data,
         test_training_split=split_80_20,
-        preprocessing_stages=[remove_non_type_attributes, remove_buildings_with_unknown_type],
+        preprocessing_stages=[remove_buildings_with_unknown_type],
         **kwargs,
     )
     assert classifier.mcc() == mcc
@@ -147,7 +147,7 @@ def test_regression_comparison():
         model=XGBRegressor(),
         df=test_data,
         test_training_split=split_80_20,
-        preprocessing_stages=[remove_other_attributes],
+        preprocessing_stages=[],
         comparison_config=comparison_config,
         grid_comparison_config=grid_comparison_config,
     )
@@ -169,7 +169,7 @@ def test_classification_comparison():
         model=XGBClassifier(),
         df=test_data,
         test_training_split=split_80_20,
-        preprocessing_stages=[remove_other_attributes],
+        preprocessing_stages=[],
         bins=dataset.EHS_AGE_BINS,
         comparison_config=comparison_config,
         grid_comparison_config=grid_comparison_config,

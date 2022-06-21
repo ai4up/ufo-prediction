@@ -16,24 +16,20 @@ from imblearn.under_sampling import RandomUnderSampler
 logger = logging.getLogger(__name__)
 
 
-def remove_non_type_attributes(df):
-    return remove_other_attributes(df, target=dataset.TYPE_ATTRIBUTE)
+def use_other_attributes_as_features(df, target=dataset.AGE_ATTRIBUTE):
+    other_attrib = dataset.TARGET_ATTRIBUTES.copy()
+    other_attrib.remove(target)
+    dataset.FEATURES.extend(other_attrib)
 
-
-def remove_other_attributes(df, target=dataset.AGE_ATTRIBUTE):
-    other_attributes = dataset.TARGET_ATTRIBUTES.copy()
-    other_attributes.remove(target)
-    return df.drop(columns=other_attributes)
-
-
-def keep_other_attributes(df):
     # Remove all buildings that do not have one of our four variables (age/type/floor/height).
-    df = df.dropna(subset=dataset.TARGET_ATTRIBUTES)
+    df = df.dropna(subset=other_attrib)
     df = remove_buildings_with_unknown_type(df)
 
     # Encode categorical variable building type
-    # df = utils.dummy_encoding(df, dataset.TYPE_ATTRIBUTE) # one-hot encoding
-    df = categorical_to_int(df, dataset.TYPE_ATTRIBUTE)  # label encoding
+    if target is not dataset.TYPE_ATTRIBUTE:
+        # df = utils.dummy_encoding(df, dataset.TYPE_ATTRIBUTE) # one-hot encoding
+        df = categorical_to_int(df, dataset.TYPE_ATTRIBUTE)  # label encoding
+
     return df
 
 
