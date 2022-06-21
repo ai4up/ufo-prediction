@@ -165,7 +165,7 @@ class AgeClassifierComparison(PredictorComparison):
         super().__init__(*args, **kwargs, predictor=AgeClassifier)
 
 
-    def evaluate(self):
+    def evaluate(self, include_plot=False):
         evals_results = {}
         comparison_metrics = []
         for name, predictor in self.predictors.items():
@@ -185,9 +185,10 @@ class AgeClassifierComparison(PredictorComparison):
             evals_results[f'{name}_train'] = predictor.evals_result['validation_0'][eval_metric]
             evals_results[f'{name}_test'] = predictor.evals_result['validation_1'][eval_metric]
 
-        _, axis = plt.subplots(figsize=(6, 6), constrained_layout=True)
-        visualizations.plot_models_classification_error(evals_results, ax=axis)
-        plt.show()
+        if include_plot:
+            _, axis = plt.subplots(figsize=(6, 6), constrained_layout=True)
+            visualizations.plot_models_classification_error(evals_results, ax=axis)
+            plt.show()
 
         return pd.DataFrame(comparison_metrics).sort_values(by=['MCC'])
 
