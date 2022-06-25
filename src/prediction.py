@@ -441,28 +441,34 @@ class Classifier(Predictor):
         return sampled_class
 
 
+    @Predictor.cv_aware
     def classification_report(self):
         report = metrics.classification_report(
             self.y_test, self.y_predict[[self.target_attribute]], target_names=self.labels, output_dict=True)
         return pd.DataFrame(report).transpose().astype({'support': int})
 
 
+    @Predictor.cv_aware
     def kappa(self):
         return metrics.cohen_kappa_score(self.y_test, self.y_predict[[self.target_attribute]])
 
 
+    @Predictor.cv_aware
     def mcc(self):
         return metrics.matthews_corrcoef(self.y_test, self.y_predict[[self.target_attribute]])
 
 
+    @Predictor.cv_aware
     def f1(self):
         return metrics.f1_score(self.y_test, self.y_predict[[self.target_attribute]], average='macro')
 
 
+    @Predictor.cv_aware
     def recall(self, label_idx):
         return metrics.recall_score(self.y_test, self.y_predict[[self.target_attribute]], pos_label=label_idx, labels=[label_idx], average='macro')
 
 
+    @Predictor.cv_aware
     def print_model_error(self):
         print(f'Classification report:\n {self.classification_report()}')
         print(f'Cohen’s kappa: {self.kappa():.4f}')
