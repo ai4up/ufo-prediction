@@ -13,6 +13,8 @@ import pandas as pd
 from sklearn import model_selection, preprocessing
 from imblearn.under_sampling import RandomUnderSampler
 
+N_CV_SPLITS = 3
+
 logger = logging.getLogger(__name__)
 
 
@@ -77,10 +79,10 @@ def split(df, attribute, frac):
 
 def cross_validation(df, balanced_attribute=None):
     if balanced_attribute:
-        kfold = model_selection.StratifiedKFold(n_splits=5, shuffle=True, random_state=dataset.GLOBAL_REPRODUCIBILITY_SEED)
+        kfold = model_selection.StratifiedKFold(n_splits=N_CV_SPLITS, shuffle=True, random_state=dataset.GLOBAL_REPRODUCIBILITY_SEED)
         iterator = kfold.split(df, df[balanced_attribute])
     else:
-        kfold = model_selection.KFold(n_splits=5, shuffle=True, random_state=dataset.GLOBAL_REPRODUCIBILITY_SEED)
+        kfold = model_selection.KFold(n_splits=N_CV_SPLITS, shuffle=True, random_state=dataset.GLOBAL_REPRODUCIBILITY_SEED)
         iterator = kfold.split(df)
 
     for train_idx, test_idx in iterator:
@@ -120,10 +122,10 @@ def neighborhood_cross_validation(df, balanced_attribute=None, spatial_buffer_si
 
 def _group_cross_validation(df, attribute, balanced_attribute=None, spatial_buffer_size=None):
     if balanced_attribute:
-        group_kfold = model_selection.StratifiedGroupKFold(n_splits=5, shuffle=True, random_state=dataset.GLOBAL_REPRODUCIBILITY_SEED)
+        group_kfold = model_selection.StratifiedGroupKFold(n_splits=N_CV_SPLITS, shuffle=True, random_state=dataset.GLOBAL_REPRODUCIBILITY_SEED)
         iterator = group_kfold.split(df, df[balanced_attribute], groups=df[attribute].values)
     else:
-        group_kfold = model_selection.GroupKFold(n_splits=5)
+        group_kfold = model_selection.GroupKFold(n_splits=N_CV_SPLITS)
         iterator = group_kfold.split(df, groups=df[attribute].values)
 
     for train_idx, test_idx in iterator:

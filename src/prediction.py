@@ -9,6 +9,7 @@ from functools import wraps
 import dataset
 import utils
 import visualizations
+import preprocessing
 import spatial_autocorrelation
 import geometry
 
@@ -16,6 +17,7 @@ import shap
 import pandas as pd
 import numpy as np
 import sklearn
+from sklearn import model_selection
 from sklearn import metrics
 import matplotlib.pyplot as plt
 
@@ -37,6 +39,7 @@ class Predictor:
             mitigate_class_imbalance=False,
             early_stopping=True,
             hyperparameter_tuning=False,
+            hyperparameter_tuning_only=False,
             hyperparameters=None,
             initialize_only=False) -> None:
 
@@ -50,6 +53,7 @@ class Predictor:
         self.mitigate_class_imbalance = mitigate_class_imbalance
         self.early_stopping = early_stopping
         self.hyperparameter_tuning = hyperparameter_tuning
+        self.hyperparameter_tuning_only = hyperparameter_tuning_only
         self.hyperparameters = hyperparameters
 
         self.X_train = None
@@ -61,6 +65,7 @@ class Predictor:
         self.shap_explainer = None
         self.shap_values = None
         self.sample_weights = None
+        self.hyperparameter_tuning_results = None
 
         if not initialize_only:
             self._e2e_training()
@@ -139,32 +144,105 @@ class Predictor:
 
 
     def _train(self):
-        if self.hyperparameter_tuning:
-            self.hyperparameters = utils.tune_hyperparameter(
-                self.model, self.X_train, self.y_train)
-
-        if self.hyperparameters:
-            self.model.set_params(**self.hyperparameters)
-
         if self.mitigate_class_imbalance:
             self.sample_weights = sklearn.utils.class_weight.compute_sample_weight(
                 class_weight='balanced',
                 y=self.y_train[self.target_attribute]
             )
 
-        eval_set = [(self.X_train, self.y_train), (self.X_test, self.y_test)]
-        early_stopping_rounds = self.model.n_estimators / 10 if self.early_stopping else None
-        self.model.fit(self.X_train, self.y_train, sample_weight=self.sample_weights, verbose=False,
-                       eval_set=eval_set, early_stopping_rounds=early_stopping_rounds)
+        model_params = {
+            'random_state': dataset.GLOBAL_REPRODUCIBILITY_SEED,
+        }
+
+        fit_params = {
+            'X': self.X_train,
+            'y': self.y_train,
+            'sample_weight': self.sample_weights,
+            'verbose': utils.verbose(),
+        }
+
+        if self.hyperparameter_tuning or self.hyperparameter_tuning_only:
+            self._tune_hyperparameters(fit_params)
+            return
+
+        if self.hyperparameters:
+            model_params = {**model_params, **self.hyperparameters}
+
+        if self.early_stopping:
+            fit_params['early_stopping_rounds'] = max(50, self.model.n_estimators / 10)
+
+        fit_params['eval_set'] = [(self.X_train, self.y_train), (self.X_test, self.y_test)]
+        self.model.set_params(**model_params)
+        self.model.fit(**fit_params)
         self.evals_result = self.model.evals_result()
 
 
     def _predict(self):
-        self.y_predict = pd.DataFrame(
-            {self.target_attribute: self.model.predict(self.X_test)}, index=self.X_test.index)
+        if not self.hyperparameter_tuning_only:
+            self.y_predict = pd.DataFrame(
+                {self.target_attribute: self.model.predict(self.X_test)}, index=self.X_test.index)
+
+
+    def _tune_hyperparameters(self, fit_params, grid=False):
+        params = {
+            'max_depth': range(5, 20, 2),
+            'learning_rate': np.linspace(0.01, 0.1, 10),
+            'n_estimators': range(500, 5000, 500),
+            'colsample_bytree': np.linspace(0.3, 1, 8),
+            'colsample_bylevel': np.linspace(0.3, 1, 8),
+            'max_bin': [128, 256, 512]
+        }
+
+        if self.cross_validation_split:
+            if not self.df_train.index.equals(self.X_train.index):
+                raise Exception('Unexpected index inconsistencies found between df_train and X_train. \
+                    The cross_validation_split requires df_train to access auxiliary attributes like the city and assumes the df_train indices to be consistent with X_train.')
+
+            inner_cv = ((train_df.index, test_df.index)
+                        for train_df, test_df in self.cross_validation_split(self.df_train.reset_index(drop=True)))
+        else:
+            inner_cv = preprocessing.N_CV_SPLITS
+
+        if grid:
+            clf = model_selection.GridSearchCV(
+                estimator=self.model,
+                param_grid=params,
+                verbose=2,
+                cv=inner_cv,
+                return_train_score=True,
+                random_state=dataset.GLOBAL_REPRODUCIBILITY_SEED
+            )
+        else:
+            # TODO remove scoring='neg_root_mean_squared_error' to use estimator's score method
+            # (however it uses R2 although reg:squarederror is default for xgboost regression)
+            clf = model_selection.RandomizedSearchCV(
+                estimator=self.model,
+                n_iter=20,
+                param_distributions=params,
+                scoring='neg_root_mean_squared_error',
+                verbose=2,
+                cv=inner_cv,
+                return_train_score=True,
+                random_state=dataset.GLOBAL_REPRODUCIBILITY_SEED
+            )
+
+        clf.fit(**fit_params)
+
+        self.model = clf.best_estimator_
+        self.hyperparameter_tuning_results = clf.cv_results_
+
+        logger.info(f'Best hyperparameters: {clf.best_params_}')
+        logger.info(f'Corresponding score: {clf.best_score_}')
+        pd.DataFrame(clf.cv_results_).to_csv('hyperparameter-tuning-results.csv', sep='\t')
 
 
     def _cv_aware_split(self):
+        if self.hyperparameter_tuning_only:
+            self.df_train = self.df
+            self.df_test = self.df.drop(self.df.index)
+            yield
+            return
+
         if not self.test_training_split and not self.cross_validation_split:
             logger.exception('Please specify either a test_training_split or cross_validation_split function.')
 

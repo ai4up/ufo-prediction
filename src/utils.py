@@ -65,32 +65,6 @@ def custom_round(column, base=5):
     return column.apply(lambda x: int(base * round(float(x) / base)))
 
 
-def tune_hyperparameter(model, X, y):
-    params = {
-        'max_depth': [1, 3, 6, 10],  # try ada trees
-        'learning_rate': [0.05, 0.1, 0.3],
-        'n_estimators': [100, 500, 1000],
-        'colsample_bytree': [0.3, 0.5, 0.7],
-        'subsample': [0.7, 1.0],
-    }
-
-    # https://scikit-learn.org/stable/modules/model_evaluation.html#scoring-parameter
-    clf = model_selection.GridSearchCV(estimator=model,
-                                       param_grid=params,
-                                       scoring='neg_root_mean_squared_error',
-                                       verbose=1)
-    clf.fit(X, y)
-    print("Best parameters: ", clf.best_params_)
-    print("Lowest RMSE: ", np.sqrt(-clf.best_score_))
-
-    tuning_results = pd.concat([pd.DataFrame(clf.cv_results_["params"]), pd.DataFrame(
-        clf.cv_results_["mean_test_score"], columns=["Accuracy"])], axis=1)
-    tuning_results.to_csv('hyperparameter-tuning-results.csv', sep='\t')
-    print('All hyperparameter tuning results:\n', tuning_results)
-
-    return clf.best_params_
-
-
 def split_target_var(df):
     X = df.drop(columns=[dataset.AGE_ATTRIBUTE])
     y = df[[dataset.AGE_ATTRIBUTE]]
@@ -158,3 +132,7 @@ def exclude_neighbors_from_own_block(neighbors, df, block_type):
         neighbors_exc_block[building_id] = [id for id in neighbor_ids if id_to_block[id] != own_block]
 
     return neighbors_exc_block
+
+
+def verbose():
+    return logging.level <= logging.DEBUG

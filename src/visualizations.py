@@ -208,6 +208,57 @@ def plot_prediction_error_histogram(y_test, y_predict):
     print('Skewness of normal distribution (should be 0): {}'.format(skew(error)))
 
 
+def plot_hyperparameter_tuning_results(results, hyperparameter, eval_metrics, **kwargs):
+    if isinstance(results, pd.DataFrame):
+        results = {k: np.array(v) for k, v in results.to_dict(orient='list').items()}
+
+    with SubplotManager(**kwargs) as ax:
+        ax.set_title(f'Hyperparameter tuning for {hyperparameter}', fontsize=16)
+        ax.set_xlabel(hyperparameter)
+        ax.set_ylabel('Score')
+
+        # Get regular np.array from MaskedArray
+        X_axis = np.ma.getdata(results[f'param_{hyperparameter}']).astype(int)
+
+        # Plot all eval metrics defined
+        for metric in sorted(eval_metrics):
+            for sample, style in (('train', '--'), ('test', '-')):
+                sample_score_mean = np.abs(results['mean_%s_%s' % (sample, metric)])
+                sample_score_std = np.abs(results['std_%s_%s' % (sample, metric)])
+                ax.plot(
+                    X_axis,
+                    sample_score_mean,
+                    style,
+                    alpha=1 if sample == 'test' else 0.7,
+                    label='%s (%s)' % (metric, sample),
+                )
+                ax.fill_between(
+                    X_axis,
+                    sample_score_mean - sample_score_std,
+                    sample_score_mean + sample_score_std,
+                    alpha=0.1 if sample == 'test' else 0,
+                )
+
+            best_index = np.nonzero(results['rank_test_%s' % metric] == 1)[0][0]
+            best_score = np.abs(results['mean_test_%s' % metric][best_index])
+
+            # Plot dotted vertical line at best eval metric score
+            ax.plot(
+                [X_axis[best_index]] * 2,
+                [0, best_score],
+                linestyle='-.',
+                marker='x',
+                markeredgewidth=3,
+                ms=8,
+            )
+
+            # Annotate best eval metric score during training
+            ax.annotate('%0.2f' % best_score, (X_axis[best_index], best_score + 0.005))
+
+        ax.legend(loc='best')
+        ax.grid(False)
+
+
 def plot_age_on_map(age_df, geometry_df):
     age_df = age_df.dropna(subset=[dataset.AGE_ATTRIBUTE])
     age_df = preprocessing.remove_outliers(age_df)
