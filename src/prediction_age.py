@@ -7,7 +7,8 @@ import utils
 import visualizations
 import dataset
 import preprocessing
-from prediction import Classifier, Regressor, PredictorComparison
+import energy_modeling
+from prediction import Predictor, Classifier, Regressor, PredictorComparison
 
 import pandas as pd
 from sklearn import metrics
@@ -41,6 +42,13 @@ class AgePredictor(Regressor):
         logger.info(f'Test dataset length after preprocessing: {len(self.df_test)}')
 
 
+    def print_model_error(self):
+        super().print_model_error()
+        r2, mape = self.energy_error()
+        print(f'R2: {r2:.4f}')
+        print(f'MAPE: {mape:.4f}')
+
+
     def evaluate(self):
         self.print_model_error()
         _, axis = plt.subplots(2, 2, figsize=(14, 10), constrained_layout=True)
@@ -54,6 +62,14 @@ class AgePredictor(Regressor):
 
     def evaluate_regression(self):
         self.evaluate()  # for backwards compatibility
+
+
+    @Predictor.cv_aware
+    def energy_error(self):
+        y_true = pd.concat([self.y_test, self.aux_vars_test, self.X_test[['FootprintArea']]], axis=1, join="inner")
+        y_pred = pd.concat([self.y_predict, self.aux_vars_test, self.X_test[['FootprintArea']]], axis=1, join="inner")
+        return energy_modeling.calculate_energy_error(y_true, y_pred)
+
 
 
 class AgeClassifier(Classifier):
@@ -77,6 +93,14 @@ class AgeClassifier(Classifier):
         self._e2e_training()
 
 
+    def print_model_error(self):
+        super().print_model_error()
+        if self.bins in dataset.TABULA_AGE_BINS.values():
+            r2, mape = self.energy_error()
+            print(f'R2: {r2:.4f}')
+            print(f'MAPE: {mape:.4f}')
+
+
     def evaluate(self):
         self.print_model_error()
         _, axis = plt.subplots(2, 2, figsize=(14, 10), constrained_layout=True)
@@ -91,6 +115,13 @@ class AgeClassifier(Classifier):
 
     def evaluate_classification(self):
         self.evaluate()  # for backwards compatibility
+
+
+    @Predictor.cv_aware
+    def energy_error(self):
+        y_true = pd.concat([self.y_test, self.aux_vars_test, self.X_test[['FootprintArea']]], axis=1, join="inner")
+        y_pred = pd.concat([self.y_predict, self.aux_vars_test, self.X_test[['FootprintArea']]], axis=1, join="inner")
+        return energy_modeling.calculate_energy_error(y_true, y_pred, labels=self.labels)
 
 
     def _garbage_collect(self):
@@ -112,7 +143,7 @@ class AgePredictorComparison(PredictorComparison):
         super().__init__(*args, **kwargs, predictor=AgePredictor)
 
 
-    def evaluate(self, include_plot=False, include_error_distribution=False, include_spatial_autocorrelation=False):
+    def evaluate(self, include_plot=False, include_error_distribution=False, include_energy_error=False, include_spatial_autocorrelation=False):
         age_distributions = {}
         comparison_metrics = []
         for name, predictor in self.predictors.items():
@@ -125,6 +156,11 @@ class AgePredictorComparison(PredictorComparison):
             if include_error_distribution:
                 eval_metrics['skew'] = scipy.stats.skew(predictor.y_test - predictor.y_predict)[0]
                 eval_metrics['kurtosis'] = scipy.stats.kurtosis(predictor.y_test - predictor.y_predict)[0]
+
+            if include_energy_error:
+                r2, mape = predictor.energy_error()
+                eval_metrics['energy_r2'] = r2
+                eval_metrics['energy_mape'] = mape
 
             if include_spatial_autocorrelation:
                 eval_metrics['residuals_moranI_KNN'] = predictor.spatial_autocorrelation_moran('error', 'knn').I
@@ -165,7 +201,7 @@ class AgeClassifierComparison(PredictorComparison):
         super().__init__(*args, **kwargs, predictor=AgeClassifier)
 
 
-    def evaluate(self, include_plot=False):
+    def evaluate(self, include_plot=False, include_energy_error=False):
         evals_results = {}
         comparison_metrics = []
         for name, predictor in self.predictors.items():
@@ -175,9 +211,15 @@ class AgeClassifierComparison(PredictorComparison):
             eval_metrics['name'] = name
             eval_metrics['MCC'] = metrics.matthews_corrcoef(test, pred)
             eval_metrics['F1'] = metrics.f1_score(test, pred, average='macro')
+
             for idx, label in enumerate(predictor.labels):
                 eval_metrics[f'Recall_{label}'] = metrics.recall_score(
                     test, pred, pos_label=idx, labels=[idx], average='macro')
+
+            if include_energy_error:
+                r2, mape = predictor.energy_error()
+                eval_metrics['energy_r2'] = r2
+                eval_metrics['energy_mape'] = mape
 
             comparison_metrics.append(eval_metrics)
 

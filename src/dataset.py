@@ -4,7 +4,11 @@ GLOBAL_REPRODUCIBILITY_SEED = 1
 
 # age bands ~ according to English Housing Survey (EHS) as done in https://doi.org/10.1016/j.compenvurbsys.2018.08.004
 EHS_AGE_BINS = [0, 1915, 1945, 1965, 1980, 2000, np.inf]
-CUSTOM_AGE_BINS = [0, 1915, 1960, np.inf]
+TABULA_AGE_BINS = {
+    'harmonized': [0, 1900, 1945, 1970, 1980, 1990, 2000, 2010, np.inf],
+    'netherlands': [0, 1965, 1975, 1992, 2006, 2015, 2051],
+    'france': [0, 1915, 1949, 1968, 1975, 1982, 1990, 2000, 2006, 2013, 2051],
+}
 
 BUILDING_TYPES = [
     'Résidentiel',
