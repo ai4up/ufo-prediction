@@ -109,16 +109,16 @@ def sample_cities_with_distributional_constraint(df, frac, attr, min_samples_per
     return stratified_city_sampling(df, 'group', frac)
 
 
-def sample_cities(df, frac):
+def sample_cities(df, frac=None, n=None):
     cities = sorted(df['city'].unique())
-    n_sampled_cities = round(frac * len(cities))
+    n = n or round(frac * len(cities))
 
-    if n_sampled_cities == 0:
+    if n == 0:
         logger.warning(f'Provided fraction ({frac}) is too small. Increasing fraction to {1 / len(cities)} to include at least one city in the sample.')
-        n_sampled_cities = 1
+        n = 1
 
     random.seed(dataset.GLOBAL_REPRODUCIBILITY_SEED)
-    sampled_cities = random.sample(cities, n_sampled_cities)
+    sampled_cities = random.sample(cities, n)
 
     return df[df['city'].isin(sampled_cities)]
 
