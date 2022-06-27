@@ -35,6 +35,8 @@ class Predictor:
             model,
             df=None,
             df_path='',
+            frac=None,
+            n_cities=None,
             test_training_split=None,
             cross_validation_split=None,
             preprocessing_stages=[],
@@ -49,6 +51,8 @@ class Predictor:
         self.model = model
         self.df = df
         self.df_path = df_path
+        self.frac = frac
+        self.n_cities = n_cities
         self.test_training_split = test_training_split
         self.cross_validation_split = cross_validation_split
         self.preprocessing_stages = preprocessing_stages
@@ -96,6 +100,9 @@ class Predictor:
             self.df = pd.read_parquet(self.df_path)
         elif self.df is None:
             raise Exception('Please specify df or df_path (currently supported file types: .csv, .pkl, .parquet)')
+
+        if self.frac or self.n_cities:
+            self.df = utils.sample_cities(self.df, frac=self.frac, n=self.n_cities)
 
 
     def _clean(self):
