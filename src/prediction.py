@@ -4,6 +4,7 @@ import logging
 import inspect
 import pickle
 import copy
+import time
 import collections
 from functools import wraps
 
@@ -235,7 +236,8 @@ class Predictor:
 
         logger.info(f'Best hyperparameters: {clf.best_params_}')
         logger.info(f'Corresponding score: {clf.best_score_}')
-        pd.DataFrame(clf.cv_results_).to_csv('hyperparameter-tuning-results.csv', sep='\t')
+        timestr = time.strftime('%Y%m%d-%H-%M-%S')
+        pd.DataFrame(clf.cv_results_).to_csv(f'hyperparameter-tuning-results-{timestr}.csv', sep='\t')
 
 
     def _cv_aware_split(self):
