@@ -4,6 +4,7 @@ import logging
 import inspect
 import pickle
 import copy
+import collections
 from functools import wraps
 
 import dataset
@@ -19,6 +20,7 @@ import numpy as np
 import sklearn
 from sklearn import model_selection
 from sklearn import metrics
+from scipy import stats
 import matplotlib.pyplot as plt
 
 logger = logging.getLogger(__name__)
@@ -446,6 +448,16 @@ class Regressor(Predictor):
         return metrics.r2_score(self.y_test, self.y_predict)
 
 
+    @Predictor.cv_aware
+    def kurtosis(self):
+        return stats.kurtosis(self.y_test - self.y_predict)[0]
+
+
+    @Predictor.cv_aware
+    def kurtosis(self):
+        return stats.skew(self.y_test - self.y_predict)[0]
+
+
     def individual_prediction_error(self):
         df = self.y_predict - self.y_test
         df = df.rename(columns={'age': 'error'})
@@ -611,6 +623,7 @@ class PredictorComparison:
             compare_feature_importance=False,
             garbage_collect_after_training=False,
             include_baseline=True,
+            n_seeds=1,
             **baseline_kwargs) -> None:
 
         self.comparison_config = comparison_config
@@ -619,7 +632,8 @@ class PredictorComparison:
         self.garbage_collect_after_training = garbage_collect_after_training
         self.include_baseline = include_baseline
         self.baseline_kwargs = baseline_kwargs
-        self.predictors = {}
+        self.n_seeds = n_seeds
+        self.predictors = collections.defaultdict(list)
 
         if self.include_baseline:
             self.predictors['baseline'] = predictor(**copy.deepcopy(self.baseline_kwargs))
@@ -629,25 +643,28 @@ class PredictorComparison:
 
         for grid_experiment_name, grid_experiment_kwargs in self.grid_comparison_config.items():
             for experiment_name, experiment_kwargs in self.comparison_config.items():
+                for seed in range(self.n_seeds):
 
-                name = f'{experiment_name}_{grid_experiment_name}'
-                kwargs = {**copy.deepcopy(self.baseline_kwargs), **grid_experiment_kwargs, **experiment_kwargs}
-                logger.info(f'Starting experiment {name}...')
-                logger.debug(f'Training predictor ({name}) with following args:\n{kwargs}')
+                    dataset.GLOBAL_REPRODUCIBILITY_SEED = seed
+                    name = f'{experiment_name}_{grid_experiment_name}'
+                    kwargs = {**copy.deepcopy(self.baseline_kwargs), **grid_experiment_kwargs, **experiment_kwargs}
+                    logger.info(f'Starting experiment {name}...')
+                    logger.debug(f'Training predictor ({name}) (seed {seed}) with following args:\n{kwargs}')
 
-                self.predictors[name] = predictor(**kwargs)
+                    self.predictors[name].append(predictor(**kwargs))
 
-                if self.compare_feature_importance:
-                    self.predictors[name].calculate_SHAP_values()
+                    if self.compare_feature_importance:
+                        self.predictors[name][seed].calculate_SHAP_values()
 
-                if self.garbage_collect_after_training:
-                    self.predictors[name]._garbage_collect()
+                    if self.garbage_collect_after_training:
+                        self.predictors[name][seed]._garbage_collect()
 
 
     def save(self, path, results_only=False):
-        for name, predictor in self.predictors.items():
-            file_name, ext = os.path.splitext(path)
-            predictor.save(f'{file_name}_{name}{ext}', results_only)
+        file_name, ext = os.path.splitext(path)
+        for name, predictors in self.predictors.items():
+            for seed, predictor in enumerate(predictors):
+                predictor.save(f'{file_name}_{name}_{seed}_{ext}', results_only)
 
 
     def evaluate_feature_importance(self, normalize_by_number_of_features=True):
@@ -656,8 +673,8 @@ class PredictorComparison:
 
         baseline_importance_df = self.predictors.get('baseline').normalized_feature_importance().set_index('feature')
 
-        for name, predictor in self.predictors.items():
-            importance_df = predictor.normalized_feature_importance().set_index('feature')
+        for name, predictors in self.predictors.items():
+            importance_df = predictors[0].normalized_feature_importance().set_index('feature')
             normalization_factor = len(importance_df) if normalize_by_number_of_features else 1
             baseline_importance_df['diff_' + name] = (importance_df['normalized_importance'] -
                                                       baseline_importance_df['normalized_importance']) * normalization_factor
@@ -672,6 +689,14 @@ class PredictorComparison:
 
 
     def plot_feature_importance_changes(self):
-        dfs = [p.normalized_feature_importance() for p in self.predictors.values()]
+        dfs = [p.normalized_feature_importance() for predictors in self.predictors.values() for p in predictors]
         all_top_5_features = set().union(*[df[:5]['feature'].values for df in dfs])
         visualizations.slope_chart(dfs, labels=self.predictors.keys(), feature_selection=all_top_5_features)
+
+
+    def _mean(self, predictors, func, *args, **kwargs):
+        return np.mean([getattr(p, func)(*args, **kwargs) for p in predictors])
+
+
+    def _std(self, predictors, func, *args, **kwargs):
+        return np.std([getattr(p, func)(*args, **kwargs) for p in predictors])

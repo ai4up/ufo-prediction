@@ -1,5 +1,4 @@
 import gc
-import pickle
 import logging
 from functools import partial
 
@@ -11,9 +10,7 @@ import energy_modeling
 from prediction import Predictor, Classifier, Regressor, PredictorComparison
 
 import pandas as pd
-from sklearn import metrics
 import matplotlib.pyplot as plt
-import scipy.stats
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -146,33 +143,40 @@ class AgePredictorComparison(PredictorComparison):
     def evaluate(self, include_plot=False, include_error_distribution=False, include_energy_error=False, include_spatial_autocorrelation=False):
         age_distributions = {}
         comparison_metrics = []
-        for name, predictor in self.predictors.items():
+        for name, predictors in self.predictors.items():
+            # average eval metrics across seeds
             eval_metrics = {}
             eval_metrics['name'] = name
-            eval_metrics['R2'] = predictor.r2()
-            eval_metrics['MAE'] = predictor.mae()
-            eval_metrics['RMSE'] = predictor.rmse()
+            eval_metrics['R2'] = self._mean(predictors, 'r2')
+            eval_metrics['R2_std'] = self._std(predictors, 'r2')
+            eval_metrics['MAE'] = self._mean(predictors, 'mae')
+            eval_metrics['MAE_std'] = self._std(predictors, 'mae')
+            eval_metrics['RMSE'] = self._mean(predictors, 'rmse')
+            eval_metrics['RMSE_std'] = self._std(predictors, 'rmse')
+
+            for seed, predictor in enumerate(predictors):
+                eval_metrics[f'R2_seed_{seed}'] = predictor.r2()
 
             if include_error_distribution:
-                eval_metrics['skew'] = scipy.stats.skew(predictor.y_test - predictor.y_predict)[0]
-                eval_metrics['kurtosis'] = scipy.stats.kurtosis(predictor.y_test - predictor.y_predict)[0]
+                eval_metrics['skew'] = self._mean(predictors, 'skew')
+                eval_metrics['kurtosis'] = self._mean(predictors, 'kurtosis')
 
             if include_energy_error:
-                r2, mape = predictor.energy_error()
+                r2, mape = self._mean(predictors, 'energy_error')
                 eval_metrics['energy_r2'] = r2
                 eval_metrics['energy_mape'] = mape
 
             if include_spatial_autocorrelation:
-                eval_metrics['residuals_moranI_KNN'] = predictor.spatial_autocorrelation_moran('error', 'knn').I
-                eval_metrics['residuals_moranI_block'] = predictor.spatial_autocorrelation_moran('error', 'block').I
-                eval_metrics['residuals_moranI_distance'] = predictor.spatial_autocorrelation_moran('error', 'distance').I
-                eval_metrics['prediction_moranI_KNN'] = predictor.spatial_autocorrelation_moran(predictor.target_attribute, 'knn').I
-                eval_metrics['prediction_moranI_block'] = predictor.spatial_autocorrelation_moran(predictor.target_attribute, 'block').I
-                eval_metrics['prediction_moranI_distance'] = predictor.spatial_autocorrelation_moran(predictor.target_attribute, 'distance').I
+                eval_metrics['residuals_moranI_KNN'] = predictors[0].spatial_autocorrelation_moran('error', 'knn').I
+                eval_metrics['residuals_moranI_block'] = predictors[0].spatial_autocorrelation_moran('error', 'block').I
+                eval_metrics['residuals_moranI_distance'] = predictors[0].spatial_autocorrelation_moran('error', 'distance').I
+                eval_metrics['prediction_moranI_KNN'] = predictors[0].spatial_autocorrelation_moran(predictors[0].target_attribute, 'knn').I
+                eval_metrics['prediction_moranI_block'] = predictors[0].spatial_autocorrelation_moran(predictors[0].target_attribute, 'block').I
+                eval_metrics['prediction_moranI_distance'] = predictors[0].spatial_autocorrelation_moran(predictors[0].target_attribute, 'distance').I
 
             if include_plot:
-                age_distributions[f'{name}_predict'] = predictor.y_predict[predictor.target_attribute]
-                age_distributions[f'{name}_test'] = predictor.y_test[predictor.target_attribute]
+                age_distributions[f'{name}_predict'] = predictors[0].y_predict[predictors[0].target_attribute]
+                age_distributions[f'{name}_test'] = predictors[0].y_test[predictors[0].target_attribute]
 
             comparison_metrics.append(eval_metrics)
 
@@ -204,28 +208,32 @@ class AgeClassifierComparison(PredictorComparison):
     def evaluate(self, include_plot=False, include_energy_error=False):
         evals_results = {}
         comparison_metrics = []
-        for name, predictor in self.predictors.items():
-            test, pred = predictor.y_test, predictor.y_predict[[predictor.target_attribute]]
-
+        for name, predictors in self.predictors.items():
+            # average eval metrics across seeds
             eval_metrics = {}
             eval_metrics['name'] = name
-            eval_metrics['MCC'] = metrics.matthews_corrcoef(test, pred)
-            eval_metrics['F1'] = metrics.f1_score(test, pred, average='macro')
+            eval_metrics['MCC'] = self._mean(predictors, 'mcc')
+            eval_metrics['MCC_std'] = self._std(predictors, 'mcc')
+            eval_metrics['F1'] = self._mean(predictors, 'f1')
+            eval_metrics['F1_std'] = self._std(predictors, 'f1')
 
-            for idx, label in enumerate(predictor.labels):
-                eval_metrics[f'Recall_{label}'] = metrics.recall_score(
-                    test, pred, pos_label=idx, labels=[idx], average='macro')
+            for idx, label in enumerate(predictors[0].labels):
+                eval_metrics[f'Recall_{label}'] = self._mean(predictors, 'recall', idx)
+
+            for seed, predictor in enumerate(predictors):
+                eval_metrics[f'MCC_seed_{seed}'] = predictor.mcc()
 
             if include_energy_error:
-                r2, mape = predictor.energy_error()
+                r2, mape = self._mean(predictors, 'energy_error')
                 eval_metrics['energy_r2'] = r2
                 eval_metrics['energy_mape'] = mape
 
             comparison_metrics.append(eval_metrics)
 
-            eval_metric = 'merror' if predictor.multiclass else 'error'
-            evals_results[f'{name}_train'] = predictor.evals_result['validation_0'][eval_metric]
-            evals_results[f'{name}_test'] = predictor.evals_result['validation_1'][eval_metric]
+            if include_plot:
+                eval_metric = 'merror' if predictors[0].multiclass else 'error'
+                evals_results[f'{name}_train'] = predictors[0].evals_result['validation_0'][eval_metric]
+                evals_results[f'{name}_test'] = predictors[0].evals_result['validation_1'][eval_metric]
 
         if include_plot:
             _, axis = plt.subplots(figsize=(6, 6), constrained_layout=True)
