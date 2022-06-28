@@ -135,4 +135,4 @@ def exclude_neighbors_from_own_block(neighbors, df, block_type):
 
 
 def verbose():
-    return logging.level <= logging.DEBUG
+    return logging.root.level <= logging.DEBUG

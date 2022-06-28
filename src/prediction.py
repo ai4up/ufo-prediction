@@ -470,13 +470,13 @@ class Regressor(Predictor):
 
 
     @Predictor.cv_aware
-    def kurtosis(self):
+    def skew(self):
         return stats.skew(self.y_test - self.y_predict)[0]
 
 
     def individual_prediction_error(self):
         df = self.y_predict - self.y_test
-        df = df.rename(columns={'age': 'error'})
+        df = df.rename(columns={self.target_attribute: 'error'})
         return df
 
 

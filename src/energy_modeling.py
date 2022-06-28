@@ -5,7 +5,6 @@ import logging
 import dataset
 
 from sklearn import metrics
-import numpy as np
 import pandas as pd
 
 HEIGHT_PER_FLOOR = 2.5
