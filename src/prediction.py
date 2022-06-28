@@ -474,10 +474,33 @@ class Regressor(Predictor):
         return stats.skew(self.y_test - self.y_predict)[0]
 
 
+    @Predictor.cv_aware
     def individual_prediction_error(self):
         df = self.y_predict - self.y_test
         df = df.rename(columns={self.target_attribute: 'error'})
         return df
+
+
+    @Predictor.cv_aware
+    def error_cum_hist(self, bins):
+        residuals = self.individual_prediction_error()['error'].abs()
+        hist = np.histogram(residuals, bins=bins)[0] / len(residuals)
+        cum_hist = np.cumsum(hist)
+        return cum_hist
+
+
+    def eval_metrics(self):
+        eval_df = pd.DataFrame(columns=['R2', 'MAE', 'RMSE', 'Kurtosis', 'Skew'])
+
+        for col in eval_df.columns:
+            calc_metric = getattr(self, col.lower())
+            eval_df.at['total', col] = calc_metric()
+
+            if self.cross_validation_split:
+                for fold, value in enumerate(calc_metric(across_folds=True)):
+                        eval_df.at[f'fold_{fold}', col] = value
+
+        return eval_df
 
 
     @Predictor.cv_aware
@@ -572,6 +595,20 @@ class Classifier(Predictor):
     @Predictor.cv_aware
     def recall(self, label_idx):
         return metrics.recall_score(self.y_test, self.y_predict[[self.target_attribute]], pos_label=label_idx, labels=[label_idx], average='macro')
+
+
+    def eval_metrics(self):
+        eval_df = self.classification_report()
+        eval_df.at['total', 'kappa'] = self.kappa()
+        eval_df.at['total', 'mcc'] = self.mcc()
+        eval_df.at['total', 'accuracy'] = eval_df['recall']['accuracy']
+        eval_df.drop('accuracy', inplace=True)
+
+        if self.cross_validation_split:
+            for fold, mcc in enumerate(self.mcc(across_folds=True)):
+                eval_df.at[f'fold_{fold}', 'mcc'] = mcc
+
+        return eval_df
 
 
     @Predictor.cv_aware

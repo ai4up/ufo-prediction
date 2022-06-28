@@ -40,6 +40,34 @@ class AgePredictor(Regressor):
         logger.info(f'Test dataset length after preprocessing: {len(self.df_test)}')
 
 
+    def eval_metrics(self):
+        eval_df = super().eval_metrics()
+
+        r2, mape = self.energy_error()
+        eval_df.at['total', 'energy_r2'] = r2
+        eval_df.at['total', 'energy_mape'] = mape
+
+        bins = [0, 5, 10, 20]
+        hist = self.error_cum_hist(bins)
+
+        for idx, bin in enumerate(bins[1:]):
+            eval_df.at['total', f'within_{bin}_years'] = hist.flat[idx]
+
+        if self.cross_validation_split:
+            fold_histograms = self.error_cum_hist(bins, across_folds=True)
+            fold_energy_errors = self.energy_error(across_folds=True)
+            logger.info(fold_energy_errors)
+
+            for fold, hist in enumerate(fold_histograms):
+                eval_df.at[f'fold_{fold}', 'energy_r2'] = fold_energy_errors[fold][0]
+                eval_df.at[f'fold_{fold}', 'energy_mape'] = fold_energy_errors[fold][1]
+
+                for idx, bin in enumerate(bins[1:]):
+                    eval_df.at[f'fold_{fold}', f'within_{bin}_years'] = hist.flat[idx]
+
+        return eval_df
+
+
     def print_model_error(self):
         super().print_model_error()
         r2, mape = self.energy_error()
@@ -92,6 +120,23 @@ class AgeClassifier(Classifier):
         self.preprocessing_stages.append(partial(preprocessing.categorize_age, bins=self.bins, metric_col=self.metric_target_attribute))
 
         self._e2e_training()
+
+
+    def eval_metrics(self):
+        eval_df = super().eval_metrics()
+
+        if self.bins in dataset.TABULA_AGE_BINS.values():
+            r2, mape = self.energy_error()
+            eval_df.at['total', 'energy_r2'] = r2
+            eval_df.at['total', 'energy_mape'] = mape
+
+        if self.cross_validation_split:
+            fold_energy_errors = self.energy_error(across_folds=True)
+            for fold, energy_error in enumerate(fold_energy_errors):
+                eval_df.at[f'fold_{fold}', 'energy_r2'] = energy_error[0]
+                eval_df.at[f'fold_{fold}', 'energy_mape'] = energy_error[1]
+
+        return eval_df
 
 
     def print_model_error(self):
