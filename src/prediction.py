@@ -37,6 +37,7 @@ class Predictor:
             df_path='',
             frac=None,
             n_cities=None,
+            test_set=None,
             test_training_split=None,
             cross_validation_split=None,
             preprocessing_stages=[],
@@ -53,6 +54,7 @@ class Predictor:
         self.df_path = df_path
         self.frac = frac
         self.n_cities = n_cities
+        self.test_set = test_set
         self.test_training_split = test_training_split
         self.cross_validation_split = cross_validation_split
         self.preprocessing_stages = preprocessing_stages
@@ -248,23 +250,28 @@ class Predictor:
 
 
     def _cv_aware_split(self):
+        if sum([bool(self.test_training_split), bool(self.cross_validation_split), self.hyperparameter_tuning_only, isinstance(self.test_set, pd.DataFrame)]) != 1:
+            raise Exception('Only one of test_training_split, cross_validation_split, test_set or hyperparameter_tuning_only can be configured.')
+
         if self.hyperparameter_tuning_only:
             self.df_train = self.df
             self.df_test = self.df.drop(self.df.index)
             yield
-            return
 
-        if not self.test_training_split and not self.cross_validation_split:
-            logger.exception('Please specify either a test_training_split or cross_validation_split function.')
+        if self.test_set is not None:
+            self.df_train = self.df
+            self.df_test = self.test_set
+            yield
 
-        if self.test_training_split and self.cross_validation_split:
-            logger.warning('Both, a test_training_split and cross_validation_split function are specified. The cross_validation_split function will take precedence and test_training_split will be ignored.')
+        if self.cross_validation_split:
+            yield from self._cv()
 
-        if not self.cross_validation_split:
+        if self.test_training_split:
             self.df_train, self.df_test = self.test_training_split(self.df)
             yield
-            return
 
+
+    def _cv(self):
         y_predict_all_cv_folds = pd.DataFrame()
         y_test_all_cf_folds = pd.DataFrame()
         aux_vars_test_all_cf_folds = pd.DataFrame()
