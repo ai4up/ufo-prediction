@@ -70,7 +70,7 @@ def assign_heating_energy_demand(df, labels=None):
         df = df.query(f'age_min <= {dataset.AGE_ATTRIBUTE} < age_max')
 
     if n_buildings != len(df):
-        raise Exception(f'Assigning heating energy demand failed. Number of building changed during merge of TABULA data from {n_buildings} to {len(df)}. Dropped buildings:\n{list(index.difference(df.index))}')
+        logger.error(f'Assigning heating energy demand failed. Number of building changed during merge of TABULA data from {n_buildings} to {len(df)}. Dropped buildings include:\n{list(index.difference(df.index))[:10]}')
 
     df = df.drop(columns=['age_min', 'age_max', 'age_bin'])
 

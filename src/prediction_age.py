@@ -10,6 +10,7 @@ import energy_modeling
 from prediction import Predictor, Classifier, Regressor, PredictorComparison
 
 import pandas as pd
+import numpy as np
 import matplotlib.pyplot as plt
 
 logger = logging.getLogger(__name__)
@@ -65,8 +66,11 @@ class AgePredictor(Regressor):
     def energy_error(self):
         y_true = pd.concat([self.y_test, self.aux_vars_test, self.X_test[['FootprintArea']]], axis=1, join="inner")
         y_pred = pd.concat([self.y_predict, self.aux_vars_test, self.X_test[['FootprintArea']]], axis=1, join="inner")
-        return energy_modeling.calculate_energy_error(y_true, y_pred)
-
+        try:
+            return energy_modeling.calculate_energy_error(y_true, y_pred)
+        except Exception as e:
+            logger.error(f'Failed to calculate energy error: {e}')
+            return np.nan, np.nan
 
 
 class AgeClassifier(Classifier):
@@ -118,7 +122,11 @@ class AgeClassifier(Classifier):
     def energy_error(self):
         y_true = pd.concat([self.y_test, self.aux_vars_test, self.X_test[['FootprintArea']]], axis=1, join="inner")
         y_pred = pd.concat([self.y_predict, self.aux_vars_test, self.X_test[['FootprintArea']]], axis=1, join="inner")
-        return energy_modeling.calculate_energy_error(y_true, y_pred, labels=self.labels)
+        try:
+            return energy_modeling.calculate_energy_error(y_true, y_pred, labels=self.labels)
+        except Exception as e:
+            logger.error(f'Failed to calculate energy error: {e}')
+            return np.nan, np.nan
 
 
     def _garbage_collect(self):
