@@ -44,7 +44,7 @@ class Predictor:
             target_attribute=None,
             mitigate_class_imbalance=False,
             early_stopping=True,
-            hyperparameter_tuning=False,
+            hyperparameter_tuning_space=None,
             hyperparameter_tuning_only=False,
             hyperparameters=None,
             initialize_only=False) -> None:
@@ -61,7 +61,7 @@ class Predictor:
         self.target_attribute = target_attribute
         self.mitigate_class_imbalance = mitigate_class_imbalance
         self.early_stopping = early_stopping
-        self.hyperparameter_tuning = hyperparameter_tuning
+        self.hyperparameter_tuning_space = hyperparameter_tuning_space
         self.hyperparameter_tuning_only = hyperparameter_tuning_only
         self.hyperparameters = hyperparameters
 
@@ -173,7 +173,7 @@ class Predictor:
             'verbose': utils.verbose(),
         }
 
-        if self.hyperparameter_tuning or self.hyperparameter_tuning_only:
+        if self.hyperparameter_tuning_space:
             self._tune_hyperparameters(fit_params)
             return
 
@@ -196,15 +196,6 @@ class Predictor:
 
 
     def _tune_hyperparameters(self, fit_params, grid=False):
-        params = {
-            'max_depth': range(5, 20, 2),
-            'learning_rate': np.linspace(0.01, 0.1, 10),
-            'n_estimators': range(500, 5000, 500),
-            'colsample_bytree': np.linspace(0.3, 1, 8),
-            'colsample_bylevel': np.linspace(0.3, 1, 8),
-            'max_bin': [128, 256, 512]
-        }
-
         if self.cross_validation_split:
             if not self.df_train.index.equals(self.X_train.index):
                 raise Exception('Unexpected index inconsistencies found between df_train and X_train. \
@@ -218,7 +209,7 @@ class Predictor:
         if grid:
             clf = model_selection.GridSearchCV(
                 estimator=self.model,
-                param_grid=params,
+                param_grid=self.hyperparameter_tuning_space,
                 verbose=2,
                 cv=inner_cv,
                 return_train_score=True,
@@ -230,7 +221,7 @@ class Predictor:
             clf = model_selection.RandomizedSearchCV(
                 estimator=self.model,
                 n_iter=20,
-                param_distributions=params,
+                param_distributions=self.hyperparameter_tuning_space,
                 scoring='neg_root_mean_squared_error',
                 verbose=2,
                 cv=inner_cv,
@@ -242,6 +233,7 @@ class Predictor:
 
         self.model = clf.best_estimator_
         self.hyperparameter_tuning_results = clf.cv_results_
+        self.hyperparameters = clf.best_params_
 
         logger.info(f'Best hyperparameters: {clf.best_params_}')
         logger.info(f'Corresponding score: {clf.best_score_}')
@@ -250,8 +242,12 @@ class Predictor:
 
 
     def _cv_aware_split(self):
-        if sum([bool(self.test_training_split), bool(self.cross_validation_split), self.hyperparameter_tuning_only, isinstance(self.test_set, pd.DataFrame)]) != 1:
-            raise Exception('Only one of test_training_split, cross_validation_split, test_set or hyperparameter_tuning_only can be configured.')
+        if sum([bool(self.test_training_split), bool(self.cross_validation_split), isinstance(self.test_set, pd.DataFrame)]) != 1:
+            raise Exception('Only one of test_training_split, cross_validation_split or test_set can be configured.')
+
+        if self.hyperparameter_tuning_only and self.hyperparameter_tuning_space is None:
+            raise Exception('Please specify a hyperparameter_tuning_space to be used for hyperparameter tuning.')
+
 
         if self.hyperparameter_tuning_only:
             self.df_train = self.df
