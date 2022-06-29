@@ -692,14 +692,13 @@ class PredictorComparison:
 
         for grid_experiment_name, grid_experiment_kwargs in self.grid_comparison_config.items():
             for experiment_name, experiment_kwargs in self.comparison_config.items():
+                name = f'{experiment_name}_{grid_experiment_name}'
+                kwargs = {**copy.deepcopy(self.baseline_kwargs), **grid_experiment_kwargs, **experiment_kwargs}
+                logger.info(f'Starting experiment {name}...')
+
                 for seed in range(self.n_seeds):
-
-                    dataset.GLOBAL_REPRODUCIBILITY_SEED = seed
-                    name = f'{experiment_name}_{grid_experiment_name}'
-                    kwargs = {**copy.deepcopy(self.baseline_kwargs), **grid_experiment_kwargs, **experiment_kwargs}
-                    logger.info(f'Starting experiment {name}...')
                     logger.debug(f'Training predictor ({name}) (seed {seed}) with following args:\n{kwargs}')
-
+                    dataset.GLOBAL_REPRODUCIBILITY_SEED = seed
                     self.predictors[name].append(predictor(**kwargs))
 
                     if self.compare_feature_importance:
