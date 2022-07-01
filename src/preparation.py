@@ -1,6 +1,7 @@
 import logging
 
 import geometry
+import utils
 
 import geopandas as gpd
 from sklearn.cluster import AgglomerativeClustering
@@ -8,59 +9,67 @@ from sklearn.cluster import AgglomerativeClustering
 logger = logging.getLogger(__name__)
 
 
-def prepare(df):
-    df = geometry.add_geometry_column(df, crs=3035)
-    df = add_block_column(df)
-    df = add_street_block_column(df)
-    df = add_neighborhood_column(df)
-    return df
+def prepare(df, sbb_gdf):
+    gdf = geometry.lat_lon_to_gdf(df)
+    gdf = add_block_column(gdf)
+    gdf = gdf.groupby('city', as_index=False).apply(lambda city_gdf: add_street_block_column(city_gdf, sbb_gdf[sbb_gdf['city'] == city_gdf.name]))
+    gdf = gdf.groupby('city', as_index=False).apply(add_neighborhood_column)
+    return gdf
 
 
 def add_block_column(df):
-    df['block'] = df.groupby(['city', 'TouchesIndexes']).ngroup()
+    df['block'] = utils.seq_to_unique_id(df.groupby(['city', 'TouchesIndexes']).ngroup())
     return df
 
 
-def add_neighborhood_column(gdf, max_neighborhood_size_km=1):
+def add_neighborhood_column(gdf, max_neighborhood_size_m=1000):
     columns = list(gdf.columns)
     if not isinstance(gdf, gpd.GeoDataFrame):
         logger.info('Using lat lon coordinates of building instead of full geometry to determine street block centroids. The result may vary slightly.')
-        gdf = gpd.GeoDataFrame(gdf.copy(), geometry=gpd.points_from_xy(gdf['lon'], gdf['lat']), crs=4326)
+        gdf = geometry.lat_lon_to_gdf(gdf)
 
+    sbb_centroids = gdf.dissolve(by='sbb').to_crs(3035).centroid
 
-    sbb_centroids = gdf.dissolve(by='sbb').to_crs(4326).centroid
+    if len(sbb_centroids) < 2:
+        logger.info('Not enough street-based blocks to cluster them into neighborhoods.')
+        gdf['neighborhood'] = utils.seq_to_unique_id(gdf['sbb'])
+        return gdf[columns + ['neighborhood']]
+
     distance_matrix = geometry.distance_matrix(sbb_centroids)
 
-    ac = AgglomerativeClustering(n_clusters=None, affinity='precomputed', linkage='average', distance_threshold=max_neighborhood_size_km)
+    ac = AgglomerativeClustering(n_clusters=None, affinity='precomputed', linkage='average', distance_threshold=max_neighborhood_size_m)
     clusters = ac.fit(distance_matrix)
 
     logger.info(f'On average {int(len(clusters.labels_) / len(set(clusters.labels_)))} street blocks have been assigned per neighborbood cluster.')
 
     sbb_to_neighborhood = dict(zip(sbb_centroids.index, clusters.labels_))
-    gdf['neighborhood'] = gdf['sbb'].map(sbb_to_neighborhood)
+    gdf['neighborhood'] = utils.seq_to_unique_id(gdf['sbb'].map(sbb_to_neighborhood))
 
     return gdf[columns + ['neighborhood']]
 
 
-def add_street_block_column(df):
-    columns = list(df.columns)
-    if not isinstance(df, gpd.GeoDataFrame):
-        df = geometry.add_geometry_column(df)
+def add_street_block_column(gdf, sbb_gdf):
+    columns = list(gdf.columns)
+    if not isinstance(gdf, gpd.GeoDataFrame):
+        logger.info('Using lat lon coordinates of building instead of full geometry to determine street block centroids. The result may vary slightly.')
+        gdf = geometry.lat_lon_to_gdf(gdf)
 
-    sbb_gdf = geometry.load_street_geometry()
-    geometry.ensure_same_crs(df, sbb_gdf)
+    geometry.ensure_same_crs(gdf, sbb_gdf)
+    logger.debug(f'Building geom: {gdf.geometry.head(10)}')
+    logger.debug(f'Street geom: {sbb_gdf.geometry.head(10)}')
 
-    joined_gdf = gpd.sjoin(df, sbb_gdf[['geometry']], how="left", op="within")
-    joined_gdf.rename(columns={'index_right': 'sbb'}, inplace=True)
-    joined_gdf.dropna(subset=['sbb'], inplace=True)
-    joined_gdf['sbb'] = joined_gdf['sbb'].astype(int)
+    gdf = gpd.sjoin(gdf, sbb_gdf[['geometry']], how="left", op="within")
+    gdf['sbb'] = gdf['index_right']
+    gdf.drop(columns=['index_right'], inplace=True)
+    gdf.dropna(subset=['sbb'], inplace=True)
+    gdf['sbb'] = utils.seq_to_unique_id(gdf['sbb'])
 
-    if any(joined_gdf.duplicated(subset='id')):
+    if any(gdf.duplicated(subset='id')):
         logger.warning('Spatial joining resulted in duplicate buildings in dataset. Most likely street polygons were overlapping and buildings were assigned to more than one during gpd.sjoin().')
         logger.info('Removing duplicated buildings, keeping only first one.')
-        joined_gdf.drop_duplicates(subset='id', keep='first', inplace=True)
+        gdf.drop_duplicates(subset='id', keep='first', inplace=True)
 
-    return joined_gdf[columns + ['sbb']]
+    return gdf[set(columns + ['sbb'])]
 
 
 def add_block_building_ids_column(df):
@@ -74,7 +83,7 @@ def add_block_building_ids_column(df):
 
 def add_sbb_building_ids_column(df):
     if not 'sbb' in df.columns:
-        df = add_street_block_column(df)
+        raise Exception(f'Street-based block (sbb) column not found in dataset. Run add_street_block_column() to prepare the dataset.')
 
     block_building_ids = df.groupby('sbb')['id'].apply(list).to_dict()
     df['sbb_bld_ids'] = df['sbb'].map(block_building_ids)

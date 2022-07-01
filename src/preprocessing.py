@@ -97,7 +97,8 @@ def sbb_cross_validation(df, balanced_attribute=None, spatial_buffer_size=None):
     if 'sbb' in df.columns:
         logger.info('Reusing street-based block (sbb) column existing in data.')
     else:
-        df = preparation.add_street_block_column(df)
+        raise Exception(f'Street-based block (sbb) column not found in dataset. Run add_street_block_column() to prepare the dataset.')
+
 
     return _group_cross_validation(df, 'sbb', balanced_attribute, spatial_buffer_size)
 

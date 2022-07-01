@@ -46,7 +46,7 @@ def moran_between_sbbs(df, attribute=dataset.AGE_ATTRIBUTE):
     df = df.dropna(subset=[attribute])
 
     if not 'sbb' in df.columns:
-        df = preparation.add_street_block_column(df)
+        raise Exception(f'Street-based block (sbb) column not found in dataset. Run add_street_block_column() to prepare the dataset.')
 
     weights = _between_sbbs_weights(df)
     return Moran(df[attribute], weights)

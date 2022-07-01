@@ -2,6 +2,7 @@ import os
 import math
 import random
 import logging
+import uuid
 
 import dataset
 
@@ -136,3 +137,12 @@ def exclude_neighbors_from_own_block(neighbors, df, block_type):
 
 def verbose():
     return logging.root.level <= logging.DEBUG
+
+
+def truncated_uuid4():
+    return str(uuid.uuid4())[:8]
+
+
+def seq_to_unique_id(series):
+    seq_to_unique_mapping = {seq_id: truncated_uuid4() for seq_id in series.unique()}
+    return series.map(seq_to_unique_mapping)
