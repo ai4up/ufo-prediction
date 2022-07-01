@@ -309,15 +309,9 @@ class Predictor:
 
 
     def _garbage_collect(self):
-        del self.df
-        del self.df_test
-        del self.df_train
-        del self.X_test
-        del self.X_train
-        del self.y_train
-        del self.sample_weights
-        del self.aux_vars_train
-        del self.aux_vars_test
+        for attr in ['df', 'df_test', 'df_train', 'X_test', 'X_train', 'y_train', 'sample_weights', 'aux_vars_train']:
+            if hasattr(self, attr):
+                delattr(self, attr)
         gc.collect()
 
 

@@ -174,19 +174,6 @@ class AgeClassifier(Classifier):
             return np.nan, np.nan
 
 
-    def _garbage_collect(self):
-        del self.df
-        del self.df_test
-        del self.df_train
-        del self.X_test
-        del self.X_train
-        del self.y_train
-        del self.sample_weights
-        del self.aux_vars_train
-        # do not delete self.aux_vars_test because of metric_target_attribute
-        gc.collect()
-
-
 class AgePredictorComparison(PredictorComparison):
 
     def __init__(self, *args, **kwargs) -> None:
