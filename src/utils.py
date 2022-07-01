@@ -8,10 +8,7 @@ import dataset
 
 import numpy as np
 import pandas as pd
-from sklearn import model_selection
 
-DATA_DIR = os.path.join('..', 'data')
-DATA_GEO_DIR = os.path.join(DATA_DIR, 'geometry')
 
 logger = logging.getLogger(__name__)
 

@@ -11,10 +11,9 @@ from scipy.spatial.distance import pdist, cdist, squareform
 from shapely import wkt
 from haversine import haversine
 
-logger = logging.getLogger(__name__)
+import dataset
 
-DATA_DIR = os.path.join('..', 'data')
-DATA_GEO_DIR = os.path.join(DATA_DIR, 'geometry')
+logger = logging.getLogger(__name__)
 
 
 def to_gdf(df, crs=3035):
@@ -116,8 +115,8 @@ def load_building_geometry(crs=3035, countries=[], cities=[]):
 
 def load_street_geometry(crs=3035, countries=[]):
     try:
-        file = os.path.join(DATA_DIR, 'harmonized', 'sbb.csv')
-        df = pd.read_csv(file)
+        file = os.path.join(dataset.DATA_DIR, f'sbb-{"-".join(countries)}.pkl')
+        df = pd.read_pickle(file)
         gdf = to_gdf(df, crs=crs)
     except FileNotFoundError:
         gdf = _load_geometry('sbb', crs, countries)
@@ -132,12 +131,11 @@ def ensure_same_crs(gdf_1, gdf_2):
     gdf_2 = gdf_2.to_crs(gdf_1.crs)
 
 
-def prepare_street_polygons_file(crs=3035):
-    gdf_sbb = _load_geometry('sbb', crs)
+def prepare_street_polygons(crs=3035, countries=[]):
+    gdf_sbb = _load_geometry('sbb', crs, countries)
     gdf_sbb = gdf_sbb.drop_duplicates(subset=['geometry'])
     gdf_sbb = _merge_intersecting_geometries(gdf_sbb)
-    df = pd.DataFrame(gdf_sbb).reset_index(drop=True)
-    df.to_csv(os.path.join(DATA_DIR, 'harmonized', 'sbb.csv'), index=False)
+    return gdf_sbb.reset_index(drop=True)
 
 
 def _merge_intersecting_geometries(gdf, aggfunc='first'):
@@ -148,7 +146,7 @@ def _merge_intersecting_geometries(gdf, aggfunc='first'):
 
 
 def _determine_crs(country):
-    file_gadm = os.path.join(DATA_DIR, 'gadm_table.csv')
+    file_gadm = os.path.join(dataset.METADATA_DIR, 'gadm_table.csv')
     gadm_info = pd.read_csv(file_gadm)
 
     crs_strings = gadm_info[gadm_info['country_name'] == country]['local_crs'].values
@@ -160,7 +158,7 @@ def _determine_crs(country):
 
 
 def _load_geometry(type, crs=3035, countries=[], cities=[]):
-    country_dirs = list(os.walk(DATA_GEO_DIR))[0][1]
+    country_dirs = list(os.walk(dataset.DATA_DIR))[0][1]
     selected_countries = set(countries).intersection(country_dirs) if countries else country_dirs
     gdfs = []
 
@@ -169,7 +167,7 @@ def _load_geometry(type, crs=3035, countries=[], cities=[]):
             logger.warning('CRS for country directory "{country}" not found. Skipping directory.')
             continue
 
-        files_geom = glob.glob(os.path.join(DATA_GEO_DIR, country, '**', f'*_{type}.csv'), recursive=True)
+        files_geom = glob.glob(os.path.join(dataset.DATA_DIR, country, '**', f'*_{type}.csv'), recursive=True)
 
         if cities:
             files_geom = [f for f in files_geom if any(city in f for city in cities)]

@@ -49,7 +49,7 @@ def add_residential_type_column(df):
 
 
 def assign_heating_energy_demand(df, labels=None):
-    tabula_energy_path = os.path.join('..', 'metadata', 'TABULA_heating_demand.csv')
+    tabula_energy_path = os.path.join(dataset.METADATA_DIR, 'TABULA_heating_demand.csv')
     tabula_energy_df = pd.read_csv(tabula_energy_path)
 
     df = add_residential_type_column(df)

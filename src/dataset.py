@@ -1,6 +1,14 @@
+import os
+
 import numpy as np
 import itertools
 GLOBAL_REPRODUCIBILITY_SEED = 1
+
+DATA_DIR = '/p/projects/eubucco/data/2-database-city-level-v0_1'
+METADATA_DIR = '/p/projects/eubucco/data/3-ml-inputs'
+# DATA_DIR = os.path.realpath(os.path.join(__file__, '..', '..', 'data', 'geometry'))
+# METADATA_DIR = os.path.realpath(os.path.join(__file__, '..', '..', 'metadata'))
+
 
 # age bands ~ according to English Housing Survey (EHS) as done in https://doi.org/10.1016/j.compenvurbsys.2018.08.004
 EHS_AGE_BINS = [0, 1915, 1945, 1965, 1980, 2000, np.inf]
