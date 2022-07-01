@@ -89,6 +89,10 @@ def cross_validation(df, balanced_attribute=None):
         yield df.iloc[train_idx], df.iloc[test_idx]
 
 
+def country_cross_validation(df, balanced_attribute=None, spatial_buffer_size=None):
+    return _group_cross_validation(df, 'country', balanced_attribute, spatial_buffer_size)
+
+
 def city_cross_validation(df, balanced_attribute=None, spatial_buffer_size=None):
     return _group_cross_validation(df, 'city', balanced_attribute, spatial_buffer_size)
 
