@@ -175,7 +175,13 @@ def _load_geometry(type, crs=3035, countries=[], cities=[]):
         if not files_geom:
             continue
 
-        df = pd.concat([pd.read_csv(f) for f in files_geom], ignore_index=True)
+        dfs = []
+        for f in files_geom:
+            df = pd.read_csv(f)
+            df['city'] = f.rsplit('/')[-2]
+            dfs.append(df)
+
+        df = pd.concat(dfs, ignore_index=True)
         df = df.drop_duplicates(subset=['geometry'])
         country_gdf = to_gdf(df, crs=country_crs).to_crs(crs)
         country_gdf = country_gdf[country_gdf['geometry'].is_valid]
