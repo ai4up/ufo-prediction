@@ -1,6 +1,7 @@
 import os
 import glob
 import logging
+import pyproj
 
 import numpy as np
 import pandas as pd
@@ -96,13 +97,15 @@ def spatial_buffer_around_block(df, block_type, buffer_size_meters, block_ids=No
 
 def distance_matrix(geometry):
     coords = list(zip(geometry.x, geometry.y))
-    return squareform(pdist(coords, haversine))
+    metric = haversine if geometry.crs == pyproj.CRS(4326) else 'euclidean'
+    return squareform(pdist(coords, metric))
 
 
 def pairwise_distance_matrix(geometry_1, geometry_2):
     coords_1 = list(zip(geometry_1.x, geometry_1.y))
     coords_2 = list(zip(geometry_2.x, geometry_2.y))
-    return cdist(coords_1, coords_2, haversine)
+    metric = haversine if geometry_1.crs == pyproj.CRS(4326) else 'euclidean'
+    return cdist(coords_1, coords_2, metric)
 
 
 def load_building_geometry(crs=3035, countries=[], cities=[]):
