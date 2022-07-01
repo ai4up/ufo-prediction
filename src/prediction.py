@@ -293,17 +293,21 @@ class Predictor:
         results = []
         y_test = self.y_test
         y_predict = self.y_predict
+        aux_vars_test = self.aux_vars_test
+
         try:
-            for _, fold in self.aux_vars_test.groupby('cv_fold_idx'):
+            for _, fold in aux_vars_test.groupby('cv_fold_idx'):
                 ids = fold.index.values
                 self.y_test = y_test.loc[ids]
                 self.y_predict = y_predict.loc[ids]
+                self.aux_vars_test = aux_vars_test.loc[ids]
 
                 results.append(func(self, *args, **kwargs))
 
         finally:
             self.y_test = y_test
             self.y_predict = y_predict
+            self.aux_vars_test = aux_vars_test
 
         return results
 
