@@ -242,7 +242,7 @@ class Predictor:
 
 
     def _cv_aware_split(self):
-        if sum([bool(self.test_training_split), bool(self.cross_validation_split), isinstance(self.test_set, pd.DataFrame)]) != 1:
+        if sum([bool(self.test_training_split), bool(self.cross_validation_split), isinstance(self.test_set, pd.DataFrame)]) > 1:
             raise Exception('Only one of test_training_split, cross_validation_split or test_set can be configured.')
 
         if self.hyperparameter_tuning_only and self.hyperparameter_tuning_space is None:
