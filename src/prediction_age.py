@@ -68,6 +68,7 @@ class AgePredictor(Regressor):
         return eval_df
 
 
+    @Predictor.cv_aware
     def print_model_error(self):
         super().print_model_error()
         r2, mape = self.energy_error()
@@ -138,7 +139,7 @@ class AgeClassifier(Classifier):
 
         return eval_df
 
-
+    @Predictor.cv_aware
     def print_model_error(self):
         super().print_model_error()
         if self.bins in dataset.TABULA_AGE_BINS.values():
