@@ -194,6 +194,12 @@ class AgePredictorComparison(PredictorComparison):
             eval_metrics['RMSE'] = self._mean(predictors, 'rmse')
             eval_metrics['RMSE_std'] = self._std(predictors, 'rmse')
 
+            bins = [0, 5, 10, 20]
+            hist = self._mean(predictors, 'error_cum_hist', bins)
+
+            for idx, bin in enumerate(bins[1:]):
+                eval_metrics[f'within_{bin}_years'] = hist.flat[idx]
+
             for seed, predictor in enumerate(predictors):
                 eval_metrics[f'R2_seed_{seed}'] = predictor.r2()
 

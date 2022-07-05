@@ -741,8 +741,8 @@ class PredictorComparison:
 
 
     def _mean(self, predictors, func, *args, **kwargs):
-        return np.mean([getattr(p, func)(*args, **kwargs) for p in predictors])
+        return np.mean([getattr(p, func)(*args, **kwargs) for p in predictors], axis=0)
 
 
     def _std(self, predictors, func, *args, **kwargs):
-        return np.std([getattr(p, func)(*args, **kwargs) for p in predictors])
+        return np.std([getattr(p, func)(*args, **kwargs) for p in predictors], axis=0)
