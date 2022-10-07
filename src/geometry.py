@@ -38,9 +38,9 @@ def add_geometry_column(df, crs=3035, countries=[]):
 
     data_geom['id'] = data_geom['id'].astype(str)
     df['id'] = df['id'].astype(str)
-    df = df.reset_index()
+    df = df.reset_index(drop=True)
     df_w_geometry = data_geom[['id', 'geometry']].merge(df, on='id', how="inner")
-    return df_w_geometry.set_index('index')
+    return df_w_geometry.set_index('id')
 
 
 def nearest_neighbors(df, distance_threshold, identifier='id'):
