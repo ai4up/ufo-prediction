@@ -15,17 +15,13 @@ logger.setLevel(logging.INFO)
 
 class TypeClassifier(Classifier):
 
-    def __init__(self, binary=True, *args, **kwargs):
-        self.binary = binary
-        labels = ['res', 'non-res'] if self.binary else dataset.BUILDING_TYPES
+    def __init__(self, labels=None, *args, **kwargs):
+        self.labels = labels or ['res', 'non-res']
 
-        super().__init__(*args, **kwargs, target_attribute=dataset.TYPE_ATTRIBUTE, labels=labels, initialize_only=True)
-
-        if self.binary:
-            self.preprocessing_stages.append(preprocessing.group_non_residential_buildings)
+        super().__init__(*args, **kwargs, target_attribute=dataset.TYPE_ATTRIBUTE, labels=self.labels, initialize_only=True)
 
         self.preprocessing_stages.insert(0, preprocessing.remove_buildings_with_unknown_type)
-        self.preprocessing_stages.append(partial(preprocessing.categorical_to_int, var=self.target_attribute))
+        self.preprocessing_stages.append(partial(preprocessing.categorical_to_int, var=self.target_attribute, labels=self.labels))
 
         self._e2e_training()
 
