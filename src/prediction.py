@@ -37,7 +37,6 @@ class Predictor:
             self,
             model,
             df=None,
-            df_path='',
             frac=None,
             n_cities=None,
             test_set=None,
@@ -55,7 +54,6 @@ class Predictor:
 
         self.model = model
         self.df = df
-        self.df_path = df_path
         self.frac = frac
         self.n_cities = n_cities
         self.test_set = test_set
@@ -101,14 +99,11 @@ class Predictor:
 
 
     def _load(self):
-        if '.csv' in self.df_path:
-            self.df = pd.read_csv(self.df_path)
-        elif '.pkl' in self.df_path:
-            self.df = pd.read_pickle(self.df_path)
-        elif '.parquet' in self.df_path:
-            self.df = pd.read_parquet(self.df_path)
-        elif self.df is None:
-            raise Exception('Please specify df or df_path (currently supported file types: .csv, .pkl, .parquet)')
+        if isinstance(self.df, str):
+            self.df = utils.load_df(self.df)
+
+        if isinstance(self.test_set, str):
+            self.test_set = utils.load_df(self.test_set)
 
         if self.frac or self.n_cities:
             self.df = utils.sample_cities(self.df, frac=self.frac, n=self.n_cities)

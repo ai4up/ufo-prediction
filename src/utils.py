@@ -143,3 +143,16 @@ def truncated_uuid4():
 def seq_to_unique_id(series):
     seq_to_unique_mapping = {seq_id: truncated_uuid4() for seq_id in series.unique()}
     return series.map(seq_to_unique_mapping)
+
+
+def load_df(df_path):
+    if '.csv' in df_path:
+        return pd.read_csv(df_path)
+
+    if '.pkl' in df_path:
+        return pd.read_pickle(df_path)
+
+    if '.parquet' in df_path:
+        return pd.read_parquet(df_path)
+
+    raise Exception('File type not supported, please use .csv, .pkl, .parquet files.')
