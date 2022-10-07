@@ -485,6 +485,13 @@ class Regressor(Predictor):
         return cum_hist
 
 
+    @Predictor.cv_aware
+    def mcc(self, bins):
+        y_test_cat = pd.cut(self.y_test[self.target_attribute], bins, right=False).cat.codes
+        y_predict_cat = pd.cut(self.y_predict.loc[y_test_cat.index][self.target_attribute], bins, right=False).cat.codes
+        return metrics.matthews_corrcoef(y_test_cat, y_predict_cat)
+
+
     def eval_metrics(self):
         eval_df = pd.DataFrame(columns=['R2', 'MAE', 'RMSE', 'Kurtosis', 'Skew'])
 
