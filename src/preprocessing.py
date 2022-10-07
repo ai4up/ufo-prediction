@@ -64,12 +64,24 @@ def split_50_50(df):
     return model_selection.train_test_split(df, test_size=0.5, random_state=dataset.GLOBAL_REPRODUCIBILITY_SEED)
 
 
+def split_20_80(df):
+    return model_selection.train_test_split(df, test_size=0.8, random_state=dataset.GLOBAL_REPRODUCIBILITY_SEED)
+
+
+def split_10_90(df):
+    return model_selection.train_test_split(df, test_size=0.9, random_state=dataset.GLOBAL_REPRODUCIBILITY_SEED)
+
+
 def split_by_city(df, frac=0.8):
     return split(df, 'city', frac)
 
 
 def split_by_block(df, frac=0.8):
     return split(df, 'block', frac)
+
+
+def split_by_neighborhood(df, frac=0.8):
+    return split(df, 'neighborhood', frac)
 
 
 def split(df, attribute, frac):
