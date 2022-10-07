@@ -115,12 +115,13 @@ class AgePredictor(Regressor):
 
 class AgeClassifier(Classifier):
 
-    def __init__(self, bins=[], bin_config=None, *args, **kwargs):
+    def __init__(self, bins=[], bin_config=None, resampling=None, *args, **kwargs):
 
         if not bins and bin_config is None or bins and bin_config:
             logger.exception('Please either specify the bins or define a bin config to have them generated automatically.')
 
         self.bins = bins or utils.generate_bins(bin_config)
+        self.resampling = resampling
 
         super().__init__(*args, **kwargs, target_attribute=dataset.AGE_ATTRIBUTE,
                          labels=utils.generate_labels(self.bins), initialize_only=True)
@@ -130,6 +131,8 @@ class AgeClassifier(Classifier):
 
         self.metric_target_attribute = 'age_metric'
         self.preprocessing_stages.append(partial(preprocessing.categorize_age, bins=self.bins, metric_col=self.metric_target_attribute))
+        if self.resampling:
+            self.preprocessing_stages.append(self.resampling)
 
         self._e2e_training()
 
