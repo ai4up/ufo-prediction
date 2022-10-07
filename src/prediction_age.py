@@ -177,60 +177,75 @@ class AgeClassifier(Classifier):
 
 class AgePredictorComparison(PredictorComparison):
 
-    def __init__(self, *args, **kwargs) -> None:
-        super().__init__(*args, **kwargs, predictor=AgePredictor)
+    def __init__(self, compare_error_distribution=False, compare_fit_time=False, compare_energy_error=False, compare_spatial_autocorrelation=False, compare_classification_error=False, *args, **kwargs) -> None:
+        self.compare_fit_time = compare_fit_time
+        self.compare_error_distribution = compare_error_distribution
+        self.compare_energy_error = compare_energy_error
+        self.compare_spatial_autocorrelation = compare_spatial_autocorrelation
+        self.compare_classification_error = compare_classification_error
+        super().__init__(*args, **kwargs, predictor_type=AgePredictor)
 
 
-    def evaluate(self, include_plot=False, include_error_distribution=False, include_energy_error=False, include_spatial_autocorrelation=False):
-        age_distributions = {}
-        comparison_metrics = []
-        for name, predictors in self.predictors.items():
-            # average eval metrics across seeds
-            eval_metrics = {}
-            eval_metrics['name'] = name
-            eval_metrics['R2'] = self._mean(predictors, 'r2')
-            eval_metrics['R2_std'] = self._std(predictors, 'r2')
-            eval_metrics['MAE'] = self._mean(predictors, 'mae')
-            eval_metrics['MAE_std'] = self._std(predictors, 'mae')
-            eval_metrics['RMSE'] = self._mean(predictors, 'rmse')
-            eval_metrics['RMSE_std'] = self._std(predictors, 'rmse')
+    def _evaluate_experiment(self, name):
+        predictors = self.predictors[name]
+        eval_metrics = {}
+        eval_metrics['name'] = name
+        # average eval metrics across seeds
+        eval_metrics['R2'] = self._mean(predictors, 'r2')
+        eval_metrics['R2_std'] = self._std(predictors, 'r2')
+        eval_metrics['MAE'] = self._mean(predictors, 'mae')
+        eval_metrics['MAE_std'] = self._std(predictors, 'mae')
+        eval_metrics['RMSE'] = self._mean(predictors, 'rmse')
+        eval_metrics['RMSE_std'] = self._std(predictors, 'rmse')
 
-            bins = [0, 5, 10, 20]
-            hist = self._mean(predictors, 'error_cum_hist', bins)
+        bins = [0, 5, 10, 20]
+        # bins = [0, 0.5, 1, 2.5, 5, 10]
+        hist = self._mean(predictors, 'error_cum_hist', bins)
 
-            for idx, bin in enumerate(bins[1:]):
-                eval_metrics[f'within_{bin}_years'] = hist.flat[idx]
+        for idx, bin in enumerate(bins[1:]):
+            eval_metrics[f'within_{bin}_years'] = hist.flat[idx]
 
-            for seed, predictor in enumerate(predictors):
-                eval_metrics[f'R2_seed_{seed}'] = predictor.r2()
+        for seed, predictor in enumerate(predictors):
+            eval_metrics[f'R2_seed_{seed}'] = predictor.r2()
 
-            if include_error_distribution:
-                eval_metrics['skew'] = self._mean(predictors, 'skew')
-                eval_metrics['kurtosis'] = self._mean(predictors, 'kurtosis')
+        if self.compare_fit_time:
+            eval_metrics['e2e_time'] = (time.time() - self.time_start) / len(predictors)
 
-            if include_energy_error:
-                r2, mape = self._mean(predictors, 'energy_error')
-                eval_metrics['energy_r2'] = r2
-                eval_metrics['energy_mape'] = mape
+        if self.compare_error_distribution:
+            eval_metrics['skew'] = self._mean(predictors, 'skew')
+            eval_metrics['kurtosis'] = self._mean(predictors, 'kurtosis')
 
-            if include_spatial_autocorrelation:
-                eval_metrics['residuals_moranI_KNN'] = predictors[0].spatial_autocorrelation_moran('error', 'knn').I
-                eval_metrics['residuals_moranI_block'] = predictors[0].spatial_autocorrelation_moran('error', 'block').I
-                eval_metrics['residuals_moranI_distance'] = predictors[0].spatial_autocorrelation_moran('error', 'distance').I
-                eval_metrics['prediction_moranI_KNN'] = predictors[0].spatial_autocorrelation_moran(predictors[0].target_attribute, 'knn').I
-                eval_metrics['prediction_moranI_block'] = predictors[0].spatial_autocorrelation_moran(predictors[0].target_attribute, 'block').I
-                eval_metrics['prediction_moranI_distance'] = predictors[0].spatial_autocorrelation_moran(predictors[0].target_attribute, 'distance').I
+        if self.compare_energy_error:
+            r2, mape = self._mean(predictors, 'energy_error')
+            eval_metrics['energy_r2'] = r2
+            eval_metrics['energy_mape'] = mape
 
-            if include_plot:
+        if self.compare_spatial_autocorrelation:
+            eval_metrics['residuals_moranI_KNN'] = predictors[0].spatial_autocorrelation_moran('error', 'knn').I
+            eval_metrics['residuals_moranI_block'] = predictors[0].spatial_autocorrelation_moran('error', 'block').I
+            eval_metrics['residuals_moranI_distance'] = predictors[0].spatial_autocorrelation_moran('error', 'distance').I
+            eval_metrics['prediction_moranI_KNN'] = predictors[0].spatial_autocorrelation_moran(predictors[0].target_attribute, 'knn').I
+            eval_metrics['prediction_moranI_block'] = predictors[0].spatial_autocorrelation_moran(predictors[0].target_attribute, 'block').I
+            eval_metrics['prediction_moranI_distance'] = predictors[0].spatial_autocorrelation_moran(predictors[0].target_attribute, 'distance').I
+
+        if self.compare_classification_error:
+            for bin_size in [5, 10, 20]:
+                bins = utils.generate_bins((1900, 2020, bin_size))
+                eval_metrics[f'MCC_{bin_size}'] = self._mean(predictors, 'mcc', bins)
+                eval_metrics[f'MCC_std_{bin_size}'] = self._std(predictors, 'mcc', bins)
+
+        return eval_metrics
+
+
+    def evaluate(self, include_plot=False):
+        if include_plot:
+            age_distributions = {}
+            for name, predictors in self.predictors.items():
                 age_distributions[f'{name}_predict'] = predictors[0].y_predict[predictors[0].target_attribute]
                 age_distributions[f'{name}_test'] = predictors[0].y_test[predictors[0].target_attribute]
-
-            comparison_metrics.append(eval_metrics)
-
-        if include_plot:
             visualizations.plot_distribution(age_distributions)
 
-        return pd.DataFrame(comparison_metrics).sort_values(by=['R2'])
+        return pd.DataFrame(self.comparison_metrics).sort_values(by=['R2'])
 
 
     def evaluate_comparison(self, *args, **kwargs):
@@ -248,46 +263,52 @@ class AgePredictorComparison(PredictorComparison):
 
 class AgeClassifierComparison(PredictorComparison):
 
-    def __init__(self, *args, **kwargs) -> None:
-        super().__init__(*args, **kwargs, predictor=AgeClassifier)
+    def __init__(self, compare_fit_time=False, compare_energy_error=False, *args, **kwargs) -> None:
+        self.compare_energy_error = compare_energy_error
+        self.compare_fit_time = compare_fit_time
+        super().__init__(*args, **kwargs, predictor_type=AgeClassifier)
 
 
-    def evaluate(self, include_plot=False, include_energy_error=False):
-        evals_results = {}
-        comparison_metrics = []
-        for name, predictors in self.predictors.items():
-            # average eval metrics across seeds
-            eval_metrics = {}
-            eval_metrics['name'] = name
-            eval_metrics['MCC'] = self._mean(predictors, 'mcc')
-            eval_metrics['MCC_std'] = self._std(predictors, 'mcc')
-            eval_metrics['F1'] = self._mean(predictors, 'f1')
-            eval_metrics['F1_std'] = self._std(predictors, 'f1')
+    def _evaluate_experiment(self, name):
+        predictors = self.predictors[name]
+        eval_metrics = {}
+        eval_metrics['name'] = name
+        # average eval metrics across seeds
+        eval_metrics['MCC'] = self._mean(predictors, 'mcc')
+        eval_metrics['MCC_std'] = self._std(predictors, 'mcc')
+        eval_metrics['F1'] = self._mean(predictors, 'f1')
+        eval_metrics['F1_std'] = self._std(predictors, 'f1')
 
-            for idx, label in enumerate(predictors[0].labels):
-                eval_metrics[f'Recall_{label}'] = self._mean(predictors, 'recall', idx)
+        for idx, label in enumerate(predictors[0].labels):
+            eval_metrics[f'Recall_{label}'] = self._mean(predictors, 'recall', idx)
 
-            for seed, predictor in enumerate(predictors):
-                eval_metrics[f'MCC_seed_{seed}'] = predictor.mcc()
+        for seed, predictor in enumerate(predictors):
+            eval_metrics[f'MCC_seed_{seed}'] = predictor.mcc()
 
-            if include_energy_error:
-                r2, mape = self._mean(predictors, 'energy_error')
-                eval_metrics['energy_r2'] = r2
-                eval_metrics['energy_mape'] = mape
+        if self.compare_fit_time:
+            eval_metrics['e2e_time'] = (time.time() - self.time_start) / len(predictors)
 
-            comparison_metrics.append(eval_metrics)
+        if self.compare_energy_error:
+            r2, mape = self._mean(predictors, 'energy_error')
+            eval_metrics['energy_r2'] = r2
+            eval_metrics['energy_mape'] = mape
 
-            if include_plot:
+        return eval_metrics
+
+
+    def evaluate(self, include_plot=False):
+        if include_plot:
+            evals_results = {}
+            for name, predictors in self.predictors.items():
                 eval_metric = 'merror' if predictors[0].multiclass else 'error'
                 evals_results[f'{name}_train'] = predictors[0].evals_result['validation_0'][eval_metric]
                 evals_results[f'{name}_test'] = predictors[0].evals_result['validation_1'][eval_metric]
 
-        if include_plot:
             _, axis = plt.subplots(figsize=(6, 6), constrained_layout=True)
             visualizations.plot_models_classification_error(evals_results, ax=axis)
             plt.show()
 
-        return pd.DataFrame(comparison_metrics).sort_values(by=['MCC'])
+        return pd.DataFrame(self.comparison_metrics).sort_values(by=['MCC'])
 
 
     def evaluate_comparison(self):

@@ -49,32 +49,40 @@ class TypeClassifier(Classifier):
 class TypeClassifierComparison(PredictorComparison):
 
     def __init__(self, *args, **kwargs) -> None:
-        super().__init__(*args, **kwargs, predictor=TypeClassifier)
+        super().__init__(*args, **kwargs, predictor_type=TypeClassifier)
 
 
-    def evaluate(self):
-        evals_results = {}
-        comparison_metrics = []
-        for name, predictor in self.predictors.items():
+    def _evaluate_experiment(self, name):
+        predictors = self.predictors[name]
+        eval_metrics = {}
+        eval_metrics['name'] = name
+        eval_metrics['MCC'] = self._mean(predictors, 'mcc')
+        eval_metrics['MCC_std'] = self._std(predictors, 'mcc')
+        eval_metrics['F1'] = self._mean(predictors, 'f1')
+        eval_metrics['F1_std'] = self._std(predictors, 'f1')
 
-            eval_metrics = {}
-            eval_metrics['name'] = name
-            eval_metrics['MCC'] = predictor.mcc()
-            eval_metrics['F1'] = predictor.f1()
-            for idx, label in enumerate(predictor.labels):
-                eval_metrics[f'Recall_{label}'] = predictor.recall(idx)
+        for idx, label in enumerate(predictors[0].labels):
+            eval_metrics[f'Recall_{label}'] = self._mean(predictors, 'recall', idx)
 
-            comparison_metrics.append(eval_metrics)
+        for seed, predictor in enumerate(predictors):
+            eval_metrics[f'MCC_seed_{seed}'] = predictor.mcc()
 
-            eval_metric = 'merror' if predictor.multiclass else 'error'
-            evals_results[f'{name}_train'] = predictor.evals_result['validation_0'][eval_metric]
-            evals_results[f'{name}_test'] = predictor.evals_result['validation_1'][eval_metric]
+        return eval_metrics
 
-        _, axis = plt.subplots(figsize=(6, 6), constrained_layout=True)
-        visualizations.plot_models_classification_error(evals_results, ax=axis)
-        plt.show()
 
-        return pd.DataFrame(comparison_metrics).sort_values(by=['MCC'])
+    def evaluate(self, include_plot=False):
+        if include_plot:
+            evals_results = {}
+            for name, predictors in self.predictors.items():
+                eval_metric = 'merror' if predictors[0].multiclass else 'error'
+                evals_results[f'{name}_train'] = predictors[0].evals_result['validation_0'][eval_metric]
+                evals_results[f'{name}_test'] = predictors[0].evals_result['validation_1'][eval_metric]
+
+            _, axis = plt.subplots(figsize=(6, 6), constrained_layout=True)
+            visualizations.plot_models_classification_error(evals_results, ax=axis)
+            plt.show()
+
+        return pd.DataFrame(self.comparison_metrics).sort_values(by=['MCC'])
 
 
     def evaluate_comparison(self):

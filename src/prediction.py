@@ -722,26 +722,38 @@ class PredictorComparison:
 
     def __init__(
             self,
-            predictor,
+            predictor_type,
             comparison_config,
             grid_comparison_config={'': {}},
+            exp_name = None,
             compare_feature_importance=False,
             garbage_collect_after_training=False,
+            keep_predictor_in_memory=False,
             include_baseline=True,
             n_seeds=1,
             **baseline_kwargs) -> None:
 
+        self.predictor_type = predictor_type
         self.comparison_config = comparison_config
         self.grid_comparison_config = grid_comparison_config
         self.compare_feature_importance = compare_feature_importance
         self.garbage_collect_after_training = garbage_collect_after_training
+        self.keep_predictor_in_memory = keep_predictor_in_memory
         self.include_baseline = include_baseline
         self.baseline_kwargs = baseline_kwargs
         self.n_seeds = n_seeds
         self.predictors = collections.defaultdict(list)
+        self.comparison_metrics = []
+        self.exp_name = exp_name or utils.truncated_uuid4()
+
+        self._compare()
+
+
+    def _compare(self):
+        features = dataset.FEATURES.copy()
 
         if self.include_baseline:
-            self.predictors['baseline'] = predictor(**copy.deepcopy(self.baseline_kwargs))
+            self.predictors['baseline'] = self.predictor_type(**copy.deepcopy(self.baseline_kwargs))
 
             if self.compare_feature_importance:
                 self.predictors['baseline'].calculate_SHAP_values()
@@ -750,12 +762,14 @@ class PredictorComparison:
             for experiment_name, experiment_kwargs in self.comparison_config.items():
                 name = f'{experiment_name}_{grid_experiment_name}'
                 kwargs = {**copy.deepcopy(self.baseline_kwargs), **grid_experiment_kwargs, **experiment_kwargs}
+                self.time_start = time.time()
                 logger.info(f'Starting experiment {name}...')
 
                 for seed in range(self.n_seeds):
                     logger.debug(f'Training predictor ({name}) (seed {seed}) with following args:\n{kwargs}')
                     dataset.GLOBAL_REPRODUCIBILITY_SEED = seed
-                    self.predictors[name].append(predictor(**kwargs))
+                    dataset.FEATURES = features # reset features to original state if they have been modified by another experiment
+                    self.predictors[name].append(self.predictor_type(**kwargs))
 
                     if self.compare_feature_importance:
                         self.predictors[name][seed].calculate_SHAP_values()
@@ -763,12 +777,43 @@ class PredictorComparison:
                     if self.garbage_collect_after_training:
                         self.predictors[name][seed]._garbage_collect()
 
+                self.comparison_metrics.append(self._evaluate_experiment(name))
+                self._save_intermediate_results(name)
+
+                if not self.keep_predictor_in_memory:
+                    del self.predictors[name]
+                    gc.collect()
+
+
+    def _evaluate_experiment(self, name):
+        raise NotImplementedError('To be implemented.')
+
+
+    def _save_intermediate_results(self, name):
+        path = os.path.join(f'{self.exp_name}-itermediate-comparison-results.csv')
+        self.evaluate().to_csv(path, index=False)
+
+        for seed, predictor in enumerate(self.predictors[name]):
+            predictor.save(f'{self.exp_name}-model-{name}-{seed}.pkl')
+
+
+    def _mean(self, predictors, func, *args, **kwargs):
+        return np.mean([getattr(p, func)(*args, **kwargs) for p in predictors], axis=0)
+
+
+    def _std(self, predictors, func, *args, **kwargs):
+        return np.std([getattr(p, func)(*args, **kwargs) for p in predictors], axis=0)
+
+
+    def evaluate(self):
+        raise NotImplementedError('To be implemented.')
+
 
     def save(self, path, results_only=False):
         file_name, ext = os.path.splitext(path)
         for name, predictors in self.predictors.items():
             for seed, predictor in enumerate(predictors):
-                predictor.save(f'{file_name}_{name}_{seed}_{ext}', results_only)
+                predictor.save(f'{file_name}_{name}_{seed}{ext}', results_only)
 
 
     def evaluate_feature_importance(self, normalize_by_number_of_features=True):
@@ -796,11 +841,3 @@ class PredictorComparison:
         dfs = [p.normalized_feature_importance() for predictors in self.predictors.values() for p in predictors]
         all_top_5_features = set().union(*[df[:5]['feature'].values for df in dfs])
         visualizations.slope_chart(dfs, labels=self.predictors.keys(), feature_selection=all_top_5_features)
-
-
-    def _mean(self, predictors, func, *args, **kwargs):
-        return np.mean([getattr(p, func)(*args, **kwargs) for p in predictors], axis=0)
-
-
-    def _std(self, predictors, func, *args, **kwargs):
-        return np.std([getattr(p, func)(*args, **kwargs) for p in predictors], axis=0)
