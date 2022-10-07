@@ -12,6 +12,7 @@ import numpy as np
 import pandas as pd
 from sklearn import model_selection, preprocessing
 from imblearn.under_sampling import RandomUnderSampler
+from imblearn.over_sampling import RandomOverSampler, SMOTE, ADASYN
 
 N_CV_SPLITS = 3
 
@@ -262,10 +263,57 @@ def keep_only_one_building_per_sbb(df):
     return df.drop_duplicates(subset=['sbb'], keep='first')
 
 
-def undersample_skewed_distribution(df):
+def imblearn_smote(df_train, df_test, target_var=dataset.AGE_ATTRIBUTE):
+    smote = SMOTE()
+
+    smote_cols = list(df_train.columns.intersection(dataset.FEATURES)) + [target_var]
+    df_features = df_train[smote_cols]
+    df_features_resampled = resample_skewed_distribution(df_features, smote)
+    smote_cols.remove('FootprintArea')
+    # known issue: small chance that synthetic samples will get aux vars from the original data (depending on which FootprintArea were generated for them. In the original data, FootprintArea is almost unique.)
+    df_train_resampled = df_features_resampled.merge(df_train.drop(columns=smote_cols), on='FootprintArea', how='left')
+    return df_train_resampled, df_test
+
+
+def imblearn_adasyn(df_train, df_test, target_var=dataset.AGE_ATTRIBUTE):
+    adasyn = ADASYN(random_state=dataset.GLOBAL_REPRODUCIBILITY_SEED)
+
+    adasyn_cols = list(df_train.columns.intersection(dataset.FEATURES)) + [target_var]
+    df_features = df_train[adasyn_cols]
+    df_features_resampled = resample_skewed_distribution(df_features, adasyn)
+    adasyn_cols.remove('FootprintArea')
+    # known issue: small chance that synthetic samples will get aux vars from the original data (depending on which FootprintArea were generated for them. In the original data, FootprintArea is almost unique.)
+    df_train_resampled = df_features_resampled.merge(df_train.drop(columns=adasyn_cols), on='FootprintArea', how='left')
+    return df_train_resampled, df_test
+
+
+def oversample(df_train, df_test):
+    ros = RandomOverSampler(random_state=dataset.GLOBAL_REPRODUCIBILITY_SEED)
+    return resample_skewed_distribution(df_train, ros), df_test
+
+
+def undersample(df_train, df_test):
     rus = RandomUnderSampler(random_state=dataset.GLOBAL_REPRODUCIBILITY_SEED)
+    return resample_skewed_distribution(df_train, rus), df_test
+
+
+def resample_skewed_distribution(df, sampler):
+    logger.info(f"Original dataset types {list(df.select_dtypes(include=['object']).columns)}")
+
     X, y = utils.split_target_var(df)
-    undersampled_X, undersampled_y = rus.fit_resample(X, y)
+    logger.info(f'Original dataset distribution {y.value_counts()}')
+    X_resampled, y_resampled = sampler.fit_resample(X, y)
+    X_resampled = pd.DataFrame(X_resampled, columns=X.columns)
+    y_resampled = pd.DataFrame(y_resampled, columns=y.columns)
+
+    for k, v in X.dtypes.items():
+        X_resampled[k] = X_resampled[k].astype(v)
+
+    logger.info(f'Resampled dataset distribution {y_resampled.value_counts()}')
+    df_resampled = pd.concat([X_resampled, y_resampled], axis=1, join="inner")
+    logger.info(f"Resampled dataset object columns {list(df_resampled.select_dtypes(include=['object']).columns)}")
+    return df_resampled
+
 
     visualizations.plot_histogram(undersampled_y, y, bins=utils.age_bins(undersampled_y))
     logger.info(
