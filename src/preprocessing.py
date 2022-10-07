@@ -25,13 +25,29 @@ def use_other_attributes_as_features(df, target=dataset.AGE_ATTRIBUTE):
     dataset.FEATURES.extend(other_attrib)
 
     # Remove all buildings that do not have one of our four variables (age/type/floor/height).
-    df = df.dropna(subset=other_attrib)
-    df = remove_buildings_with_unknown_type(df)
+    # df = df.dropna(subset=other_attrib)
+    # df = remove_buildings_with_unknown_type(df)
 
     # Encode categorical variable building type
     if target is not dataset.TYPE_ATTRIBUTE:
         # df = utils.dummy_encoding(df, dataset.TYPE_ATTRIBUTE) # one-hot encoding
-        df = categorical_to_int(df, dataset.TYPE_ATTRIBUTE)  # label encoding
+        df = categorical_to_int(df, var=dataset.TYPE_ATTRIBUTE)  # label encoding
+
+    return df
+
+
+def use_height_as_feature(df):
+    dataset.FEATURES.append(dataset.HEIGHT_ATTRIBUTE)
+    return df
+
+
+def use_type_as_feature(df):
+    dataset.FEATURES.append(dataset.TYPE_ATTRIBUTE)
+    df = preparation.add_residential_type_column(df)
+    df = harmonize_group_source_types(df)
+    df[dataset.TYPE_ATTRIBUTE] = np.where((df[dataset.TYPE_ATTRIBUTE] == 'residential') | (df[dataset.TYPE_ATTRIBUTE].isnull()), df['residential_type'], df[dataset.TYPE_ATTRIBUTE])
+
+    df = categorical_to_int(df, var=dataset.TYPE_ATTRIBUTE)  # label encoding
 
     return df
 
@@ -334,16 +350,15 @@ def resample_skewed_distribution(df, sampler):
     return df_resampled
 
 
-    visualizations.plot_histogram(undersampled_y, y, bins=utils.age_bins(undersampled_y))
-    logger.info(
-        f'Downsampling distribution results in: {sorted(Counter(undersampled_y[dataset.AGE_ATTRIBUTE]).items())}')
+def categorical_to_int(df, var, labels=None):
+    df[var + '_label'] = df[var]
+    df[var] = df[var].astype('category')
 
-    undersampled_df = pd.concat([undersampled_X, undersampled_y], axis=1, join="inner")
-    return undersampled_df
+    if labels:
+        df[var] = df[var].cat.remove_unused_categories()
+        df[var] = df[var].cat.reorder_categories(labels)
 
-
-def categorical_to_int(df, var):
-    df[var] = df[var].astype('category').cat.codes
+    df[var] = df[var].cat.codes
     return df
 
 
