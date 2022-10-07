@@ -94,9 +94,9 @@ class AgePredictor(Regressor):
 
     @Predictor.cv_aware
     def energy_error(self):
-        y_true = pd.concat([self.y_test, self.aux_vars_test, self.X_test[['FootprintArea']]], axis=1, join="inner")
-        y_pred = pd.concat([self.y_predict, self.aux_vars_test, self.X_test[['FootprintArea']]], axis=1, join="inner")
         try:
+            y_true = pd.concat([self.y_test, self.aux_vars_test], axis=1, join="inner")
+            y_pred = pd.concat([self.y_predict, self.aux_vars_test], axis=1, join="inner")
             return energy_modeling.calculate_energy_error(y_true, y_pred)
         except Exception as e:
             logger.error(f'Failed to calculate energy error: {e}')
@@ -180,9 +180,9 @@ class AgeClassifier(Classifier):
 
     @Predictor.cv_aware
     def energy_error(self):
-        y_true = pd.concat([self.y_test, self.aux_vars_test, self.X_test[['FootprintArea']]], axis=1, join="inner")
-        y_pred = pd.concat([self.y_predict, self.aux_vars_test, self.X_test[['FootprintArea']]], axis=1, join="inner")
         try:
+            y_true = pd.concat([self.y_test, self.aux_vars_test], axis=1, join='inner')
+            y_pred = pd.concat([self.y_predict, self.aux_vars_test], axis=1, join='inner')
             return energy_modeling.calculate_energy_error(y_true, y_pred, labels=self.labels)
         except Exception as e:
             logger.error(f'Failed to calculate energy error: {e}')
