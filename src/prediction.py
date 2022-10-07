@@ -44,6 +44,7 @@ class Predictor:
             target_attribute=None,
             mitigate_class_imbalance=False,
             early_stopping=True,
+            hyperparameter_n_iter=20,
             hyperparameter_tuning_space=None,
             hyperparameter_tuning_only=False,
             hyperparameters=None,
@@ -61,6 +62,7 @@ class Predictor:
         self.target_attribute = target_attribute
         self.mitigate_class_imbalance = mitigate_class_imbalance
         self.early_stopping = early_stopping
+        self.hyperparameter_n_iter = hyperparameter_n_iter
         self.hyperparameter_tuning_space = hyperparameter_tuning_space
         self.hyperparameter_tuning_only = hyperparameter_tuning_only
         self.hyperparameters = hyperparameters
@@ -220,7 +222,7 @@ class Predictor:
             # (however it uses R2 although reg:squarederror is default for xgboost regression)
             clf = model_selection.RandomizedSearchCV(
                 estimator=self.model,
-                n_iter=20,
+                n_iter=self.hyperparameter_n_iter,
                 param_distributions=self.hyperparameter_tuning_space,
                 scoring='neg_root_mean_squared_error',
                 verbose=2,
