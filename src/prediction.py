@@ -1,4 +1,5 @@
 import os
+import sys
 import gc
 import logging
 import inspect
@@ -68,6 +69,7 @@ class Predictor:
         self.hyperparameter_tuning_space = hyperparameter_tuning_space
         self.hyperparameter_tuning_only = hyperparameter_tuning_only
         self.hyperparameters = hyperparameters
+        self.uuid = utils.truncated_uuid4()
 
         self.X_train = None
         self.y_train = None
@@ -90,6 +92,7 @@ class Predictor:
         # self._preprocess_before_splitting()
 
         for _ in self._cv_aware_split():
+            self._abort_signal()
             self._pre_preprocess_analysis_hook()
             self._preprocess()
             self._post_preprocess_analysis_hook()
@@ -122,6 +125,16 @@ class Predictor:
         logger.info(f'Training dataset length: {len(self.df_train)}')
         logger.info(f'Test dataset length: {len(self.df_test)}')
         logger.info(f'Test cities: {self.df_test["city"].unique()}')
+
+
+    def _abort_signal(self):
+        job = os.environ.get('SLURM_JOBID', 'local')
+        path = os.path.join(dataset.METADATA_DIR, f'{job}-{self.uuid}.abort')
+        if os.path.exists(path):
+            logger.info('Abort signal file found. Exiting...')
+            sys.exit(0)
+        else:
+            logger.info(f'No abort signal received. Continuing... To abort please create {path}.')
 
 
     def _post_preprocess_analysis_hook(self):
