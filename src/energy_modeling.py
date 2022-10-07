@@ -4,6 +4,7 @@ import logging
 import dataset
 
 from sklearn import metrics
+import numpy as np
 import pandas as pd
 
 logger = logging.getLogger(__name__)
@@ -13,11 +14,19 @@ def calculate_energy_error(y_true, y_predict, labels=None):
     y_true = assign_heating_energy_demand(y_true, labels)
     y_predict = assign_heating_energy_demand(y_predict, labels)
 
+    ids = y_true.index.intersection(y_predict.index)
+    y_true = y_true.loc[ids]
+    y_predict = y_predict.loc[ids]
+
     r2 = metrics.r2_score(y_true['heating_demand'], y_predict['heating_demand'])
     mape = metrics.mean_absolute_percentage_error(y_true['heating_demand'], y_predict['heating_demand'])
+    mae = metrics.mean_absolute_error(y_true['heating_demand'], y_predict['heating_demand'])
+    rmse = np.sqrt(metrics.mean_squared_error(y_true['heating_demand'], y_predict['heating_demand']))
 
     logger.info(f'R2: {r2:.4f}')
     logger.info(f'MAPE: {mape:.4f}')
+    logger.info(f'MAE: {mae:.2f}')
+    logger.info(f'RMSE: {rmse:.2f}')
 
     return r2, mape
 
