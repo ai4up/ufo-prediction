@@ -332,7 +332,16 @@ class Predictor:
 
 
     def _garbage_collect(self):
-        for attr in ['df', 'df_test', 'df_train', 'X_test', 'X_train', 'y_train', 'sample_weights', 'aux_vars_train']:
+        # prevent compatibility problems between machines with and without GPU support
+        if hasattr(self, 'model') and hasattr(self.model, 'tree_method') and self.model.tree_method == 'gpu_hist':
+            # workaround for https://github.com/dmlc/xgboost/issues/3045 and https://github.com/dmlc/xgboost/issues/5291
+            try:
+                self.model.get_booster().set_param({'updater':''})
+            except Exception as e:
+                logger.error(f'Failed to garbage collect model: {e}')
+            delattr(self, 'model')
+
+        for attr in ['df', 'df_test', 'df_train', 'X_train', 'y_train', 'sample_weights', 'aux_vars_train']:
             if hasattr(self, attr):
                 delattr(self, attr)
         gc.collect()
