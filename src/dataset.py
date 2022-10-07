@@ -18,6 +18,7 @@ TABULA_AGE_BINS = {
     'france': [0, 1915, 1949, 1968, 1975, 1982, 1990, 2000, 2006, 2013, 2051],
 }
 
+RESIDENTIAL_TYPE = 'residential'
 BUILDING_TYPES = [
     'Résidentiel',
     'Annexe',
@@ -30,7 +31,7 @@ BUILDING_TYPES = [
 ]
 
 AGE_ATTRIBUTE = 'age'
-TYPE_ATTRIBUTE = 'type_source'
+TYPE_ATTRIBUTE = 'type'
 HEIGHT_ATTRIBUTE = 'height'
 AUX_VARS = [
     'id',
@@ -116,20 +117,33 @@ BLOCK_FEATURES_NEIGHBORHOOD = [
     'std_block_orientation_within_buffer_100',
     'std_block_orientation_within_buffer_500',
 ]
-STREET_FEATURES = [
-    'dist_to_closest_int',
-    'distance_to_closest_street',
+SBB_FEATURES = [
     'street_based_block_area',
     'street_based_block_corners',
     'street_based_block_phi',
+]
+STREET_ONLY_FEATURES = [
+    'dist_to_closest_int',
+    'distance_to_closest_street',
     'street_length_closest_street',
     'street_openness_closest_street',
     'street_width_av_closest_street',
     'street_width_std_closest_street',
 ]
-STREET_FEATURES_NEIGHBORHOOD = [
-    'intersection_count_within_100',
-    'intersection_count_within_500',
+
+STREET_FEATURES = [
+    'street_based_block_area',
+    'street_based_block_corners',
+    'street_based_block_phi',
+
+    'dist_to_closest_int',
+    'distance_to_closest_street',
+    'street_length_closest_street',
+    'street_openness_closest_street',
+    'street_width_av_closest_street',
+    'street_width_std_closest_street',
+]
+SBB_FEATURES_NEIGHBORHOOD = [
     'street_based_block_av_area_inter_buffer_100',
     'street_based_block_av_area_inter_buffer_500',
     'street_based_block_av_phi_inter_buffer_100',
@@ -142,6 +156,37 @@ STREET_FEATURES_NEIGHBORHOOD = [
     'street_based_block_std_orientation_inter_buffer_500',
     'street_based_block_std_phi_inter_buffer_100',
     'street_based_block_std_phi_inter_buffer_500',
+]
+STREET_ONLY_FEATURES_NEIGHBORHOOD = [
+    'intersection_count_within_100',
+    'intersection_count_within_500',
+    'street_length_av_within_buffer_100',
+    'street_length_av_within_buffer_500',
+    'street_length_std_within_buffer_100',
+    'street_length_std_within_buffer_500',
+    'street_length_total_within_buffer_100',
+    'street_length_total_within_buffer_500',
+    'street_width_av_within_buffer_100',
+    'street_width_av_within_buffer_500',
+    'street_width_std_within_buffer_100',
+    'street_width_std_within_buffer_500'
+]
+STREET_FEATURES_NEIGHBORHOOD = [
+    'street_based_block_av_area_inter_buffer_100',
+    'street_based_block_av_area_inter_buffer_500',
+    'street_based_block_av_phi_inter_buffer_100',
+    'street_based_block_av_phi_inter_buffer_500',
+    'street_based_block_number_inter_buffer_100',
+    'street_based_block_number_inter_buffer_500',
+    'street_based_block_std_area_inter_buffer_100',
+    'street_based_block_std_area_inter_buffer_500',
+    'street_based_block_std_orientation_inter_buffer_100',
+    'street_based_block_std_orientation_inter_buffer_500',
+    'street_based_block_std_phi_inter_buffer_100',
+    'street_based_block_std_phi_inter_buffer_500',
+
+    'intersection_count_within_100',
+    'intersection_count_within_500',
     'street_length_av_within_buffer_100',
     'street_length_av_within_buffer_500',
     'street_length_std_within_buffer_100',
@@ -156,32 +201,35 @@ STREET_FEATURES_NEIGHBORHOOD = [
 STREET_FEATURES_CENTRALITY = [
     'street_betweeness_global_av_within_buffer_100',
     'street_betweeness_global_av_within_buffer_500',
-    'street_betweeness_global_closest_street',
     'street_betweeness_global_max_within_buffer_100',
     'street_betweeness_global_max_within_buffer_500',
+    'street_betweeness_global_closest_street',
+    'street_closeness_global_closest_street',
+    'street_closeness_500_closest_street',
     'street_closeness_500_av_within_buffer_100',
     'street_closeness_500_av_within_buffer_500',
-    'street_closeness_500_closest_street',
     'street_closeness_500_max_within_buffer_100',
     'street_closeness_500_max_within_buffer_500',
-    'street_closeness_global_closest_street',
 ]
 CITY_FEATURES = [
     'total_buildings_city',
+    'n_detached_buildings',
     'total_buildings_footprint_city',
     'av_building_footprint_city',
     'std_building_footprint_city',
-    'n_detached_buildings',
+
     'blocks_2_to_4',
     'blocks_5_to_9',
     'blocks_10_to_19',
     'blocks_20_to_inf',
-    'intersections_count',
+
     'total_length_street_city',
     'av_length_street_city',
-    'total_number_block_city',
+    'intersections_count',
+
     'av_area_block_city',
     'std_area_block_city',
+    'total_number_block_city',
 ]
 LANDUSE_FEATURES = [
     'bld_in_lu_agricultural',
@@ -254,6 +302,9 @@ BUILDING_FEATURES_ALL = BUILDING_FEATURES + BUILDING_FEATURES_NEIGHBORHOOD
 BLOCK_FEATURES_ALL = BLOCK_FEATURES + BLOCK_FEATURES_NEIGHBORHOOD
 STREET_FEATURES_ALL = STREET_FEATURES + STREET_FEATURES_NEIGHBORHOOD + STREET_FEATURES_CENTRALITY
 
+NEIGHBORHOOD_FEATURES = BUILDING_FEATURES_NEIGHBORHOOD + BUILDING_FEATURES_NEIGHBORHOOD + STREET_FEATURES_NEIGHBORHOOD + STREET_FEATURES_CENTRALITY
+SPATIALLY_EXPLICIT_FEATURES = BUILDING_FEATURES + BLOCK_FEATURES + STREET_FEATURES
+
 FEATURES = list(itertools.chain(
     BUILDING_FEATURES,
     BUILDING_FEATURES_NEIGHBORHOOD,
@@ -263,7 +314,7 @@ FEATURES = list(itertools.chain(
     STREET_FEATURES_NEIGHBORHOOD,
     STREET_FEATURES_CENTRALITY,
     CITY_FEATURES,
-    LANDUSE_FEATURES,
+    # LANDUSE_FEATURES,
 ))
 
 # Top 10
