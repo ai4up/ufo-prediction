@@ -538,6 +538,7 @@ class Classifier(Predictor):
         super().__init__(*args, **kwargs, initialize_only=True)
 
         self.labels = labels
+        self._validate_labels()
         self.multiclass = len(self.labels) > 2
         self.predict_probabilities = predict_probabilities
 
@@ -557,6 +558,20 @@ class Classifier(Predictor):
         class_drawn = np.apply_along_axis(self._sample_class_from_probabilities,
                                           axis=1, arr=class_probabilities).ravel()
         self.y_predict = pd.DataFrame({self.target_attribute: class_drawn, 'probabilities': list(class_probabilities)})
+
+
+    def _validate_labels(self):
+        if not isinstance(self.df, pd.DataFrame):
+            logger.warning('Labels can not be validated because no DataFrame but a file path is passed to the predictor.')
+            return
+
+        labels_dataset = self.df[self.target_attribute].unique()
+        if len(self.labels) > len(labels_dataset):
+            self.labels = [l for l in self.labels if l in labels_dataset]
+            logger.error(f'Some labels are not in the dataset. They will be ignored. New labels are {self.labels}')
+
+        if len(self.labels) < len(labels_dataset):
+            raise Exception(f'Length of labels provided ({self.labels}) does not match the labels in the dataset ({labels_dataset}).')
 
 
     def _sample_class_from_probabilities(self, prob):
