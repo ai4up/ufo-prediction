@@ -14,7 +14,7 @@ from sklearn import model_selection, preprocessing
 from imblearn.under_sampling import RandomUnderSampler
 from imblearn.over_sampling import RandomOverSampler, SMOTE, ADASYN
 
-N_CV_SPLITS = 3
+N_CV_SPLITS = 5
 
 logger = logging.getLogger(__name__)
 
@@ -143,11 +143,16 @@ def neighborhood_cross_validation(df, balanced_attribute=None, spatial_buffer_si
 
 
 def _group_cross_validation(df, attribute, balanced_attribute=None, spatial_buffer_size=None):
+    n_splits = min(df[attribute].nunique(), N_CV_SPLITS)
+
+    if n_splits < N_CV_SPLITS:
+        logger.warning(f'Fewer unique {attribute} attributes than cross-validation folds. Reducing the number of folds from {N_CV_SPLITS} to {n_splits}.')
+
     if balanced_attribute:
-        group_kfold = model_selection.StratifiedGroupKFold(n_splits=N_CV_SPLITS, shuffle=True, random_state=dataset.GLOBAL_REPRODUCIBILITY_SEED)
+        group_kfold = model_selection.StratifiedGroupKFold(n_splits=n_splits, shuffle=True, random_state=dataset.GLOBAL_REPRODUCIBILITY_SEED)
         iterator = group_kfold.split(df, df[balanced_attribute], groups=df[attribute].values)
     else:
-        group_kfold = model_selection.GroupKFold(n_splits=N_CV_SPLITS)
+        group_kfold = model_selection.GroupKFold(n_splits=n_splits)
         iterator = group_kfold.split(df, groups=df[attribute].values)
 
     for train_idx, test_idx in iterator:
