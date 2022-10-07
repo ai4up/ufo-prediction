@@ -1,10 +1,15 @@
+import ast
 import logging
 
 import geometry
+import dataset
 import utils
 
+import numpy as np
 import geopandas as gpd
 from sklearn.cluster import AgglomerativeClustering
+
+MIN_HEIGHT_PER_FLOOR = 2.5
 
 logger = logging.getLogger(__name__)
 
@@ -87,4 +92,27 @@ def add_sbb_building_ids_column(df):
 
     block_building_ids = df.groupby('sbb')['id'].apply(list).to_dict()
     df['sbb_bld_ids'] = df['sbb'].map(block_building_ids)
+    return df
+
+
+def add_residential_type_column(df):
+    if df[dataset.TYPE_ATTRIBUTE].isnull().all():
+        logger.warning('Building type information missing. Considering all buildings as residential.')
+        res = True
+    else:
+        res = df[dataset.TYPE_ATTRIBUTE] == dataset.RESIDENTIAL_TYPE
+
+    df['n_neighbors'] = df['TouchesIndexes'].fillna('[1]').apply(lambda l: len(ast.literal_eval(l)))
+    floors = df['floors'].fillna(np.floor(df['height'] / MIN_HEIGHT_PER_FLOOR))
+
+    mask_mfh = (df['FootprintArea'] > 300) & (floors <= 5)
+    mask_ab = (df['FootprintArea'] > 300) & (floors > 5)
+    mask_sfh = (df['FootprintArea'] < 300) & (df['n_neighbors'] == 1)
+    mask_th = (df['FootprintArea'] < 300) & (df['n_neighbors'] > 1)
+
+    df.loc[res & mask_sfh, 'residential_type'] = 'SFH'  # Single Family House
+    df.loc[res & mask_mfh, 'residential_type'] = 'MFH'  # Multi Family House
+    df.loc[res & mask_th, 'residential_type'] = 'TH'  # Terraced House
+    df.loc[res & mask_ab, 'residential_type'] = 'AB'  # Apartment Block
+
     return df

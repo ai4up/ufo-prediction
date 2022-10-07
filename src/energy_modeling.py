@@ -1,13 +1,10 @@
 import os
-import ast
 import logging
 
 import dataset
 
 from sklearn import metrics
 import pandas as pd
-
-HEIGHT_PER_FLOOR = 2.5
 
 logger = logging.getLogger(__name__)
 
@@ -25,35 +22,11 @@ def calculate_energy_error(y_true, y_predict, labels=None):
     return r2, mape
 
 
-def add_residential_type_column(df):
-    df['n_neighbors'] = df['TouchesIndexes'].apply(lambda l: len(ast.literal_eval(l)))
-
-    floors = df['floors'].fillna(df['height'] / HEIGHT_PER_FLOOR)
-    mask_mfh = (df['FootprintArea'] > 300) & (floors <= 5)
-    mask_ab = (df['FootprintArea'] > 300) & (floors > 5)
-    mask_sfh = (df['FootprintArea'] < 300) & (df['n_neighbors'] > 1)
-    mask_th = (df['FootprintArea'] < 300) & (df['n_neighbors'] == 1)
-
-    if df['type'].isnull().all():
-        logger.warning('Building type information missing. Considering all buildings as residential.')
-        res = True
-    else:
-        res = df['type'] == 'residential'
-
-    df.loc[mask_sfh & res, 'residential_type'] = 'SFH'  # Single Family House
-    df.loc[mask_mfh & res, 'residential_type'] = 'MFH'  # Multi Family House
-    df.loc[mask_th & res, 'residential_type'] = 'TH'  # Terraced House
-    df.loc[mask_ab & res, 'residential_type'] = 'AB'  # Apartment Block
-
-    return df
-
-
 def assign_heating_energy_demand(df, labels=None):
     tabula_energy_path = os.path.join(dataset.METADATA_DIR, 'TABULA_heating_demand.csv')
     tabula_energy_df = pd.read_csv(tabula_energy_path)
 
-    df = add_residential_type_column(df)
-    df = df.dropna(subset=['residential_type'])
+    df = df.dropna(subset=['country', 'residential_type'])
 
     n_buildings = len(df)
     index = df.index
@@ -70,7 +43,5 @@ def assign_heating_energy_demand(df, labels=None):
 
     if n_buildings != len(df):
         logger.error(f'Assigning heating energy demand failed. Number of building changed during merge of TABULA data from {n_buildings} to {len(df)}. Dropped buildings include:\n{list(index.difference(df.index))[:10]}')
-
-    df = df.drop(columns=['age_min', 'age_max', 'age_bin'])
 
     return df
