@@ -100,10 +100,12 @@ def features_moran_I(df, weight_func, features=dataset.FEATURES):
 
 
 def plot_correlogram_over_distance(df, attributes, distances=None):
-    distances = distances or [2 ** i for i in range(2, 10)]
+    distances = distances or [2 ** i for i in range(2, 11)]
     coefficients = []
+    neighbors = {}
     for dis in distances:
-        weights = _distance_weights(df, distance_threshold=dis)
+        weights = _distance_band_weights(df, distance_threshold=dis, neighbors_to_exclude=neighbors)
+        neighbors = weights.neighbors
         coefficients.append({attr: Moran(df[attr], weights).I for attr in attributes})
 
     df = pd.DataFrame(coefficients, index=distances)
@@ -152,6 +154,14 @@ def _between_sbbs_weights(df):
 
 def _distance_weights(gdf, distance_threshold):
     return lps.weights.DistanceBand.from_dataframe(gdf, threshold=distance_threshold, silence_warnings=True)
+
+
+def _distance_band_weights(gdf, distance_threshold, neighbors_to_exclude):
+    dis = lps.weights.DistanceBand.from_dataframe(gdf, threshold=distance_threshold, ids=gdf['id'].values, silence_warnings=True)
+    neighbors = {}
+    for building_id, neighbor_ids in dis.neighbors.items():
+        neighbors[building_id] = [n for n in neighbor_ids if n not in neighbors_to_exclude.get(building_id, [])]
+    return lps.weights.W(neighbors, id_order=gdf['id'].values, silence_warnings=True)
 
 
 def _distance_weights_exc_block(gdf, block_type, distance_threshold):
