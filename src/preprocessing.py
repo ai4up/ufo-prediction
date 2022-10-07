@@ -242,16 +242,35 @@ def remove_outliers(df):
 
 
 def remove_non_residential_buildings(df):
-    return df[df[dataset.TYPE_ATTRIBUTE] == 'Résidentiel']
+    return df[df[dataset.TYPE_ATTRIBUTE] == 'residential']
 
 
 def group_non_residential_buildings(df):
-    df[dataset.TYPE_ATTRIBUTE].loc[df[dataset.TYPE_ATTRIBUTE] != 'Résidentiel'] = 'non-residential'
+    df[dataset.TYPE_ATTRIBUTE].loc[df[dataset.TYPE_ATTRIBUTE] != 'residential'] = 'non-residential'
+    return df
+
+
+def harmonize_group_source_types(df):
+    mask_residential = df['type_source'].isin(['Résidentiel', '1_residential'])
+    mask_commercial = df['type_source'].isin(['Commercial et services', '4_3_publicServices', '4_2_retail', '4_1_office'])
+    mask_agricultural = df['type_source'].isin(['Agricole', '2_agriculture'])
+    mask_industrial = df['type_source'].isin(['Industriel', '3_industrial'])
+    mask_others = df['type_source'].isin(['Annexe', 'Sportif', 'Religieux'])
+    mask_unknown = (df['type_source'] == 'Indifférencié') | (df[dataset.TYPE_ATTRIBUTE] == 'unknown')
+
+    df[dataset.TYPE_ATTRIBUTE].loc[mask_residential] = 'residential'
+    df[dataset.TYPE_ATTRIBUTE].loc[mask_commercial] = 'commercial'
+    df[dataset.TYPE_ATTRIBUTE].loc[mask_agricultural] = 'agricultural'
+    df[dataset.TYPE_ATTRIBUTE].loc[mask_industrial] = 'industrial'
+    df[dataset.TYPE_ATTRIBUTE].loc[mask_others] = 'others'
+    df[dataset.TYPE_ATTRIBUTE].loc[mask_unknown] = None
+
     return df
 
 
 def remove_buildings_with_unknown_type(df):
-    df = df[df[dataset.TYPE_ATTRIBUTE] != 'Indifférencié']
+    df = df[df['type_source'] != 'Indifférencié']
+    df = df[df[dataset.TYPE_ATTRIBUTE] != 'unknown']
     return df
 
 
