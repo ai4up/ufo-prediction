@@ -23,6 +23,8 @@ from sklearn import model_selection
 from sklearn import metrics
 from scipy import stats
 import matplotlib.pyplot as plt
+import xgboost
+import sklearn.ensemble
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -172,7 +174,6 @@ class Predictor:
             'X': self.X_train,
             'y': self.y_train,
             'sample_weight': self.sample_weights,
-            'verbose': utils.verbose(),
         }
 
         if self.hyperparameter_tuning_space:
@@ -182,13 +183,21 @@ class Predictor:
         if self.hyperparameters:
             model_params = {**model_params, **self.hyperparameters}
 
-        if self.early_stopping:
-            fit_params['early_stopping_rounds'] = max(50, self.model.n_estimators / 10)
+        if self._xgboost_model():
+            fit_params['verbose'] = utils.verbose()
+            fit_params['eval_set'] = [(self.X_train, self.y_train), (self.X_test, self.y_test)]
 
-        fit_params['eval_set'] = [(self.X_train, self.y_train), (self.X_test, self.y_test)]
+            if self.early_stopping:
+                fit_params['early_stopping_rounds'] = max(50, self.model.n_estimators / 10)
+
+        if self._sklearn_model():
+            model_params['verbose'] = 2 if utils.verbose() else 0
+
         self.model.set_params(**model_params)
         self.model.fit(**fit_params)
-        self.evals_result = self.model.evals_result()
+
+        if self._xgboost_model():
+            self.evals_result = self.model.evals_result()
 
 
     def _predict(self):
@@ -319,6 +328,14 @@ class Predictor:
             if hasattr(self, attr):
                 delattr(self, attr)
         gc.collect()
+
+
+    def _xgboost_model(self):
+        return getattr(self.model, '__module__', None) == xgboost.__name__
+
+
+    def _sklearn_model(self):
+        return getattr(self.model, '__module__', None) == sklearn.ensemble.__name__
 
 
     @staticmethod
