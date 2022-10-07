@@ -1,4 +1,5 @@
-import gc
+import pickle
+import time
 import logging
 from functools import partial
 
@@ -102,6 +103,16 @@ class AgePredictor(Regressor):
             return np.nan, np.nan
 
 
+    @staticmethod
+    def load(path):
+        predictor = pickle.load(open(path, 'rb'))
+
+        if isinstance(predictor, AgePredictor):
+            return predictor
+
+        logger.error(f'The object loaded from {path} is not an AgePredictor instance.')
+
+
 class AgeClassifier(Classifier):
 
     def __init__(self, bins=[], bin_config=None, *args, **kwargs):
@@ -173,6 +184,16 @@ class AgeClassifier(Classifier):
         except Exception as e:
             logger.error(f'Failed to calculate energy error: {e}')
             return np.nan, np.nan
+
+
+    @staticmethod
+    def load(path):
+        predictor = pickle.load(open(path, 'rb'))
+
+        if isinstance(predictor, AgeClassifier):
+            return predictor
+
+        logger.error(f'The object loaded from {path} is not an AgeClassifier instance.')
 
 
 class AgePredictorComparison(PredictorComparison):
