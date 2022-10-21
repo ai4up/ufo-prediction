@@ -1,13 +1,13 @@
 import ast
 import logging
 
-import geometry
-import dataset
-import utils
-
 import numpy as np
 import geopandas as gpd
 from sklearn.cluster import AgglomerativeClustering
+
+import geometry
+import dataset
+import utils
 
 MIN_HEIGHT_PER_FLOOR = 2.5
 

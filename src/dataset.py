@@ -1,7 +1,7 @@
-import os
+import itertools
 
 import numpy as np
-import itertools
+
 GLOBAL_REPRODUCIBILITY_SEED = 1
 
 DATA_DIR = '/p/projects/eubucco/data/2-database-city-level-v0_1'
@@ -316,21 +316,3 @@ FEATURES = list(itertools.chain(
     CITY_FEATURES,
     # LANDUSE_FEATURES,
 ))
-
-# Top 10
-# SELECTED_FEATURES = ['std_elongation_within_buffer_100',
-#        'street_betweeness_global_closest_street',
-#        'distance_to_closest_street', 'Convexity',
-#        'std_elongation_within_buffer_500', 'buildings_within_buffer_100',
-#        'lat', 'SharedWallLength', 'std_footprint_area_within_buffer_100',
-#        'StdBlockFootprintArea']
-
-# OTHER_ATTRIBUTES = []
-# AUX_VARS = []
-
-# AGE_ATTRIBUTE = 'DATE_APP'
-# TYPE_ATTRIBUTE = 'USAGE1'
-# HEIGHT_ATTRIBUTE = 'HAUTEUR'
-# OTHER_ATTRIBUTES = [TYPE_ATTRIBUTE, HEIGHT_ATTRIBUTE, 'NB_ETAGES']
-# AUX_VARS = ['ID', 'USAGE2', 'PREC_ALTI', 'NB_LOGTS', 'MAT_TOITS', 'MAT_MURS',
-#             'geometry', 'city', 'departement', 'is_buffer', 'TouchesIndexes']

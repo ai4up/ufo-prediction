@@ -1,11 +1,11 @@
 import os
 import logging
 
-import dataset
-
 from sklearn import metrics
 import numpy as np
 import pandas as pd
+
+import dataset
 
 logger = logging.getLogger(__name__)
 

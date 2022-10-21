@@ -1,18 +1,16 @@
 import logging
-from collections import Counter
 import random
-
-import utils
-import dataset
-import preparation
-import visualizations
-import geometry
 
 import numpy as np
 import pandas as pd
 from sklearn import model_selection, preprocessing
 from imblearn.under_sampling import RandomUnderSampler
 from imblearn.over_sampling import RandomOverSampler, SMOTE, ADASYN
+
+import utils
+import dataset
+import preparation
+import geometry
 
 N_CV_SPLITS = 5
 

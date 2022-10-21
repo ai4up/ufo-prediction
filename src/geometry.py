@@ -1,13 +1,13 @@
 import os
 import glob
 import logging
-import pyproj
 
 import numpy as np
 import pandas as pd
 import geopandas as gpd
 from scipy.sparse import csgraph
 from scipy.spatial.distance import pdist, cdist, squareform
+import pyproj
 from shapely import wkt
 from haversine import haversine
 

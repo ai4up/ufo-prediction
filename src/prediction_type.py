@@ -1,13 +1,13 @@
 import logging
 from functools import partial
 
+import pandas as pd
+import matplotlib.pyplot as plt
+
 import visualizations
 import dataset
 import preprocessing
 from prediction import Classifier, PredictorComparison
-
-import pandas as pd
-import matplotlib.pyplot as plt
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)

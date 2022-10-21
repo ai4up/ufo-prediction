@@ -1,10 +1,5 @@
 import warnings
 
-import dataset
-import preprocessing
-import utils
-import geometry
-
 import pandas as pd
 import numpy as np
 import seaborn as sns
@@ -16,6 +11,11 @@ from matplotlib.gridspec import GridSpec
 import geopandas as gpd
 from scipy.stats import kurtosis, skew, norm
 from sklearn import metrics
+
+import dataset
+import preprocessing
+import utils
+import geometry
 
 
 def plot_histogram(y_test, y_predict, bins=None, bin_labels=[], **kwargs):

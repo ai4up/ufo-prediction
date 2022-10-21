@@ -3,16 +3,16 @@ import time
 import logging
 from functools import partial
 
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+
 import utils
 import visualizations
 import dataset
 import preprocessing
 import energy_modeling
 from prediction import Predictor, Classifier, Regressor, PredictorComparison
-
-import pandas as pd
-import numpy as np
-import matplotlib.pyplot as plt
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)

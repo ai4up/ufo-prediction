@@ -9,13 +9,6 @@ import time
 import collections
 from functools import wraps
 
-import dataset
-import utils
-import visualizations
-import preprocessing
-import spatial_autocorrelation
-import geometry
-
 import shap
 import pandas as pd
 import numpy as np
@@ -26,6 +19,13 @@ from scipy import stats
 import matplotlib.pyplot as plt
 import xgboost
 import sklearn.ensemble
+
+import dataset
+import utils
+import visualizations
+import preprocessing
+import spatial_autocorrelation
+import geometry
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)

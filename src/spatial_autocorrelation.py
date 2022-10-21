@@ -1,13 +1,13 @@
 import logging
 
-import dataset
-import preparation
-import utils
-
 import pandas as pd
 import libpysal as lps
 import splot
 from esda.moran import Moran
+
+import dataset
+import preparation
+import utils
 
 logger = logging.getLogger(__name__)
 
