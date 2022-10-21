@@ -9,13 +9,15 @@ METADATA_DIR = '/p/projects/eubucco/data/3-ml-inputs'
 # DATA_DIR = os.path.realpath(os.path.join(__file__, '..', '..', 'data', 'geometry'))
 # METADATA_DIR = os.path.realpath(os.path.join(__file__, '..', '..', 'metadata'))
 
-
 # age bands ~ according to English Housing Survey (EHS) as done in https://doi.org/10.1016/j.compenvurbsys.2018.08.004
 EHS_AGE_BINS = [0, 1915, 1945, 1965, 1980, 2000, np.inf]
 TABULA_AGE_BINS = {
-    'harmonized': [0, 1900, 1945, 1970, 1980, 1990, 2000, 2010, np.inf],
+    'harmonized': [0, 1900, 1945, 1960, 1970, 1980, 1990, 2000, 2010, np.inf], # by Flo
+    # 'harmonized': [0, 1900, 1945, 1970, 1980, 1990, 2000, 2010, np.inf], # by Peter
     'netherlands': [0, 1965, 1975, 1992, 2006, 2015, 2051],
     'france': [0, 1915, 1949, 1968, 1975, 1982, 1990, 2000, 2006, 2013, 2051],
+    'netherlands_small': [0, 1915, 1945, 1965, 1975, 1983, 1992, 1999, 2006, 2015, 2051],
+    'france_small': [0, 1915, 1949, 1959, 1968, 1975, 1982, 1990, 1995, 2000, 2006, 2013, 2051],
 }
 
 RESIDENTIAL_TYPE = 'residential'
