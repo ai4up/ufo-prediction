@@ -1,4 +1,7 @@
 data/
+figures/
+tmp/
 __pycache__
 exp*.ipynb
 *.pkl
+*.dat
