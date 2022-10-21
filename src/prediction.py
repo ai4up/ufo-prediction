@@ -575,13 +575,14 @@ class Regressor(Predictor):
 
 class Classifier(Predictor):
 
-    def __init__(self, labels, predict_probabilities=False, initialize_only=False, *args, **kwargs):
+    def __init__(self, labels, predict_probabilities=False, initialize_only=False, validate_labels=True, *args, **kwargs):
         super().__init__(*args, **kwargs, initialize_only=True)
 
         self.labels = labels
-        self._validate_labels()
         self.multiclass = len(self.labels) > 2
         self.predict_probabilities = predict_probabilities
+        if validate_labels:
+            self._validate_labels()
 
         objective = 'multi:softprob' if self.multiclass else 'binary:logistic'
         eval_metric = ['mlogloss', 'merror'] if self.multiclass else ['logloss', 'error']

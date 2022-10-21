@@ -123,7 +123,7 @@ class AgeClassifier(Classifier):
         self.resampling = resampling
 
         super().__init__(*args, **kwargs, target_attribute=dataset.AGE_ATTRIBUTE,
-                         labels=utils.generate_labels(self.bins), initialize_only=True)
+                         labels=utils.generate_labels(self.bins), initialize_only=True, validate_labels=False)
 
         logger.info(f'Generated bins: {self.bins}')
         logger.info(f'Generated bins with the following labels: {self.labels}')
