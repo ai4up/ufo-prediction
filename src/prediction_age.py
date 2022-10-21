@@ -79,13 +79,12 @@ class AgePredictor(Regressor):
 
     def evaluate(self):
         self.print_model_error()
-        _, axis = plt.subplots(2, 2, figsize=(14, 10), constrained_layout=True)
-        visualizations.plot_regression_error(self.model, ax=axis[0, 0])
+        _, axis = plt.subplots(1, 2, figsize=(14, 6), constrained_layout=True)
+        visualizations.plot_regression_error(self.model, ax=axis[0])
         visualizations.plot_histogram(
-            self.y_test, self.y_predict, bins=utils.age_bins(self.y_predict), ax=axis[1, 0])
-        visualizations.plot_relative_grid(self.y_test, self.y_predict, ax=axis[1, 1])
+            self.y_test, self.y_predict, bins=utils.age_bins(self.y_predict), ax=axis[1])
+        visualizations.plot_relative_grid(self.y_test, self.y_predict)
         plt.show()
-        visualizations.plot_grid(self.y_test, self.y_predict)
 
 
     def evaluate_regression(self):
