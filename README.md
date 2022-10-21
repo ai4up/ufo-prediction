@@ -3,7 +3,7 @@
 A supervised machine learning approach to predict the construction year of buildings based on publicly available 2D urban morphology data.
 
 ## Demo
-See [prediction demo](demo.ipynb) Jupyter notebook using building data from France, Spain, and the Netherlands.
+See [prediction demo](demo/demo.ipynb) Jupyter notebook using building data from France, Spain, and the Netherlands.
 ![](./figures/data-overview-color-coded.png)
 
 ## Dependencies
