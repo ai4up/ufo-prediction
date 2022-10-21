@@ -1,0 +1,393 @@
+﻿NUTS 3 CODE;LAU CODE;LAU NAME NATIONAL;LAU NAME LATIN;CHANGE (Y/N);POPULATION;TOTAL AREA (m2);DEGURBA;DEG change compared to last year;COASTAL AREA (yes/no);COAST change compared to last year;CITY_ID;CITY_ID change compared to last year;CITY_NAME;GREATER_CITY_ID;GREATER_CITY_ID change compared to last year;GREATER_CITY_NAME;FUA_ID;FUA_ID change compared to last year;FUA_NAME
+NL112;GM0003;Appingedam;;no;11721;23777502;2;no;yes;no;;;;;;;NL007L3;no;Groningen
+NL112;GM0010;Delfzijl;;no;24716;133074138;2;no;yes;no;;;;;;;NL007L3;no;Groningen
+NL113;GM0014;Groningen;;yes;231299;185603117;1;no;no;no;NL007C1;no;Groningen;;;;NL007L3;no;Groningen
+NL112;GM0024;Loppersum;;no;9614;111039070;3;no;no;no;;;;;;;NL007L3;no;Groningen
+NL230;GM0034;Almere;;no;207904;129185188;1;no;no;no;NL011C1;no;Almere;;;;NL002L3;no;Amsterdam
+NL111;GM0037;Stadskanaal;;no;31789;117642998;2;no;no;no;;;;;;;;;
+NL111;GM0047;Veendam;;no;27491;76001143;2;no;no;no;;;;;;;NL007L3;no;Groningen
+NL230;GM0050;Zeewolde;;no;22309;247226642;2;no;no;no;;;;;;;;;
+NL124;GM0059;Achtkarspelen;;no;27852;102230889;2;no;no;no;;;;;;;;;
+NL124;GM0060;Ameland;;no;3673;59109897;3;no;yes;no;;;;;;;;;
+NL124;GM0072;Harlingen;;no;15758;24961388;2;no;yes;no;;;;;;;NL015L3;no;Leeuwarden
+NL126;GM0074;Heerenveen;;no;50257;190089080;2;no;no;no;;;;;;;;;
+NL124;GM0080;Leeuwarden;;no;123107;238380523;1;no;no;no;NL015C1;no;Leeuwarden;;;;NL015L3;no;Leeuwarden
+NL126;GM0085;Ooststellingwerf;;no;25497;223419247;3;no;no;no;;;;;;;;;
+NL126;GM0086;Opsterland;;no;29723;224400479;3;no;no;no;;;;;;;;;
+NL124;GM0088;Schiermonnikoog;;no;936;40504781;3;no;yes;no;;;;;;;;;
+NL126;GM0090;Smallingerland;;no;55938;117308664;2;no;no;no;;;;;;;;;
+NL124;GM0093;Terschelling;;no;4890;85256751;3;no;yes;no;;;;;;;;;
+NL124;GM0096;Vlieland;;no;1138;39146540;3;no;yes;no;;;;;;;;;
+NL126;GM0098;Weststellingwerf;;no;25840;220300946;3;no;no;no;;;;;;;;;
+NL131;GM0106;Assen;;no;67963;81885589;1;no;no;no;NL522C1;no;Assen;;;;NL522L3;no;Assen
+NL132;GM0109;Coevorden;;no;35483;296067619;3;no;no;no;;;;;;;;;
+NL132;GM0114;Emmen;;no;107113;335184281;2;no;no;no;;;;;;;;;
+NL133;GM0118;Hoogeveen;;no;55662;127539827;2;no;no;no;;;;;;;;;
+NL133;GM0119;Meppel;;no;33564;55527078;2;no;no;no;;;;;;;;;
+NL213;GM0141;Almelo;;no;72849;67270618;1;no;no;no;NL519C1;no;Almelo;;;;NL519L3;no;Almelo
+NL213;GM0147;Borne;;no;23210;26001031;2;no;no;no;;;;;;;NL008L3;no;Enschede
+NL211;GM0148;Dalfsen;;no;28499;165074066;2;no;no;no;;;;;;;NL511L3;no;Zwolle
+NL212;GM0150;Deventer;;no;99957;130680491;1;no;no;no;NL513C1;no;Deventer;;;;NL513L3;no;Deventer
+NL213;GM0153;Enschede;;no;158986;140831908;1;no;no;no;NL008C1;no;Enschede;;;;NL008L3;no;Enschede
+NL213;GM0158;Haaksbergen;;no;24277;104821755;2;no;no;no;;;;;;;NL008L3;no;Enschede
+NL211;GM0160;Hardenberg;;no;60574;312277959;3;no;no;no;;;;;;;;;
+NL213;GM0163;Hellendoorn;;no;35808;137912992;2;no;no;no;;;;;;;;;
+NL213;GM0164;Hengelo;;no;80683;60840279;1;no;no;no;NL517C1;no;Hengelo;;;;NL008L3;no;Enschede
+NL211;GM0166;Kampen;;no;53779;142182467;2;no;no;no;;;;;;;NL511L3;no;Zwolle
+NL213;GM0168;Losser;;no;22622;98762853;2;no;no;no;;;;;;;NL008L3;no;Enschede
+NL230;GM0171;Noordoostpolder;;no;46849;458167474;2;no;no;no;;;;;;;;;
+NL213;GM0173;Oldenzaal;;no;31840;21554928;2;no;no;no;;;;;;;NL008L3;no;Enschede
+NL211;GM0175;Ommen;;no;17813;179897206;2;no;no;no;;;;;;;NL511L3;no;Zwolle
+NL212;GM0177;Raalte;;no;37511;170994062;2;no;no;no;;;;;;;NL511L3;no;Zwolle
+NL211;GM0180;Staphorst;;no;17003;133989743;2;no;no;no;;;;;;;NL511L3;no;Zwolle
+NL213;GM0183;Tubbergen;;no;21276;147003593;3;no;no;no;;;;;;;NL519L3;no;Almelo
+NL230;GM0184;Urk;;no;20776;13154390;2;no;no;no;;;;;;;;;
+NL213;GM0189;Wierden;;no;24351;94628094;2;no;no;no;;;;;;;NL519L3;no;Almelo
+NL211;GM0193;Zwolle;;no;127497;111104428;1;no;no;no;NL511C1;no;Zwolle;;;;NL511L3;no;Zwolle
+NL225;GM0197;Aalten;;no;27011;96538509;2;no;no;no;;;;;;;;;
+NL221;GM0200;Apeldoorn;;no;162445;339892133;1;no;no;no;NL014C1;no;Apeldoorn;;;;NL014L3;no;Apeldoorn
+NL226;GM0202;Arnhem;;no;159265;97823346;1;no;no;no;NL009C2;no;Greater Arnhem;;;;NL009L3;no;Arnhem
+NL221;GM0203;Barneveld;;no;57971;175896728;2;no;no;no;;;;;;;;;
+NL226;GM0209;Beuningen;;no;25882;43650958;2;no;no;no;;;;;;;NL013L3;no;Nijmegen
+NL225;GM0213;Brummen;;no;20698;83645381;2;no;no;no;;;;;;;NL014L3;no;Apeldoorn
+NL224;GM0214;Buren;;no;26568;133888122;3;no;no;no;;;;;;;;;
+NL224;GM0216;Culemborg;;no;28555;29285612;2;no;no;no;;;;;;;NL004L3;no;Utrecht
+NL226;GM0221;Doesburg;;no;11148;11527332;2;no;no;no;;;;;;;NL009L3;no;Arnhem
+NL225;GM0222;Doetinchem;;no;57555;79047189;2;no;no;no;;;;;;;;;
+NL226;GM0225;Druten;;no;18797;37637703;2;no;no;no;;;;;;;NL013L3;no;Nijmegen
+NL226;GM0226;Duiven;;no;25332;33901163;2;no;no;no;;;;;;;NL009L3;no;Arnhem
+NL221;GM0228;Ede;;no;115710;318182480;1;no;no;no;NL512C2;no;Greater Ede;;;;NL512L3;no;Ede
+NL221;GM0230;Elburg;;no;23086;63816566;2;no;no;no;;;;;;;;;
+NL221;GM0232;Epe;;no;33145;156072972;2;no;no;no;;;;;;;NL014L3;no;Apeldoorn
+NL221;GM0233;Ermelo;;no;26858;85633796;2;no;no;no;;;;;;;;;
+NL221;GM0243;Harderwijk;;no;47581;38888256;2;no;no;no;;;;;;;;;
+NL221;GM0244;Hattem;;no;12173;23075701;2;no;no;no;;;;;;;NL511L3;no;Zwolle
+NL221;GM0246;Heerde;;no;18546;78744420;2;no;no;no;;;;;;;NL511L3;no;Zwolle
+NL226;GM0252;Heumen;;no;16486;39758325;2;no;no;no;;;;;;;NL013L3;no;Nijmegen
+NL225;GM0262;Lochem;;no;33590;213033319;3;no;no;no;;;;;;;;;
+NL224;GM0263;Maasdriel;;no;24693;66109073;3;no;no;no;;;;;;;NL503L3;no;'s-Hertogenbosch
+NL221;GM0267;Nijkerk;;no;42943;69338083;2;no;no;no;;;;;;;;;
+NL226;GM0268;Nijmegen;;no;176731;53092155;1;no;no;no;NL013C1;no;Nijmegen;;;;NL013L3;no;Nijmegen
+NL221;GM0269;Oldebroek;;no;23598;97654858;2;no;no;no;;;;;;;NL511L3;no;Zwolle
+NL221;GM0273;Putten;;no;24198;85220940;2;no;no;no;;;;;;;;;
+NL226;GM0274;Renkum;;no;31302;45952327;2;no;no;no;;;;;;;NL009L3;no;Arnhem
+NL226;GM0275;Rheden;;no;43640;81743355;2;no;no;no;;;;;;;NL009L3;no;Arnhem
+NL226;GM0277;Rozendaal;;no;1654;27895860;2;no;no;no;;;;;;;NL009L3;no;Arnhem
+NL221;GM0279;Scherpenzeel;;no;9873;13785649;2;no;no;no;;;;;;;;;
+NL224;GM0281;Tiel;;no;41978;32879418;2;no;no;no;;;;;;;;;
+NL221;GM0285;Voorst;;no;24417;122968689;2;no;no;no;;;;;;;NL014L3;no;Apeldoorn
+NL221;GM0289;Wageningen;;no;38774;30421943;1;no;no;no;NL512C2;no;Greater Ede;;;;NL512L3;no;Ede
+NL226;GM0293;Westervoort;;no;14944;7029993;1;no;no;no;NL009C2;no;Greater Arnhem;;;;NL009L3;no;Arnhem
+NL225;GM0294;Winterswijk;;no;28903;138136259;2;no;no;no;;;;;;;;;
+NL226;GM0296;Wijchen;;no;40951;66175040;2;no;no;no;;;;;;;NL013L3;no;Nijmegen
+NL224;GM0297;Zaltbommel;;no;28451;79380214;2;no;no;no;;;;;;;;;
+NL226;GM0299;Zevenaar;;no;43488;92600169;2;no;no;no;;;;;;;NL009L3;no;Arnhem
+NL225;GM0301;Zutphen;;no;47609;40953770;2;no;no;no;;;;;;;;;
+NL221;GM0302;Nunspeet;;no;27481;128737043;2;no;no;no;;;;;;;;;
+NL230;GM0303;Dronten;;no;40815;333573082;2;no;no;no;;;;;;;NL520L3;no;Lelystad
+NL310;GM0307;Amersfoort;;no;156286;62621826;1;no;no;no;NL504C1;no;Amersfoort;;;;NL504L3;no;Amersfoort
+NL310;GM0308;Baarn;;no;24767;32538946;1;no;no;no;NL529C1;no;Greater Soest;;;;NL529L3;no;Soest
+NL310;GM0310;De Bilt;;no;42824;66121646;2;no;no;no;;;;;;;NL004L3;no;Utrecht
+NL310;GM0312;Bunnik;;no;15192;36968302;2;no;no;no;;;;;;;NL004L3;no;Utrecht
+NL310;GM0313;Bunschoten;;no;21576;30383020;2;no;no;no;;;;;;;;;
+NL310;GM0317;Eemnes;;no;9113;31037643;2;no;no;no;;;;;;;NL002L3;no;Amsterdam
+NL310;GM0321;Houten;;no;49911;54942675;2;no;no;no;;;;;;;NL004L3;no;Utrecht
+NL310;GM0327;Leusden;;no;30030;58544613;2;no;no;no;;;;;;;NL504L3;no;Amersfoort
+NL310;GM0331;Lopik;;no;14473;75572951;3;no;no;no;;;;;;;NL004L3;no;Utrecht
+NL310;GM0335;Montfoort;;no;13996;37572505;2;no;no;no;;;;;;;NL004L3;no;Utrecht
+NL310;GM0339;Renswoude;;no;5259;18400920;3;no;no;no;;;;;;;NL524L3;no;Veenendaal
+NL310;GM0340;Rhenen;;no;20004;42076848;2;no;no;no;;;;;;;NL524L3;no;Veenendaal
+NL310;GM0342;Soest;;no;46194;46239275;1;no;no;no;NL529C1;no;Greater Soest;;;;NL529L3;no;Soest
+NL310;GM0344;Utrecht;;no;352866;93827120;1;no;no;no;NL004C2;no;Greater Utrecht;;;;NL004L3;no;Utrecht
+NL310;GM0345;Veenendaal;;no;65589;19461637;1;no;no;no;NL524C1;no;Veenendaal;;;;NL524L3;no;Veenendaal
+NL310;GM0351;Woudenberg;;no;13166;36528314;2;no;no;no;;;;;;;;;
+NL310;GM0352;Wijk bij Duurstede;;no;23762;47623951;2;no;no;no;;;;;;;NL004L3;no;Utrecht
+NL310;GM0353;IJsselstein;;no;34160;21071354;1;no;no;no;NL004C2;no;Greater Utrecht;;;;NL004L3;no;Utrecht
+NL310;GM0355;Zeist;;no;63934;48511127;2;no;no;no;;;;;;;NL004L3;no;Utrecht
+NL310;GM0356;Nieuwegein;;no;63036;23505043;1;no;no;no;NL004C2;no;Greater Utrecht;;;;NL004L3;no;Utrecht
+NL329;GM0358;Aalsmeer;;no;31728;20116849;2;no;no;no;;;;;;;NL002L3;no;Amsterdam
+NL328;GM0361;Alkmaar;;no;108558;110459118;1;no;no;no;NL514C2;no;Greater Alkmaar;;;;NL514L3;no;Alkmaar
+NL329;GM0362;Amstelveen;;no;90838;41134631;1;no;no;no;NL002C2;no;Greater Amsterdam;;;;NL002L3;no;Amsterdam
+NL329;GM0363;Amsterdam;;no;862965;165504044;1;no;no;no;NL002C2;no;Greater Amsterdam;;;;NL002L3;no;Amsterdam
+NL329;GM0370;Beemster;;no;9748;70577997;3;no;no;no;;;;;;;NL002L3;no;Amsterdam
+NL328;GM0373;Bergen (NH.);;no;29974;98962781;2;no;yes;no;;;;;;;NL514L3;no;Alkmaar
+NL323;GM0375;Beverwijk;;no;41176;18402604;1;no;yes;no;NL528C1;no;Greater Heemskerk;;;;NL002L3;no;Amsterdam
+NL327;GM0376;Blaricum;;no;11202;11113181;2;no;no;no;;;;;;;NL002L3;no;Amsterdam
+NL324;GM0377;Bloemendaal;;no;23410;39786293;1;no;yes;no;NL501C2;no;Greater Haarlem;;;;NL002L3;no;Amsterdam
+NL323;GM0383;Castricum;;no;35772;49682215;2;no;yes;no;;;;;;;NL002L3;no;Amsterdam
+NL329;GM0384;Diemen;;no;29196;11994447;1;no;no;no;NL002C2;no;Greater Amsterdam;;;;NL002L3;no;Amsterdam
+NL329;GM0385;Edam-Volendam;;no;36099;54333001;2;no;no;no;;;;;;;NL002L3;no;Amsterdam
+NL321;GM0388;Enkhuizen;;no;18507;12684364;2;no;no;no;;;;;;;NL002L3;no;Amsterdam
+NL324;GM0392;Haarlem;;no;161265;29167067;1;no;yes;no;NL501C2;no;Greater Haarlem;;;;NL002L3;no;Amsterdam
+NL329;GM0394;Haarlemmermeer;;yes;154235;197478284;1;no;no;no;NL508C1;no;Haarlemmermeer;;;;NL002L3;no;Amsterdam
+NL323;GM0396;Heemskerk;;no;39164;27336835;1;no;yes;no;NL528C1;no;Greater Heemskerk;;;;NL002L3;no;Amsterdam
+NL324;GM0397;Heemstede;;no;27286;9177266;1;no;yes;no;NL501C2;no;Greater Haarlem;;;;NL002L3;no;Amsterdam
+NL328;GM0398;Heerhugowaard;;no;56742;38208801;1;no;no;no;NL514C2;no;Greater Alkmaar;;;;NL514L3;no;Alkmaar
+NL328;GM0399;Heiloo;;no;23464;18701603;1;no;yes;no;NL514C2;no;Greater Alkmaar;;;;NL514L3;no;Alkmaar
+NL321;GM0400;Den Helder;;no;55604;45252449;2;no;yes;no;;;;;;;;;
+NL327;GM0402;Hilversum;;no;90238;45611084;1;no;no;no;NL018C1;no;Hilversum;;;;NL002L3;no;Amsterdam
+NL321;GM0405;Hoorn;;no;73004;20377369;1;no;no;no;NL031C1;no;Hoorn;;;;NL002L3;no;Amsterdam
+NL327;GM0406;Huizen;;no;41273;15805805;2;no;no;no;;;;;;;NL002L3;no;Amsterdam
+NL329;GM0415;Landsmeer;;no;11488;22525420;2;no;no;no;;;;;;;NL002L3;no;Amsterdam
+NL328;GM0416;Langedijk;;no;27992;23884701;2;no;no;no;;;;;;;NL514L3;no;Alkmaar
+NL327;GM0417;Laren;;no;11195;12410486;2;no;no;no;;;;;;;NL002L3;no;Amsterdam
+NL321;GM0420;Medemblik;;no;44809;121415568;2;no;no;no;;;;;;;NL002L3;no;Amsterdam
+NL329;GM0431;Oostzaan;;no;9757;11527292;2;no;no;no;;;;;;;NL002L3;no;Amsterdam
+NL321;GM0432;Opmeer;;no;11779;41498790;2;no;no;no;;;;;;;NL002L3;no;Amsterdam
+NL329;GM0437;Ouder-Amstel;;no;13916;24075581;1;no;no;no;NL002C2;no;Greater Amsterdam;;;;NL002L3;no;Amsterdam
+NL329;GM0439;Purmerend;;no;80117;23153986;1;no;no;no;NL023C1;no;Purmerend;;;;NL002L3;no;Amsterdam
+NL321;GM0441;Schagen;;no;46553;168246887;2;no;yes;no;;;;;;;NL514L3;no;Alkmaar
+NL321;GM0448;Texel;;no;13547;161996438;3;no;yes;no;;;;;;;;;
+NL323;GM0450;Uitgeest;;no;13528;19164431;1;no;yes;no;NL528C1;no;Greater Heemskerk;;;;NL002L3;no;Amsterdam
+NL329;GM0451;Uithoorn;;no;29424;18139056;2;no;no;no;;;;;;;NL002L3;no;Amsterdam
+NL323;GM0453;Velsen;;no;68348;45201348;1;no;yes;no;NL501C2;no;Greater Haarlem;;;;NL002L3;no;Amsterdam
+NL327;GM0457;Weesp;;no;19334;22792769;2;no;no;no;;;;;;;NL002L3;no;Amsterdam
+NL324;GM0473;Zandvoort;;no;17011;32115443;2;no;yes;no;;;;;;;NL002L3;no;Amsterdam
+NL325;GM0479;Zaanstad;;no;155885;73865820;1;no;no;no;NL502C1;no;Zaanstad;;;;NL002L3;no;Amsterdam
+NL33A;GM0482;Alblasserdam;;no;20069;8779355;1;no;no;no;NL003C2;no;Greater Rotterdam;;;;NL003L3;no;Rotterdam
+NL33B;GM0484;Alphen aan den Rijn;;no;110986;126230945;1;no;no;no;NL026C1;no;Alphen aan den Rijn;;;;NL026L0;no;Alphen aan den Rijn
+NL33C;GM0489;Barendrecht;;no;48673;19746534;1;no;no;no;NL003C2;no;Greater Rotterdam;;;;NL003L3;no;Rotterdam
+NL321;GM0498;Drechterland;;no;19597;58887044;3;no;no;no;;;;;;;NL002L3;no;Amsterdam
+NL33C;GM0501;Brielle;;no;17182;27546873;2;no;yes;no;;;;;;;NL003L3;no;Rotterdam
+NL33C;GM0502;Capelle aan den IJssel;;no;66818;14140221;1;no;no;no;NL003C2;no;Greater Rotterdam;;;;NL003L3;no;Rotterdam
+NL333;GM0503;Delft;;no;103163;22654366;1;no;no;no;NL001C2;no;Greater 's-Gravenhage;;;;NL001L3;no;s-Gravenhage
+NL33A;GM0505;Dordrecht;;no;118654;78536781;1;no;no;no;NL003C2;no;Greater Rotterdam;;;;NL003L3;no;Rotterdam
+NL33A;GM0512;Gorinchem;;no;36682;18826736;2;no;no;no;;;;;;;;;
+NL33B;GM0513;Gouda;;no;73181;16504215;1;no;no;no;NL030C1;no;Gouda;;;;NL030L0;no;Gouda
+NL332;GM0518;'s-Gravenhage;;no;537833;82450292;1;no;yes;no;NL001C2;no;Greater 's-Gravenhage;;;;NL001L3;no;s-Gravenhage
+NL33A;GM0523;Hardinxveld-Giessendam;;no;18051;16905126;2;no;no;no;;;;;;;NL003L3;no;Rotterdam
+NL33C;GM0530;Hellevoetsluis;;no;40049;41096486;2;no;yes;no;;;;;;;NL003L3;no;Rotterdam
+NL33A;GM0531;Hendrik-Ido-Ambacht;;no;30966;10612765;1;no;no;no;NL003C2;no;Greater Rotterdam;;;;NL003L3;no;Rotterdam
+NL321;GM0532;Stede Broec;;no;21706;14499850;2;no;no;no;;;;;;;NL002L3;no;Amsterdam
+NL337;GM0534;Hillegom;;no;21966;12874918;2;no;yes;no;;;;;;;NL002L3;no;Amsterdam
+NL337;GM0537;Katwijk;;no;65302;24746888;1;no;yes;no;NL507C2;no;Greater Leiden;;;;NL507L3;no;Leiden
+NL33C;GM0542;Krimpen aan den IJssel;;no;29376;7686835;1;no;no;no;NL003C2;no;Greater Rotterdam;;;;NL003L3;no;Rotterdam
+NL337;GM0546;Leiden;;no;124899;21908882;1;no;yes;no;NL507C2;no;Greater Leiden;;;;NL507L3;no;Leiden
+NL337;GM0547;Leiderdorp;;no;27109;11575015;1;no;no;no;NL507C2;no;Greater Leiden;;;;NL507L3;no;Leiden
+NL337;GM0553;Lisse;;no;22800;15689739;2;no;yes;no;;;;;;;NL002L3;no;Amsterdam
+NL33C;GM0556;Maassluis;;no;32768;8476770;2;no;no;no;;;;;;;NL003L3;no;Rotterdam
+NL33B;GM0569;Nieuwkoop;;no;28628;78049505;3;no;no;no;;;;;;;NL002L3;no;Amsterdam
+NL337;GM0575;Noordwijk;;yes;42859;58366774;2;no;yes;no;;;;;;;NL507L3;no;Leiden
+NL337;GM0579;Oegstgeest;;no;24426;7307053;1;no;yes;no;NL507C2;no;Greater Leiden;;;;NL507L3;no;Leiden
+NL310;GM0589;Oudewater;;no;10201;38897710;2;no;no;no;;;;;;;NL004L3;no;Utrecht
+NL33A;GM0590;Papendrecht;;no;32290;9413426;1;no;no;no;NL003C2;no;Greater Rotterdam;;;;NL003L3;no;Rotterdam
+NL33C;GM0597;Ridderkerk;;no;46241;23716394;1;no;no;no;NL003C2;no;Greater Rotterdam;;;;NL003L3;no;Rotterdam
+NL33C;GM0599;Rotterdam;;no;644618;217569453;1;no;yes;no;NL003C2;no;Greater Rotterdam;;;;NL003L3;no;Rotterdam
+NL332;GM0603;Rijswijk;;no;53467;13957942;1;no;yes;no;NL001C2;no;Greater 's-Gravenhage;;;;NL001L3;no;s-Gravenhage
+NL33C;GM0606;Schiedam;;no;77999;17823616;1;no;no;no;NL003C2;no;Greater Rotterdam;;;;NL003L3;no;Rotterdam
+NL33A;GM0610;Sliedrecht;;no;25026;12835741;2;no;no;no;;;;;;;NL003L3;no;Rotterdam
+NL33C;GM0613;Albrandswaard;;no;25271;21686534;1;no;no;no;NL021C2;no;Greater Nissewaard;;;;NL003L3;no;Rotterdam
+NL33C;GM0614;Westvoorne;;no;14626;53179023;3;no;yes;no;;;;;;;NL003L3;no;Rotterdam
+NL33C;GM0622;Vlaardingen;;no;72404;23567370;1;no;no;no;NL003C2;no;Greater Rotterdam;;;;NL003L3;no;Rotterdam
+NL337;GM0626;Voorschoten;;no;25479;11142498;1;no;yes;no;NL507C2;no;Greater Leiden;;;;NL507L3;no;Leiden
+NL33B;GM0627;Waddinxveen;;no;28316;27774445;2;no;no;no;;;;;;;;;
+NL332;GM0629;Wassenaar;;no;26211;51106049;2;no;yes;no;;;;;;;NL001L3;no;s-Gravenhage
+NL310;GM0632;Woerden;;no;52197;88574919;2;no;no;no;;;;;;;NL004L3;no;Utrecht
+NL332;GM0637;Zoetermeer;;no;124944;34446718;1;no;no;no;NL509C1;no;Zoetermeer;;;;NL001L3;no;s-Gravenhage
+NL337;GM0638;Zoeterwoude;;no;8450;21188598;3;no;no;no;;;;;;;NL507L3;no;Leiden
+NL33A;GM0642;Zwijndrecht;;no;44639;20300427;1;no;no;no;NL003C2;no;Greater Rotterdam;;;;NL003L3;no;Rotterdam
+NL342;GM0654;Borsele;;no;22800;141565149;3;no;yes;no;;;;;;;;;
+NL342;GM0664;Goes;;no;37653;92575383;2;no;yes;no;;;;;;;;;
+NL224;GM0668;West Maas en Waal;;no;19076;76756582;3;no;no;no;;;;;;;;;
+NL341;GM0677;Hulst;;no;27524;201705926;3;no;yes;no;;;;;;;;;
+NL342;GM0678;Kapelle;;no;12785;37126559;2;no;yes;no;;;;;;;;;
+NL342;GM0687;Middelburg;;no;48544;48417822;1;no;yes;no;NL032C2;no;Greater Middelburg;;;;NL032L3;no;Middelburg
+NL342;GM0703;Reimerswaal;;no;22678;101799488;3;no;yes;no;;;;;;;;;
+NL341;GM0715;Terneuzen;;no;54589;250378594;2;no;yes;no;;;;;;;;;
+NL342;GM0716;Tholen;;no;25780;146706154;3;no;yes;no;;;;;;;NL028L3;no;Bergen op Zoom
+NL342;GM0717;Veere;;no;21835;132562625;3;no;yes;no;;;;;;;NL032L3;no;Middelburg
+NL342;GM0718;Vlissingen;;no;44371;34311963;1;no;yes;no;NL032C2;no;Greater Middelburg;;;;NL032L3;no;Middelburg
+NL310;GM0736;De Ronde Venen;;no;44059;99921544;2;no;no;no;;;;;;;NL002L3;no;Amsterdam
+NL124;GM0737;Tytsjerksteradiel;;no;31780;148861226;2;no;no;no;;;;;;;NL015L3;no;Leeuwarden
+NL414;GM0743;Asten;;no;16710;70166235;2;no;no;no;;;;;;;NL005L3;no;Eindhoven
+NL412;GM0744;Baarle-Nassau;;no;6847;76136306;3;no;no;no;;;;;;;NL012L3;no;Breda
+NL411;GM0748;Bergen op Zoom;;no;66811;79958462;1;no;yes;no;NL028C1;no;Bergen op Zoom;;;;NL028L3;no;Bergen op Zoom
+NL414;GM0753;Best;;no;29821;34298660;2;no;no;no;;;;;;;NL005L3;no;Eindhoven
+NL413;GM0755;Boekel;;no;10588;34508881;2;no;no;no;;;;;;;;;
+NL413;GM0756;Boxmeer;;no;29065;111442212;3;no;no;no;;;;;;;;;
+NL413;GM0757;Boxtel;;no;30747;63728758;2;no;no;no;;;;;;;;;
+NL411;GM0758;Breda;;no;183873;125739586;1;no;no;no;NL012C1;no;Breda;;;;NL012L3;no;Breda
+NL414;GM0762;Deurne;;no;32362;116934002;2;no;no;no;;;;;;;NL005L3;no;Eindhoven
+NL111;GM0765;Pekela;;no;12214;49039717;2;no;no;no;;;;;;;;;
+NL412;GM0766;Dongen;;no;26051;29243806;2;no;no;no;;;;;;;;;
+NL414;GM0770;Eersel;;no;19110;82463959;2;no;no;no;;;;;;;NL005L3;no;Eindhoven
+NL414;GM0772;Eindhoven;;no;231642;87657510;1;no;no;no;NL005C2;no;Greater Eindhoven;;;;NL005L3;no;Eindhoven
+NL411;GM0777;Etten-Leur;;no;43774;55302449;2;no;no;no;;;;;;;NL012L3;no;Breda
+NL411;GM0779;Geertruidenberg;;no;21515;26631743;2;no;no;no;;;;;;;;;
+NL412;GM0784;Gilze en Rijen;;no;26431;65384630;2;no;no;no;;;;;;;NL012L3;no;Breda
+NL412;GM0785;Goirle;;no;23793;42994083;2;no;no;no;;;;;;;NL006L3;no;Tilburg
+NL413;GM0786;Grave;;no;12483;27182572;2;no;no;no;;;;;;;NL013L3;no;Nijmegen
+NL413;GM0788;Haaren;;no;14195;57701316;3;no;no;no;;;;;;;NL006L3;no;Tilburg
+NL414;GM0794;Helmond;;no;91524;53175886;1;no;no;no;NL516C1;no;Helmond;;;;NL005L3;no;Eindhoven
+NL413;GM0796;'s-Hertogenbosch;;no;154205;109989065;1;no;no;no;NL503C1;no;'s-Hertogenbosch;;;;NL503L3;no;'s-Hertogenbosch
+NL413;GM0797;Heusden;;no;44135;78876207;2;no;no;no;;;;;;;NL503L3;no;'s-Hertogenbosch
+NL412;GM0798;Hilvarenbeek;;no;15334;94846255;3;no;no;no;;;;;;;NL006L3;no;Tilburg
+NL412;GM0809;Loon op Zand;;no;23327;49937928;2;no;no;no;;;;;;;NL006L3;no;Tilburg
+NL413;GM0815;Mill en Sint Hubert;;no;10891;52227818;2;no;no;no;;;;;;;;;
+NL414;GM0820;Nuenen, Gerwen en Nederwetten;;no;23186;33713219;2;no;no;no;;;;;;;NL005L3;no;Eindhoven
+NL414;GM0823;Oirschot;;no;18623;101781097;2;no;no;no;;;;;;;NL005L3;no;Eindhoven
+NL412;GM0824;Oisterwijk;;no;26140;63844338;2;no;no;no;;;;;;;NL006L3;no;Tilburg
+NL411;GM0826;Oosterhout;;no;55616;71468922;2;no;no;no;;;;;;;NL012L3;no;Breda
+NL413;GM0828;Oss;;no;91451;163163790;1;no;no;no;NL521C1;no;Oss;;;;NL521L3;no;Oss
+NL411;GM0840;Rucphen;;no;22572;64410305;2;no;no;no;;;;;;;NL020L3;no;Roosendaal
+NL413;GM0845;Sint-Michielsgestel;;no;28991;58384565;2;no;no;no;;;;;;;NL503L3;no;'s-Hertogenbosch
+NL414;GM0847;Someren;;no;19322;80267161;2;no;no;no;;;;;;;NL005L3;no;Eindhoven
+NL414;GM0848;Son en Breugel;;no;16904;25951177;2;no;no;no;;;;;;;NL005L3;no;Eindhoven
+NL411;GM0851;Steenbergen;;no;25054;146425871;3;no;no;no;;;;;;;;;
+NL329;GM0852;Waterland;;no;17315;52113025;2;no;no;no;;;;;;;NL002L3;no;Amsterdam
+NL412;GM0855;Tilburg;;no;217259;116171820;1;no;no;no;NL006C1;no;Tilburg;;;;NL006L3;no;Tilburg
+NL413;GM0856;Uden;;no;41782;67003052;2;no;no;no;;;;;;;;;
+NL414;GM0858;Valkenswaard;;no;30910;54915586;2;no;no;no;;;;;;;NL005L3;no;Eindhoven
+NL414;GM0861;Veldhoven;;no;45337;31690306;1;no;no;no;NL005C2;no;Greater Eindhoven;;;;NL005L3;no;Eindhoven
+NL413;GM0865;Vught;;no;26396;33750847;2;no;no;no;;;;;;;NL503L3;no;'s-Hertogenbosch
+NL414;GM0866;Waalre;;no;17247;22385794;2;no;no;no;;;;;;;NL005L3;no;Eindhoven
+NL412;GM0867;Waalwijk;;no;48240;64577178;2;no;no;no;;;;;;;;;
+NL411;GM0873;Woensdrecht;;no;21866;91660436;3;no;yes;no;;;;;;;NL028L3;no;Bergen op Zoom
+NL411;GM0879;Zundert;;no;21612;120651364;3;no;no;no;;;;;;;NL012L3;no;Breda
+NL325;GM0880;Wormerland;;no;16329;38588934;2;no;no;no;;;;;;;NL002L3;no;Amsterdam
+NL423;GM0882;Landgraaf;;no;37591;24583478;1;no;no;no;NL010C2;no;Greater Heerlen;;;;NL010L3;no;Heerlen
+NL423;GM0888;Beek;;no;15929;21030431;2;no;no;no;;;;;;;NL016L3;no;Sittard-Geleen
+NL421;GM0889;Beesel;;no;13519;27986952;2;no;no;no;;;;;;;NL515L3;no;Venlo
+NL421;GM0893;Bergen (L.);;no;13140;103242071;3;no;no;no;;;;;;;;;
+NL423;GM0899;Brunssum;;no;28103;17247438;1;no;no;no;NL010C2;no;Greater Heerlen;;;;NL010L3;no;Heerlen
+NL421;GM0907;Gennep;;no;17071;47616199;2;no;no;no;;;;;;;;;
+NL423;GM0917;Heerlen;;no;86832;44937822;1;no;no;no;NL010C2;no;Greater Heerlen;;;;NL010L3;no;Heerlen
+NL423;GM0928;Kerkrade;;no;45642;21908686;1;no;no;no;NL010C2;no;Greater Heerlen;;;;NL010L3;no;Heerlen
+NL423;GM0935;Maastricht;;no;121565;55986069;1;no;no;no;NL505C1;no;Maastricht;;;;NL505L3;no;Maastricht
+NL423;GM0938;Meerssen;;no;18923;26956150;2;no;no;no;;;;;;;NL505L3;no;Maastricht
+NL421;GM0944;Mook en Middelaar;;no;7806;17381926;2;no;no;no;;;;;;;NL013L3;no;Nijmegen
+NL422;GM0946;Nederweert;;no;17001;99983444;2;no;no;no;;;;;;;;;
+NL422;GM0957;Roermond;;no;58209;60807422;2;no;no;no;;;;;;;;;
+NL423;GM0965;Simpelveld;;no;10516;16029947;2;no;no;no;;;;;;;NL010L3;no;Heerlen
+NL423;GM0971;Stein;;no;24961;21079359;1;no;no;no;NL016C2;no;Greater Sittard-Geleen;;;;NL016L3;no;Sittard-Geleen
+NL423;GM0981;Vaals;;no;10092;23888344;2;no;no;no;;;;;;;NL010L3;no;Heerlen
+NL421;GM0983;Venlo;;no;101603;124253102;1;no;no;no;NL515C1;no;Venlo;;;;NL515L3;no;Venlo
+NL421;GM0984;Venray;;no;43326;163274442;2;no;no;no;;;;;;;;;
+NL423;GM0986;Voerendaal;;no;12452;31510424;2;no;no;no;;;;;;;NL010L3;no;Heerlen
+NL422;GM0988;Weert;;no;49842;104320250;2;no;no;no;;;;;;;;;
+NL423;GM0994;Valkenburg aan de Geul;;no;16470;36727178;2;no;no;no;;;;;;;NL505L3;no;Maastricht
+NL230;GM0995;Lelystad;;no;77893;230319217;1;no;no;no;NL520C1;no;Lelystad;;;;NL520L3;no;Lelystad
+NL421;GM1507;Horst aan de Maas;;no;42291;188731574;3;no;no;no;;;;;;;NL515L3;no;Venlo
+NL225;GM1509;Oude IJsselstreek;;no;39473;136150564;2;no;no;no;;;;;;;;;
+NL337;GM1525;Teylingen;;no;37061;28383596;2;no;yes;no;;;;;;;NL507L3;no;Leiden
+NL310;GM1581;Utrechtse Heuvelrug;;no;49515;132012307;2;no;no;no;;;;;;;NL004L3;no;Utrecht
+NL225;GM1586;Oost Gelre;;no;29704;109932854;2;no;no;no;;;;;;;;;
+NL321;GM1598;Koggenland;;no;22738;80317137;2;no;no;no;;;;;;;NL002L3;no;Amsterdam
+NL33C;GM1621;Lansingerland;;no;61601;53405403;2;no;no;no;;;;;;;NL003L3;no;Rotterdam
+NL422;GM1640;Leudal;;no;35681;162730489;3;no;no;no;;;;;;;;;
+NL422;GM1641;Maasgouw;;no;23716;45709985;2;no;no;no;;;;;;;;;
+NL414;GM1652;Gemert-Bakel;;no;30447;122143634;2;no;no;no;;;;;;;NL005L3;no;Eindhoven
+NL411;GM1655;Halderberge;;no;30194;74465458;2;no;no;no;;;;;;;NL020L3;no;Roosendaal
+NL414;GM1658;Heeze-Leende;;no;15964;104018565;2;no;no;no;;;;;;;NL005L3;no;Eindhoven
+NL414;GM1659;Laarbeek;;no;22333;55352468;2;no;no;no;;;;;;;NL005L3;no;Eindhoven
+NL414;GM1667;Reusel-De Mierden;;no;13060;77878352;2;no;no;no;;;;;;;;;
+NL422;GM1669;Roerdalen;;no;20615;88213892;3;no;no;no;;;;;;;;;
+NL411;GM1674;Roosendaal;;no;77032;106501912;1;no;no;no;NL020C1;no;Roosendaal;;;;NL020L3;no;Roosendaal
+NL342;GM1676;Schouwen-Duiveland;;no;33779;229645526;3;no;yes;no;;;;;;;;;
+NL131;GM1680;Aa en Hunze;;no;25386;276089183;3;no;no;no;;;;;;;NL522L3;no;Assen
+NL132;GM1681;Borger-Odoorn;;no;25372;274529499;3;no;no;no;;;;;;;;;
+NL413;GM1684;Cuijk;;no;24931;51161004;2;no;no;no;;;;;;;;;
+NL413;GM1685;Landerd;;no;15529;70352494;3;no;no;no;;;;;;;NL521L3;no;Oss
+NL133;GM1690;De Wolden;;no;24110;224551694;3;no;no;no;;;;;;;;;
+NL342;GM1695;Noord-Beveland;;no;7308;85964094;3;no;yes;no;;;;;;;;;
+NL327;GM1696;Wijdemeren;;no;24013;47601558;2;no;no;no;;;;;;;NL002L3;no;Amsterdam
+NL131;GM1699;Noordenveld;;no;31290;199412017;2;no;no;no;;;;;;;NL007L3;no;Groningen
+NL213;GM1700;Twenterand;;no;33792;106171804;2;no;no;no;;;;;;;NL519L3;no;Almelo
+NL133;GM1701;Westerveld;;no;19348;278353698;3;no;no;no;;;;;;;;;
+NL413;GM1702;Sint Anthonis;;no;11606;99270815;3;no;no;no;;;;;;;;;
+NL226;GM1705;Lingewaard;;no;46475;61998152;2;no;no;no;;;;;;;NL009L3;no;Arnhem
+NL414;GM1706;Cranendonck;;no;20440;76402465;2;no;no;no;;;;;;;NL005L3;no;Eindhoven
+NL211;GM1708;Steenwijkerland;;no;43940;288272114;3;no;no;no;;;;;;;;;
+NL411;GM1709;Moerdijk;;no;36961;159148876;2;no;no;no;;;;;;;NL003L3;no;Rotterdam
+NL422;GM1711;Echt-Susteren;;no;31638;103068133;2;no;no;no;;;;;;;NL016L3;no;Sittard-Geleen
+NL341;GM1714;Sluis;;no;23386;279358098;3;no;yes;no;;;;;;;;;
+NL411;GM1719;Drimmelen;;no;27150;95182425;2;no;no;no;;;;;;;NL012L3;no;Breda
+NL413;GM1721;Bernheze;;no;30806;89728904;2;no;no;no;;;;;;;NL521L3;no;Oss
+NL412;GM1723;Alphen-Chaam;;no;10149;93040555;3;no;no;no;;;;;;;NL012L3;no;Breda
+NL414;GM1724;Bergeijk;;no;18491;101003441;3;no;no;no;;;;;;;NL005L3;no;Eindhoven
+NL414;GM1728;Bladel;;no;20175;75333997;2;no;no;no;;;;;;;NL005L3;no;Eindhoven
+NL423;GM1729;Gulpen-Wittem;;no;14246;73180659;3;no;no;no;;;;;;;NL010L3;no;Heerlen
+NL131;GM1730;Tynaarlo;;no;33698;142998744;2;no;no;no;;;;;;;NL007L3;no;Groningen
+NL131;GM1731;Midden-Drenthe;;no;33178;340512335;3;no;no;no;;;;;;;NL522L3;no;Assen
+NL226;GM1734;Overbetuwe;;no;47543;109186579;2;no;no;no;;;;;;;NL009L3;no;Arnhem
+NL213;GM1735;Hof van Twente;;no;34940;212558485;2;no;no;no;;;;;;;NL008L3;no;Enschede
+NL224;GM1740;Neder-Betuwe;;no;24034;59975140;3;no;no;no;;;;;;;;;
+NL213;GM1742;Rijssen-Holten;;no;38300;94125901;2;no;no;no;;;;;;;;;
+NL414;GM1771;Geldrop-Mierlo;;no;39595;31014519;2;no;no;no;;;;;;;NL005L3;no;Eindhoven
+NL212;GM1773;Olst-Wijhe;;no;18071;113844075;2;no;no;no;;;;;;;NL513L3;no;Deventer
+NL213;GM1774;Dinkelland;;no;26350;175707752;3;no;no;no;;;;;;;NL008L3;no;Enschede
+NL333;GM1783;Westland;;no;108603;81271089;2;no;yes;no;;;;;;;NL001L3;no;s-Gravenhage
+NL333;GM1842;Midden-Delfland;;no;19391;47190228;2;no;no;no;;;;;;;NL001L3;no;s-Gravenhage
+NL225;GM1859;Berkelland;;no;43904;258063809;2;no;no;no;;;;;;;;;
+NL225;GM1876;Bronckhorst;;no;36212;283501384;3;no;no;no;;;;;;;;;
+NL423;GM1883;Sittard-Geleen;;no;92661;79005290;1;no;no;no;NL016C2;no;Greater Sittard-Geleen;;;;NL016L3;no;Sittard-Geleen
+NL337;GM1884;Kaag en Braassem;;no;26866;63241135;2;no;no;no;;;;;;;NL002L3;no;Amsterdam
+NL124;GM1891;Dantumadiel;;no;18923;84656917;2;no;no;no;;;;;;;NL015L3;no;Leeuwarden
+NL33C;GM1892;Zuidplas;;no;42762;58019472;2;no;no;no;;;;;;;NL003L3;no;Rotterdam
+NL421;GM1894;Peel en Maas;;no;43311;159372002;2;no;no;no;;;;;;;NL515L3;no;Venlo
+NL111;GM1895;Oldambt;;no;38129;226662987;2;no;yes;no;;;;;;;;;
+NL211;GM1896;Zwartewaterland;;no;22503;82490738;2;no;no;no;;;;;;;NL511L3;no;Zwolle
+NL125;GM1900;Súdwest-Fryslân;;no;89710;523012109;3;no;yes;no;;;;;;;;;
+NL33B;GM1901;Bodegraven-Reeuwijk;;no;34462;75379550;2;no;no;no;;;;;;;;;
+NL423;GM1903;Eijsden-Margraten;;no;25658;77546839;3;no;no;no;;;;;;;NL505L3;no;Maastricht
+NL310;GM1904;Stichtse Vecht;;no;64336;96097272;2;no;no;no;;;;;;;NL004L3;no;Utrecht
+NL321;GM1911;Hollands Kroon;;no;47815;357339809;3;no;yes;no;;;;;;;NL002L3;no;Amsterdam
+NL332;GM1916;Leidschendam-Voorburg;;no;75425;32554279;1;no;yes;no;NL001C2;no;Greater 's-Gravenhage;;;;NL001L3;no;s-Gravenhage
+NL33C;GM1924;Goeree-Overflakkee;;no;49611;260481033;3;no;yes;no;;;;;;;NL003L3;no;Rotterdam
+NL332;GM1926;Pijnacker-Nootdorp;;no;54331;37084353;2;no;no;no;;;;;;;NL001L3;no;s-Gravenhage
+NL33C;GM1930;Nissewaard;;no;84797;73579636;1;no;no;no;NL021C2;no;Greater Nissewaard;;;;NL003L3;no;Rotterdam
+NL33B;GM1931;Krimpenerwaard;;no;56048;148402155;2;no;no;no;;;;;;;NL003L3;no;Rotterdam
+NL125;GM1940;De Fryske Marren;;no;51430;351290800;3;no;no;no;;;;;;;;;
+NL327;GM1942;Gooise Meren;;no;57715;41593895;2;no;no;no;;;;;;;NL002L3;no;Amsterdam
+NL226;GM1945;Berg en Dal;;no;34798;86311733;2;no;no;no;;;;;;;NL013L3;no;Nijmegen
+NL413;GM1948;Meierijstad;;no;80815;184090396;2;no;no;no;;;;;;;;;
+NL124;GM1949;Waadhoeke;;no;46039;284857544;3;no;yes;no;;;;;;;;;
+NL111;GM1950;Westerwolde;;no;25199;275666748;3;no;no;no;;;;;;;;;
+NL113;GM1952;Midden-Groningen;;no;60899;279995415;2;no;no;no;;;;;;;;;
+NL423;GM1954;Beekdaelen;;yes;35727;78301393;2;yes;no;yes;;;;;;;;;
+NL225;GM1955;Montferland;-;no;36026;105698345;2;no;no;no;;;;;;;;;
+NL412;GM1959;Altena;;yes;55386;200625856;2;yes;no;yes;;;;;;;;;
+NL224;GM1960;West Betuwe;;yes;50697;216116887;2;yes;no;yes;;;;;;;;;
+NL310;GM1961;Vijfheerenlanden;;yes;55712;146410656;2;yes;no;yes;;;;;;;;;
+NL33C;GM1963;Hoeksche Waard;;yes;86656;268933982;2;yes;no;yes;;;;;;;;;
+NL113;GM1966;Het Hogeland;;yes;47888;482745554;3;yes;yes;yes;;;;;;;;;
+NL113;GM1969;Westerkwartier;;yes;63031;362688592;3;yes;no;yes;;;;;;;;;
+NL124;GM1970;Noardeast-Fryslân;;yes;45181;377834974;3;yes;yes;yes;;;;;;;;;
+NL33A;GM1978;Molenlanden;;yes;43858;181726106;2;yes;no;yes;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;v;;;;;;;;

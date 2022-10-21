@@ -1,0 +1,516 @@
+Country,Region,BuildingType,Age
+Austria,National,SFH,<1919
+Austria,National,SFH,1919-1944
+Austria,National,SFH,1945-1960
+Austria,National,SFH,1961-1980
+Austria,National,SFH,1981-1990
+Austria,National,SFH,1991-2000
+Austria,National,SFH,2001-2009
+Austria,National,SFH,2010+
+Austria,National,TH,<1919
+Austria,National,TH,1919-1944
+Austria,National,TH,1945-1960
+Austria,National,TH,1961-1980
+Austria,National,TH,1981-1990
+Austria,National,TH,1991-2000
+Austria,National,TH,2001-2009
+Austria,National,TH,2010+
+Austria,National,MFH,<1919
+Austria,National,MFH,1919-1944
+Austria,National,MFH,1945-1960
+Austria,National,MFH,1961-1980
+Austria,National,MFH,1981-1990
+Austria,National,MFH,1991-2000
+Austria,National,MFH,2001-2009
+Austria,National,MFH,2010+
+Austria,National,AB,<1919
+Austria,National,AB,1919-1944
+Austria,National,AB,1945-1960
+Austria,National,AB,1961-1980
+Austria,National,AB,1981-1990
+Austria,National,AB,1991-2000
+Austria,National,AB,2001-2009
+Austria,National,AB,2010+
+Belgium,National,SFH,<1945
+Belgium,National,SFH,1946-1970
+Belgium,National,SFH,1971-1990
+Belgium,National,SFH,1991-2005
+Belgium,National,SFH,2006-2011
+Belgium,National,SFH,2012+
+Belgium,National,TH,<1945
+Belgium,National,TH,1946-1970
+Belgium,National,TH,1971-1990
+Belgium,National,TH,1991-2005
+Belgium,National,TH,2006-2011
+Belgium,National,TH,2012+
+Belgium,National,MFH,<1945
+Belgium,National,MFH,1946-1970
+Belgium,National,MFH,1971-1990
+Belgium,National,MFH,1991-2005
+Belgium,National,MFH,2006-2011
+Belgium,National,MFH,2012+
+Belgium,National,AB,<1945
+Belgium,National,AB,1946-1970
+Belgium,National,AB,1971-1990
+Belgium,National,AB,1991-2005
+Belgium,National,AB,2006-2011
+Belgium,National,AB,2012+
+Bulgaria,National,SFH,<1918
+Bulgaria,National,SFH,1919-1929
+Bulgaria,National,SFH,1930-1959
+Bulgaria,National,SFH,1960-1998
+Bulgaria,National,SFH,1999-2008
+Bulgaria,National,SFH,2009+
+Bulgaria,National,TH,<1918
+Bulgaria,National,TH,1919-1929
+Bulgaria,National,TH,1930-1959
+Bulgaria,National,TH,1960-1998
+Bulgaria,National,TH,1999-2008
+Bulgaria,National,TH,2009+
+Bulgaria,National,MFH,<1918
+Bulgaria,National,MFH,1919-1929
+Bulgaria,National,MFH,1930-1959
+Bulgaria,National,MFH,1960-1998
+Bulgaria,National,MFH,1999-2008
+Bulgaria,National,MFH,2009+
+Bulgaria,National,AB,<1918
+Bulgaria,National,AB,1919-1929
+Bulgaria,National,AB,1930-1959
+Bulgaria,National,AB,1960-1998
+Bulgaria,National,AB,1999-2008
+Bulgaria,National,AB,2009+
+Cyprus,National,SFH,<1980
+Cyprus,National,SFH,1981-2006
+Cyprus,National,SFH,2007-2013
+Cyprus,National,SFH,2014+
+Cyprus,National,TH,<1980
+Cyprus,National,TH,1981-2006
+Cyprus,National,TH,2007-2013
+Cyprus,National,TH,2014+
+Cyprus,National,MFH,<1980
+Cyprus,National,MFH,1981-2006
+Cyprus,National,MFH,2007-2013
+Cyprus,National,MFH,2014+
+Czech Rep.,National,SFH,<1920
+Czech Rep.,National,SFH,1921-1945
+Czech Rep.,National,SFH,1946-1960
+Czech Rep.,National,SFH,1961-1980
+Czech Rep.,National,SFH,1981-1994
+Czech Rep.,National,SFH,1995-2010
+Czech Rep.,National,SFH,2011+
+Czech Rep.,National,TH,<1920
+Czech Rep.,National,TH,1921-1945
+Czech Rep.,National,TH,1946-1960
+Czech Rep.,National,TH,1961-1980
+Czech Rep.,National,TH,1981-1994
+Czech Rep.,National,TH,1995-2010
+Czech Rep.,National,TH,2011+
+Czech Rep.,National,MFH,<1920
+Czech Rep.,National,MFH,1921-1945
+Czech Rep.,National,MFH,1946-1960
+Czech Rep.,National,MFH,1961-1980
+Czech Rep.,National,MFH,1981-1994
+Czech Rep.,National,MFH,1995-2010
+Czech Rep.,National,MFH,2011+
+Czech Rep.,National,AB,<1920
+Czech Rep.,National,AB,1921-1945
+Czech Rep.,National,AB,1946-1960
+Czech Rep.,National,AB,1961-1980
+Czech Rep.,National,AB,1981-1994
+Czech Rep.,National,AB,1995-2010
+Czech Rep.,National,AB,2011+
+Germany,National,SFH,<1860
+Germany,National,SFH,1860-1918
+Germany,National,SFH,1919-1948
+Germany,National,SFH,1949-1957
+Germany,National,SFH,1958-1968
+Germany,National,SFH,1969-1978
+Germany,National,SFH,1979-1983
+Germany,National,SFH,1984-1994
+Germany,National,SFH,1995-2001
+Germany,National,SFH,2002-2009
+Germany,National,SFH,2010-2015
+Germany,National,SFH,2016+
+Germany,National,TH,<1860
+Germany,National,TH,1860-1918
+Germany,National,TH,1919-1948
+Germany,National,TH,1949-1957
+Germany,National,TH,1958-1968
+Germany,National,TH,1969-1978
+Germany,National,TH,1979-1983
+Germany,National,TH,1984-1994
+Germany,National,TH,1995-2001
+Germany,National,TH,2002-2009
+Germany,National,TH,2010-2015
+Germany,National,TH,2016+
+Germany,National,MFH,<1860
+Germany,National,MFH,1860-1918
+Germany,National,MFH,1919-1948
+Germany,National,MFH,1949-1957
+Germany,National,MFH,1958-1968
+Germany,National,MFH,1969-1978
+Germany,National,MFH,1979-1983
+Germany,National,MFH,1984-1994
+Germany,National,MFH,1995-2001
+Germany,National,MFH,2002-2009
+Germany,National,MFH,2010-2015
+Germany,National,MFH,2016+
+Germany,National,AB,<1860
+Germany,National,AB,1860-1918
+Germany,National,AB,1919-1948
+Germany,National,AB,1949-1957
+Germany,National,AB,1958-1968
+Germany,National,AB,1969-1978
+Germany,National,AB,1979-1983
+Germany,National,AB,1984-1994
+Germany,National,AB,1995-2001
+Germany,National,AB,2002-2009
+Germany,National,AB,2010-2015
+Germany,National,AB,2016+
+Germany,Eastern Germany,MFH,1949-1957
+Germany,Eastern Germany,MFH,1958-1968
+Germany,Eastern Germany,AB,1969-1978
+Germany,Eastern Germany,AB,1979-1983
+Germany,Eastern Germany,AB,1984-1994
+Denmark,National,SFH,<1850
+Denmark,National,SFH,1851-1930
+Denmark,National,SFH,1931-1950
+Denmark,National,SFH,1951-1960
+Denmark,National,SFH,1961-1972
+Denmark,National,SFH,1973-1978
+Denmark,National,SFH,1979-1998
+Denmark,National,SFH,1999-2006
+Denmark,National,SFH,2007-2010
+Denmark,National,SFH,2011+
+Denmark,National,TH,<1850
+Denmark,National,TH,1851-1930
+Denmark,National,TH,1931-1950
+Denmark,National,TH,1951-1960
+Denmark,National,TH,1961-1972
+Denmark,National,TH,1973-1978
+Denmark,National,TH,1979-1998
+Denmark,National,TH,1999-2006
+Denmark,National,TH,2007-2010
+Denmark,National,TH,2011+
+Denmark,National,AB,<1850
+Denmark,National,AB,1851-1930
+Denmark,National,AB,1931-1950
+Denmark,National,AB,1951-1960
+Denmark,National,AB,1961-1972
+Denmark,National,AB,1973-1978
+Denmark,National,AB,1979-1998
+Denmark,National,AB,1999-2006
+Denmark,National,AB,2007-2010
+Denmark,National,AB,2011+
+Spain,National,SFH,<1901
+Spain,National,SFH,1901-1936
+Spain,National,SFH,1937-1959
+Spain,National,SFH,1960-1979
+Spain,National,SFH,1980-2006
+Spain,National,SFH,2007+
+Spain,National,TH,<1901
+Spain,National,TH,1901-1936
+Spain,National,TH,1937-1959
+Spain,National,TH,1960-1979
+Spain,National,TH,1980-2006
+Spain,National,TH,2007+
+Spain,National,MFH,<1901
+Spain,National,MFH,1901-1936
+Spain,National,MFH,1937-1959
+Spain,National,MFH,1960-1979
+Spain,National,MFH,1980-2006
+Spain,National,MFH,2007+
+Spain,National,AB,<1901
+Spain,National,AB,1901-1936
+Spain,National,AB,1937-1959
+Spain,National,AB,1960-1979
+Spain,National,AB,1980-2006
+Spain,National,AB,2007+
+France,National,SFH,<1915
+France,National,SFH,1915-1948
+France,National,SFH,1949-1967
+France,National,SFH,1968-1974
+France,National,SFH,1975-1981
+France,National,SFH,1982-1989
+France,National,SFH,1990-1999
+France,National,SFH,2000-2005
+France,National,SFH,2006-2012
+France,National,SFH,2013+
+France,National,TH,<1915
+France,National,TH,1915-1948
+France,National,TH,1949-1967
+France,National,TH,1968-1974
+France,National,TH,1975-1981
+France,National,TH,1982-1989
+France,National,TH,1990-1999
+France,National,TH,2000-2005
+France,National,TH,2006-2012
+France,National,TH,2013+
+France,National,MFH,<1915
+France,National,MFH,1915-1948
+France,National,MFH,1949-1967
+France,National,MFH,1968-1974
+France,National,MFH,1975-1981
+France,National,MFH,1982-1989
+France,National,MFH,1990-1999
+France,National,MFH,2000-2005
+France,National,MFH,2006-2012
+France,National,MFH,2013+
+France,National,AB,<1915
+France,National,AB,1915-1948
+France,National,AB,1949-1967
+France,National,AB,1968-1974
+France,National,AB,1975-1981
+France,National,AB,1982-1989
+France,National,AB,1990-1999
+France,National,AB,2000-2005
+France,National,AB,2006-2012
+France,National,AB,2013+
+Greece,Zone A,SFH,<1980
+Greece,Zone A,SFH,1981-2000
+Greece,Zone A,SFH,2001-2010
+Greece,Zone A,SFH,2011+
+Greece,Zone A,MFH,<1980
+Greece,Zone A,MFH,1981-2000
+Greece,Zone A,MFH,2001-2010
+Greece,Zone A,MFH,2011+
+Greece,Zone B,SFH,<1980
+Greece,Zone B,SFH,1981-2000
+Greece,Zone B,SFH,2001-2010
+Greece,Zone B,SFH,2011+
+Greece,Zone B,MFH,<1980
+Greece,Zone B,MFH,1981-2000
+Greece,Zone B,MFH,2001-2010
+Greece,Zone B,MFH,2011+
+Greece,Zone C,SFH,<1980
+Greece,Zone C,SFH,1981-2000
+Greece,Zone C,SFH,2001-2010
+Greece,Zone C,SFH,2011+
+Greece,Zone C,MFH,<1980
+Greece,Zone C,MFH,1981-2000
+Greece,Zone C,MFH,2001-2010
+Greece,Zone C,MFH,2011+
+Greece,Zone D,SFH,<1980
+Greece,Zone D,SFH,1981-2000
+Greece,Zone D,SFH,2001-2010
+Greece,Zone D,SFH,2011+
+Greece,Zone D,MFH,<1980
+Greece,Zone D,MFH,1981-2000
+Greece,Zone D,MFH,2001-2010
+Greece,Zone D,MFH,2011+
+Hungary,National,SFH,<1945
+Hungary,National,SFH,1945-1979
+Hungary,National,SFH,1980-1989
+Hungary,National,SFH,1990-2005
+Hungary,National,SFH,2006+
+Hungary,National,MFH,<1945
+Hungary,National,MFH,1945-1979
+Hungary,National,MFH,1980-1989
+Hungary,National,MFH,1990-2005
+Hungary,National,MFH,2006+
+Hungary,National,AB,<1945
+Hungary,National,AB,1945-1979
+Hungary,National,AB,1980-1989
+Hungary,National,AB,1990-2005
+Hungary,National,AB,2006+
+Ireland,National,SFH,<1900
+Ireland,National,SFH,1900-1929
+Ireland,National,SFH,1930-1949
+Ireland,National,SFH,1950-1966
+Ireland,National,SFH,1967-1977
+Ireland,National,SFH,1978-1982
+Ireland,National,SFH,1983-1993
+Ireland,National,SFH,1994-2004
+Ireland,National,SFH,2005-2010
+Ireland,National,SFH,2011+
+Ireland,National,TH,<1900
+Ireland,National,TH,1900-1929
+Ireland,National,TH,1930-1949
+Ireland,National,TH,1950-1966
+Ireland,National,TH,1967-1977
+Ireland,National,TH,1978-1982
+Ireland,National,TH,1983-1993
+Ireland,National,TH,1994-2004
+Ireland,National,TH,2005-2010
+Ireland,National,TH,2011+
+Ireland,National,AB,<1900
+Ireland,National,AB,1900-1929
+Ireland,National,AB,1930-1949
+Ireland,National,AB,1950-1966
+Ireland,National,AB,1967-1977
+Ireland,National,AB,1978-1982
+Ireland,National,AB,1983-1993
+Ireland,National,AB,1994-2004
+Ireland,National,AB,2005-2010
+Ireland,National,AB,2011+
+Italy,National,SFH,<1901
+Italy,National,SFH,1901-1920
+Italy,National,SFH,1921-1945
+Italy,National,SFH,1946-1960
+Italy,National,SFH,1961-1975
+Italy,National,SFH,1976-1990
+Italy,National,SFH,1991-2005
+Italy,National,SFH,2006+
+Italy,National,TH,<1901
+Italy,National,TH,1901-1920
+Italy,National,TH,1921-1945
+Italy,National,TH,1946-1960
+Italy,National,TH,1961-1975
+Italy,National,TH,1976-1990
+Italy,National,TH,1991-2005
+Italy,National,TH,2006+
+Italy,National,MFH,<1901
+Italy,National,MFH,1901-1920
+Italy,National,MFH,1921-1945
+Italy,National,MFH,1946-1960
+Italy,National,MFH,1961-1975
+Italy,National,MFH,1976-1990
+Italy,National,MFH,1991-2005
+Italy,National,MFH,2006+
+Italy,National,AB,<1901
+Italy,National,AB,1901-1920
+Italy,National,AB,1921-1945
+Italy,National,AB,1946-1960
+Italy,National,AB,1961-1975
+Italy,National,AB,1976-1990
+Italy,National,AB,1991-2005
+Italy,National,AB,2006+
+Netherlands,National,SFH,<1965
+Netherlands,National,SFH,1965-1974
+Netherlands,National,SFH,1975-1991
+Netherlands,National,SFH,1992-2005
+Netherlands,National,SFH,2006-2014
+Netherlands,National,SFH,2015+
+Netherlands,National,TH,<1965
+Netherlands,National,TH,1965-1974
+Netherlands,National,TH,1975-1991
+Netherlands,National,TH,1992-2005
+Netherlands,National,TH,2006-2014
+Netherlands,National,TH,2015+
+Netherlands,National,MFH,<1965
+Netherlands,National,MFH,1965-1974
+Netherlands,National,MFH,1975-1991
+Netherlands,National,MFH,1992-2005
+Netherlands,National,MFH,2006-2014
+Netherlands,National,MFH,2015+
+Netherlands,National,AB,<1965
+Netherlands,National,AB,1965-1974
+Netherlands,National,AB,1975-1991
+Netherlands,National,AB,1992-2005
+Netherlands,National,AB,2006-2014
+Netherlands,National,AB,2015+
+Norway,National,SFH,<1955
+Norway,National,SFH,1956-1970
+Norway,National,SFH,1971-1980
+Norway,National,SFH,1981-1990
+Norway,National,SFH,1991-2000
+Norway,National,SFH,2001-2010
+Norway,National,SFH,2011+
+Norway,National,TH,<1955
+Norway,National,TH,1956-1970
+Norway,National,TH,1971-1980
+Norway,National,TH,1981-1990
+Norway,National,TH,1991-2000
+Norway,National,TH,2001-2010
+Norway,National,TH,2011+
+Norway,National,AB,<1955
+Norway,National,AB,1956-1970
+Norway,National,AB,1971-1980
+Norway,National,AB,1981-1990
+Norway,National,AB,1991-2000
+Norway,National,AB,2001-2010
+Norway,National,AB,2011+
+Poland,National,SFH,<1946
+Poland,National,SFH,1946-1966
+Poland,National,SFH,1967-1985
+Poland,National,SFH,1986-1992
+Poland,National,SFH,1993-2002
+Poland,National,SFH,2003-2008
+Poland,National,SFH,2009+
+Poland,National,TH,<1946
+Poland,National,TH,1946-1966
+Poland,National,TH,1967-1985
+Poland,National,TH,1986-1992
+Poland,National,TH,1993-2002
+Poland,National,TH,2003-2008
+Poland,National,TH,2009+
+Poland,National,MFH,<1946
+Poland,National,MFH,1946-1966
+Poland,National,MFH,1967-1985
+Poland,National,MFH,1986-1992
+Poland,National,MFH,1993-2002
+Poland,National,MFH,2003-2008
+Poland,National,MFH,2009+
+Poland,National,AB,<1946
+Poland,National,AB,1946-1966
+Poland,National,AB,1967-1985
+Poland,National,AB,1986-1992
+Poland,National,AB,1993-2002
+Poland,National,AB,2003-2008
+Poland,National,AB,2009+
+Serbia,National,SFH,<1919
+Serbia,National,SFH,1919-1945
+Serbia,National,SFH,1946-1960
+Serbia,National,SFH,1961-1970
+Serbia,National,SFH,1971-1980
+Serbia,National,SFH,1981-1990
+Serbia,National,SFH,1991-2011
+Serbia,National,SFH,2012+
+Serbia,National,TH,<1919
+Serbia,National,TH,1919-1945
+Serbia,National,TH,1946-1960
+Serbia,National,TH,1961-1970
+Serbia,National,TH,1971-1980
+Serbia,National,TH,1981-1990
+Serbia,National,TH,1991-2011
+Serbia,National,TH,2012+
+Serbia,National,MFH,<1919
+Serbia,National,MFH,1919-1945
+Serbia,National,MFH,1946-1960
+Serbia,National,MFH,1961-1970
+Serbia,National,MFH,1971-1980
+Serbia,National,MFH,1981-1990
+Serbia,National,MFH,1991-2011
+Serbia,National,MFH,2012+
+Serbia,National,AB,<1919
+Serbia,National,AB,1919-1945
+Serbia,National,AB,1946-1960
+Serbia,National,AB,1961-1970
+Serbia,National,AB,1971-1980
+Serbia,National,AB,1981-1990
+Serbia,National,AB,1991-2011
+Serbia,National,AB,2012+
+Sweden,National,SFH,<1960
+Sweden,National,SFH,1961-1975
+Sweden,National,SFH,1976-1985
+Sweden,National,SFH,1986-1995
+Sweden,National,SFH,1996-2005
+Sweden,National,MFH,<1960
+Sweden,National,MFH,1961-1975
+Sweden,National,MFH,1976-1985
+Sweden,National,MFH,1986-1995
+Sweden,National,MFH,1996-2005
+Slovenia,National,SFH,<1945
+Slovenia,National,SFH,1946-1970
+Slovenia,National,SFH,1971-1980
+Slovenia,National,SFH,1981-2001
+Slovenia,National,SFH,2002-2008
+Slovenia,National,SFH,2009+
+Slovenia,National,TH,<1945
+Slovenia,National,TH,1946-1970
+Slovenia,National,TH,1971-1980
+Slovenia,National,TH,1981-2001
+Slovenia,National,TH,2002-2008
+Slovenia,National,TH,2009+
+Slovenia,National,MFH,<1945
+Slovenia,National,MFH,1946-1970
+Slovenia,National,MFH,1971-1980
+Slovenia,National,MFH,1981-2001
+Slovenia,National,MFH,2002-2008
+Slovenia,National,MFH,2009+
+Slovenia,National,AB,<1945
+Slovenia,National,AB,1946-1970
+Slovenia,National,AB,1971-1980
+Slovenia,National,AB,1981-2001
+Slovenia,National,AB,2002-2008
+Slovenia,National,AB,2009+
