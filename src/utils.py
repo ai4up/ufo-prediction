@@ -167,6 +167,40 @@ def seq_to_unique_id(series):
     return series.map(seq_to_unique_mapping)
 
 
+def load_data(country, geo=False, eval_columns=[id], crs=3035, **kwargs):
+    def parse_int_list(l):
+        return [int(i) for i in ast.literal_eval(l)]
+
+    country_files = {
+        'france': 'df-FRA.pkl',
+        'spain': 'df-ESP.pkl',
+        'netherlands': 'df-NLD.pkl',
+    }
+
+    converters = {
+        'id': str,
+        'block_bld_ids': ast.literal_eval,
+        'sbb_bld_ids': ast.literal_eval,
+        'TouchesIndexes': parse_int_list,
+        }
+
+    logger.debug('Loading pickle...')
+    path = os.path.realpath(os.path.join(dataset.DATA_DIR, country_files[country]))
+    df = pd.read_pickle(path, **kwargs)
+
+    logger.debug('Parsing data...')
+    for col, func in converters.items():
+        if col in eval_columns:
+            df[col] = df[col].apply(func)
+            logger.debug(f'Finished converting {col}.')
+
+    if geo:
+        logger.debug('Adding geometry column...')
+        df = geometry.add_geometry_column(df, crs=crs, countries=[country])
+
+    return df
+
+
 def load_df(df_path):
     if '.csv' in df_path:
         return pd.read_csv(df_path)
