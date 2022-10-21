@@ -8,7 +8,7 @@ import dataset
 
 import numpy as np
 import pandas as pd
-
+import matplotlib.pyplot as plt
 
 logger = logging.getLogger(__name__)
 
@@ -108,8 +108,15 @@ def sample_cities_with_distributional_constraint(df, frac, attr, min_samples_per
 
 
 def sample_cities(df, frac=None, n=None):
+    if n == 0:
+        return df.drop(df.index)
+
     cities = sorted(df['city'].unique())
     n = n or round(frac * len(cities))
+
+    if n > len(cities):
+        logger.warning(f'Sample n={n} is larger than number of cities. Using all {len(cities)} cities instead.')
+        n = len(cities)
 
     if n == 0:
         logger.warning(f'Provided fraction ({frac}) is too small. Increasing fraction to {1 / len(cities)} to include at least one city in the sample.')
@@ -119,6 +126,19 @@ def sample_cities(df, frac=None, n=None):
     sampled_cities = random.sample(cities, n)
 
     return df[df['city'].isin(sampled_cities)]
+
+
+def sample_cities_until_n_buildings(df, min_n_buildings):
+    cities = sorted(df['city'].unique())
+
+    for n in range(len(cities)):
+        sampled_df = sample_cities(df, n=n+1)
+
+        if len(sampled_df) > min_n_buildings:
+            return sampled_df
+
+    logger.warning(f'Could not sample {min_n_buildings} or more buildings from the {len(cities)} cities. Not sufficient buildings in the dataset. Returning full dataset.')
+    return df
 
 
 def exclude_neighbors_from_own_block(neighbors, df, block_type):
