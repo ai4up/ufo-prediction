@@ -729,6 +729,7 @@ class PredictorComparison:
             exp_name = None,
             compare_feature_importance=False,
             garbage_collect_after_training=False,
+            save_results=True,
             keep_predictor_in_memory=False,
             include_baseline=True,
             n_seeds=1,
@@ -739,6 +740,7 @@ class PredictorComparison:
         self.grid_comparison_config = grid_comparison_config
         self.compare_feature_importance = compare_feature_importance
         self.garbage_collect_after_training = garbage_collect_after_training
+        self.save_results = save_results
         self.keep_predictor_in_memory = keep_predictor_in_memory
         self.include_baseline = include_baseline
         self.baseline_kwargs = baseline_kwargs
@@ -779,7 +781,8 @@ class PredictorComparison:
                         self.predictors[name][seed]._garbage_collect()
 
                 self.comparison_metrics.append(self._evaluate_experiment(name))
-                self._save_intermediate_results(name)
+                if self.save_results:
+                    self._save_intermediate_results(name)
 
                 if not self.keep_predictor_in_memory:
                     del self.predictors[name]
