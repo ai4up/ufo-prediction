@@ -29,7 +29,6 @@ class AgePredictor(Regressor):
         logger.info(f"Dataset mean age: {self.df[self.target_attribute].mean()}")
         logger.info(f'Training dataset length: {len(self.df_train)}')
         logger.info(f'Test dataset length: {len(self.df_test)}')
-        logger.info(f'Test cities: {self.df_test["city"].unique()}')
 
 
     def _post_preprocess_analysis_hook(self):

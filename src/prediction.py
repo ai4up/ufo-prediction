@@ -242,7 +242,7 @@ class Predictor:
                 n_iter=self.hyperparameter_n_iter,
                 param_distributions=self.hyperparameter_tuning_space,
                 scoring='neg_root_mean_squared_error',
-                verbose=2,
+                verbose=3,
                 cv=inner_cv,
                 return_train_score=True,
                 random_state=dataset.GLOBAL_REPRODUCIBILITY_SEED
