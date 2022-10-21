@@ -348,7 +348,7 @@ class Predictor:
 
 
     def _xgboost_model(self):
-        return getattr(self.model, '__module__', None) == xgboost.__name__
+        return getattr(self.model, '__module__', None).split('.')[0] == xgboost.__name__
 
 
     def _sklearn_model(self):
