@@ -108,6 +108,8 @@ class Predictor:
         if self.frac or self.n_cities:
             self.df = utils.sample_cities(self.df, frac=self.frac, n=self.n_cities)
 
+        self.df.reset_index(drop=True, inplace=True)
+
 
     def _clean(self):
         self.df.dropna(subset=[self.target_attribute], inplace=True)
