@@ -1,18 +1,18 @@
 #!/bin/bash
 
-#SBATCH --job-name=ml-training
+#SBATCH --job-name=ml-preliminary
 #SBATCH --account=eubucco
 #SBATCH --qos=short
 #SBATCH --partition=gpu
 #SBATCH --gres=gpu:v100:2
-#SBATCH --mem=245000
+#SBATCH --mem=55000
 #SBATCH --cpus-per-task=16
-#SBATCH --time=24:00:00
+#SBATCH --time=1-00:00:00
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
-#SBATCH --output=ml-training-%j.stdout
-#SBATCH --error=ml-training-%j.stderr
-#SBATCH --workdir=/p/tmp/floriann/ml-training
+#SBATCH --output=ml-preliminary-%j.stdout
+#SBATCH --error=ml-preliminary-%j.stderr
+#SBATCH --workdir=/p/tmp/floriann/ml-preliminary
 
 conda_env="uf-ml"
 repo_dir="/p/projects/eubucco/ufo-prediction"
@@ -34,8 +34,7 @@ source activate "$conda_env"
 #   pip install -r "${repo_dir}/cluster-utils/requirements.txt""
 
 if [[ -z "${PROFILE_MEMORY}" ]]; then
-  python "${repo_dir}/bin/train.py"
+  export RQ=prelim; python "${repo_dir}/bin/run_experiments.py"
 else
-  mprof run "${repo_dir}/bin/train.py"
-  mprof plot --output mem_usage_over_time.png
+  export RQ=prelim; mprof run --output "mprofile_${SLURM_JOBID}_${RQ}.dat" "${repo_dir}/bin/run_experiments.py"
 fi
