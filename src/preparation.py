@@ -53,6 +53,15 @@ def add_neighborhood_column(gdf, max_neighborhood_size_m=1000):
     return gdf[columns + ['neighborhood']]
 
 
+def match_sbb(city_gdf, sbb_gdf):
+    city_gdf = gpd.sjoin(city_gdf, sbb_gdf[['geometry']], how="left", op="within")
+    city_gdf['sbb'] = city_gdf['index_right']
+    city_gdf.drop(columns=['index_right'], inplace=True)
+    city_gdf.dropna(subset=['sbb'], inplace=True)
+    city_gdf['sbb'] = utils.seq_to_unique_id(city_gdf['sbb'])
+    return city_gdf
+
+
 def add_street_block_column(gdf, sbb_gdf):
     columns = list(gdf.columns)
     if not isinstance(gdf, gpd.GeoDataFrame):
