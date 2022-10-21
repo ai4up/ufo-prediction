@@ -5,3 +5,6 @@ metadata/ES-LAU-GADM-mapping.csv filter=lfs diff=lfs merge=lfs -text
 metadata/FR-LAU-GADM-5-mapping.csv filter=lfs diff=lfs merge=lfs -text
 metadata/FR-LAU-GADM-mapping.csv filter=lfs diff=lfs merge=lfs -text
 metadata/NL-LAU-GADM-mapping.csv filter=lfs diff=lfs merge=lfs -text
+data/exp/df-FRA-exp.pkl filter=lfs diff=lfs merge=lfs -text
+data/exp/df-ESP-exp.pkl filter=lfs diff=lfs merge=lfs -text
+data/exp/df-NLD-exp.pkl filter=lfs diff=lfs merge=lfs -text
