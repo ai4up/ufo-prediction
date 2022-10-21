@@ -264,6 +264,9 @@ class Predictor:
         if sum([bool(self.test_training_split), bool(self.cross_validation_split), isinstance(self.test_set, pd.DataFrame)]) > 1:
             raise Exception('Only one of test_training_split, cross_validation_split or test_set can be configured.')
 
+        if sum([bool(self.test_training_split), bool(self.cross_validation_split), bool(self.hyperparameter_tuning_only), isinstance(self.test_set, pd.DataFrame)]) == 0:
+            raise Exception('One of test_training_split, cross_validation_split, test_set or hyperparameter_tuning_only must be configured.')
+
         if self.hyperparameter_tuning_only and self.hyperparameter_tuning_space is None:
             raise Exception('Please specify a hyperparameter_tuning_space to be used for hyperparameter tuning.')
 
