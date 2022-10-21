@@ -456,8 +456,8 @@ class Predictor:
 
     def neighborhood_feature_importance(self):
         df_fi = self.normalized_feature_importance()
-        df_neighborhood_fi = df_fi.loc[df_fi['feature'].str.contains(
-            'within_buffer')]
+        df_neighborhood_fi = df_fi.loc[(df_fi['feature'].str.contains(
+            'within_buffer')) | (df_fi['feature'].isin(dataset.CITY_FEATURES))]
         return round(sum(df_neighborhood_fi.normalized_importance), 2)
 
 
