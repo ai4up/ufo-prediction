@@ -25,7 +25,7 @@ DATA_DIR = '/p/projects/eubucco/data/3-ml-inputs' # PIK cluster
 # DATA_DIR = os.path.join(os.path.abspath(''), 'data', 'exp') # local test
 # RESULT_DIR = os.path.join(os.path.abspath(''), 'data', 'exp', 'results') # local test
 
-FRA_DATA_PATH = os.path.join(DATA_DIR, 'df-FRA-exp2.pkl')
+FRA_DATA_PATH = os.path.join(DATA_DIR, 'df-FRA-exp.pkl')
 ESP_DATA_PATH = os.path.join(DATA_DIR, 'df-ESP-exp.pkl')
 NLD_DATA_PATH = os.path.join(DATA_DIR, 'df-NLD-exp.pkl')
 ALL_DATA_PATH = os.path.join(DATA_DIR, 'df-NLD-FRA-ESP-exp.pkl')
