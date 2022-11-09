@@ -706,7 +706,7 @@ def _save_eval_metrics(predictor, exp_name):
 
 def _save_predictions(predictor, exp_name):
     logger.info('Saving predictions...')
-    path = os.path.join(RESULT_DIR, f'predictions-{exp_name}-{job_id}-{timestr}.csv')
+    path = os.path.join(RESULT_DIR, f'predictions-{exp_name}-{job_id}-{timestr}.pkl')
     pred = predictor.y_predict.rename(columns={predictor.target_attribute: 'predict'})
     test = predictor.y_test.rename(columns={predictor.target_attribute: 'test'})
     predictions = pd.concat([pred, test], axis=1)
