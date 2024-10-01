@@ -12,7 +12,7 @@ from prediction_age import AgeClassifier, AgePredictor
 
 
 # PIK cluster
-DATA_DIR = '/p/projects/eubucco/data/3-ml-inputs'
+DATA_DIR = '/p/projects/eubucco/data/3-ml-inputs-v0_1-alpha'
 RESULT_DIR = '/p/tmp/floriann/ml-training'
 
 # local test

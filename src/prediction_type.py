@@ -20,7 +20,7 @@ class TypeClassifier(Classifier):
 
         super().__init__(*args, **kwargs, target_attribute=dataset.TYPE_ATTRIBUTE, labels=self.labels, initialize_only=True)
 
-        self.preprocessing_stages.insert(0, preprocessing.remove_buildings_with_unknown_type)
+        # self.preprocessing_stages.insert(0, preprocessing.remove_buildings_with_unknown_type)
         self.preprocessing_stages.append(partial(preprocessing.categorical_to_int, var=self.target_attribute, labels=self.labels))
 
         self._e2e_training()

@@ -1,19 +1,20 @@
 import itertools
+import os
 
 import numpy as np
 
 GLOBAL_REPRODUCIBILITY_SEED = 1
 
-DATA_DIR = '/p/projects/eubucco/data/2-database-city-level-v0_1'
-METADATA_DIR = '/p/projects/eubucco/data/3-ml-inputs'
-# DATA_DIR = os.path.realpath(os.path.join(__file__, '..', '..', 'data', 'geometry'))
-# METADATA_DIR = os.path.realpath(os.path.join(__file__, '..', '..', 'metadata'))
+# DATA_DIR = '/p/projects/eubucco/data/2-database-city-level-v0_1'
+# METADATA_DIR = '/p/projects/eubucco/data/3-ml-inputs-v0_1-alpha'
+DATA_DIR = os.path.realpath(os.path.join(__file__, '..', '..', 'data', 'geometry'))
+METADATA_DIR = os.path.realpath(os.path.join(__file__, '..', '..', 'metadata'))
 
 # age bands ~ according to English Housing Survey (EHS) as done in https://doi.org/10.1016/j.compenvurbsys.2018.08.004
 EHS_AGE_BINS = [0, 1915, 1945, 1965, 1980, 2000, np.inf]
 TABULA_AGE_BINS = {
-    'harmonized': [0, 1900, 1945, 1960, 1970, 1980, 1990, 2000, 2010, np.inf], # by Flo
-    # 'harmonized': [0, 1900, 1945, 1970, 1980, 1990, 2000, 2010, np.inf], # by Peter
+    'harmonized': [1900, 1945, 1960, 1970, 1980, 1990, 2000, 2010, np.inf], # by Flo
+    # 'harmonized': [1900, 1945, 1970, 1980, 1990, 2000, 2010, np.inf], # by Peter
     'netherlands': [0, 1965, 1975, 1992, 2006, 2015, 2051],
     'france': [0, 1915, 1949, 1968, 1975, 1982, 1990, 2000, 2006, 2013, 2051],
     'netherlands_small': [0, 1915, 1945, 1965, 1975, 1983, 1992, 1999, 2006, 2015, 2051],
@@ -33,8 +34,10 @@ BUILDING_TYPES = [
 ]
 
 AGE_ATTRIBUTE = 'age'
-TYPE_ATTRIBUTE = 'type'
+# TYPE_ATTRIBUTE = 'type_str_ffo'
+TYPE_ATTRIBUTE = 'construction_type'
 HEIGHT_ATTRIBUTE = 'height'
+FLOORS_ATTRIBUTE = 'floors'
 AUX_VARS = [
     'id',
     'id_source',
@@ -298,7 +301,7 @@ SELECTED_FEATURES = [
     'av_footprint_area_within_buffer_100',
     'av_elongation_within_buffer_100'
 ]
-TARGET_ATTRIBUTES = [AGE_ATTRIBUTE, TYPE_ATTRIBUTE, HEIGHT_ATTRIBUTE, 'floors']
+TARGET_ATTRIBUTES = [AGE_ATTRIBUTE, TYPE_ATTRIBUTE, HEIGHT_ATTRIBUTE, FLOORS_ATTRIBUTE]
 
 BUILDING_FEATURES_ALL = BUILDING_FEATURES + BUILDING_FEATURES_NEIGHBORHOOD
 BLOCK_FEATURES_ALL = BLOCK_FEATURES + BLOCK_FEATURES_NEIGHBORHOOD

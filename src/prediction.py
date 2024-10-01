@@ -112,9 +112,11 @@ class Predictor:
 
 
     def _clean(self):
+        logger.info(f'Dataset length original: {len(self.df)}')
         self.df.dropna(subset=[self.target_attribute], inplace=True)
+        logger.info(f'Dataset length after dropping NaNs: {len(self.df)}')
         self.df.drop_duplicates(subset=['id'], inplace=True)
-        logger.info(f'Dataset length: {len(self.df)}')
+        logger.info(f'Dataset length after dropping duplicates: {len(self.df)}')
         logger.info(f'Dataset allocated memory: {int(self.df.memory_usage(index=True).sum() / 1024 / 1024)} MB')
 
 

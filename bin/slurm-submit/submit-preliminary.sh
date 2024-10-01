@@ -2,12 +2,12 @@
 
 #SBATCH --job-name=ml-preliminary
 #SBATCH --account=eubucco
-#SBATCH --qos=short
+#SBATCH --qos=gpumedium
 #SBATCH --partition=gpu
 #SBATCH --gres=gpu:v100:2
-#SBATCH --mem=55000
+#SBATCH --mem=120000
 #SBATCH --cpus-per-task=16
-#SBATCH --time=1-00:00:00
+#SBATCH --time=7-00:00:00
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --output=ml-preliminary-%j.stdout

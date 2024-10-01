@@ -16,7 +16,7 @@ from prediction_age import AgePredictorComparison, AgeClassifierComparison
 
 # PIK cluster
 RESULT_DIR = '/p/tmp/floriann/ml-exp'
-DATA_DIR = '/p/projects/eubucco/data/3-ml-inputs'
+DATA_DIR = '/p/projects/eubucco/data/3-ml-inputs-v0_1-alpha'
 FRA_DATA_PATH = os.path.join(DATA_DIR, 'df-FRA-preliminary.pkl')
 ESP_DATA_PATH = os.path.join(DATA_DIR, 'df-ESP-preliminary.pkl')
 NLD_DATA_PATH = os.path.join(DATA_DIR, 'df-NLD-preliminary.pkl')
@@ -186,20 +186,21 @@ def model_selection(method):
 
 
 def analyze_spatial_autocorrelation():
-    for country, df_path in {'NLD': NLD_DATA_PATH, 'FRA': FRA_DATA_PATH, 'ESP': ESP_DATA_PATH}.items():
+    # for country, df_path in {'NLD': NLD_DATA_PATH, 'FRA': FRA_DATA_PATH, 'ESP': ESP_DATA_PATH}.items():
+    for country, df_path in {'FRA': FRA_DATA_PATH, 'ESP': ESP_DATA_PATH}.items():
         path = os.path.join(RESULT_DIR, f'spatial-autocorrelation-band-{country}-{job_id}-{timestr}.csv')
         df = pd.read_pickle(df_path)
         
-        cities = df['city'].value_counts().between(5000, 10000)
-        cities = list(cities[cities].index)[4:8]
+        cities = df['city'].value_counts().between(5000, 20000)
+        cities = list(cities[cities].index)[:10]
         df = df[df['city'].isin(cities)]
 
-        attributes = ['age', 'height', 'FootprintArea', 'Perimeter']
+        # attributes = ['age', 'height', 'FootprintArea', 'Perimeter']
+        attributes = ['age']
         aux_attributes = ['id', 'geometry', 'neighborhood', 'sbb', 'city', 'country']
 
         aux_vars_geo = geometry.to_gdf(df[aux_attributes + attributes])
         aux_vars_geo.dropna(subset=['age', 'id'], inplace=True)
 
-        results = aux_vars_geo.groupby('city').apply(lambda x: spatial_autocorrelation.plot_correlogram_over_distance(x, attributes=attributes, distances=[10, 25, 50, 100, 250, 500, 750, 1000]))
+        results = aux_vars_geo.groupby('city').apply(lambda x: spatial_autocorrelation.plot_correlogram_over_distance(x, attributes=attributes, distances=[10, 25, 50, 100, 250, 500, 750, 1000, 1500, 2000]))
         results.to_csv(path, index=True)
-

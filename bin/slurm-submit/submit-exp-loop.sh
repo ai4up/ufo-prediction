@@ -2,7 +2,7 @@
 
 #SBATCH --job-name=ml-exp
 #SBATCH --account=eubucco
-#SBATCH --qos=medium
+#SBATCH --qos=gpumedium
 #SBATCH --partition=gpu
 #SBATCH --gres=gpu:v100:2
 #SBATCH --mem=245000

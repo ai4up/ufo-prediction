@@ -2,11 +2,11 @@
 
 #SBATCH --job-name=ml-exp
 #SBATCH --account=eubucco
-#SBATCH --qos=short
+#SBATCH --qos=gpushort
 #SBATCH --partition=gpu
 #SBATCH --gres=gpu:v100:2
-#SBATCH --mem=245000
-#SBATCH --cpus-per-task=16
+#SBATCH --mem=120000
+#SBATCH --cpus-per-task=8
 #SBATCH --time=1-00:00:00
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
@@ -42,17 +42,21 @@ done
 export METHOD='regression'
 
 if [[ -z "${PROFILE_MEMORY}" ]]; then
-  export RQ=1; python "${repo_dir}/bin/run_experiments.py"
-  export RQ=2; python "${repo_dir}/bin/run_experiments.py"
-  export RQ=3; python "${repo_dir}/bin/run_experiments.py"
-  export RQ=spatial-distance; python "${repo_dir}/bin/run_experiments.py"
-  export RQ=additional-data; python "${repo_dir}/bin/run_experiments.py"
-  export RQ=SI; python "${repo_dir}/bin/run_experiments.py"
+  echo "Memory profiling deactivated."
+  # export RQ=1; python "${repo_dir}/bin/run_experiments.py"
+  # export RQ=2; python "${repo_dir}/bin/run_experiments.py"
+  # export RQ=3; python "${repo_dir}/bin/run_experiments.py"
+  # export RQ=spatial-distance; python "${repo_dir}/bin/run_experiments.py"
+  # export RQ=additional-data; python "${repo_dir}/bin/run_experiments.py"
+  # export RQ=SI; python "${repo_dir}/bin/run_experiments.py"
+  export RQ=construction-type; python "${repo_dir}/bin/run_experiments.py"
 else
-  export RQ=1; mprof run --output "mprofile_${SLURM_JOBID}_${RQ}.dat" "${repo_dir}/bin/run_experiments.py"
-  export RQ=2; mprof run --output "mprofile_${SLURM_JOBID}_${RQ}.dat" "${repo_dir}/bin/run_experiments.py"
-  export RQ=3; mprof run --output "mprofile_${SLURM_JOBID}_${RQ}.dat" "${repo_dir}/bin/run_experiments.py"
-  export RQ=spatial-distance; mprof run --output "mprofile_${SLURM_JOBID}_${RQ}.dat" "${repo_dir}/bin/run_experiments.py"
-  export RQ=additional-data; mprof run --output "mprofile_${SLURM_JOBID}_${RQ}.dat" "${repo_dir}/bin/run_experiments.py"
-  export RQ=SI; mprof run --output "mprofile_${SLURM_JOBID}_${RQ}.dat" "${repo_dir}/bin/run_experiments.py"
+  echo "Memory profiling activated."
+  # export RQ=1; mprof run --output "mprofile_${SLURM_JOBID}_${RQ}.dat" "${repo_dir}/bin/run_experiments.py"
+  # export RQ=2; mprof run --output "mprofile_${SLURM_JOBID}_${RQ}.dat" "${repo_dir}/bin/run_experiments.py"
+  # export RQ=3; mprof run --output "mprofile_${SLURM_JOBID}_${RQ}.dat" "${repo_dir}/bin/run_experiments.py"
+  # export RQ=spatial-distance; mprof run --output "mprofile_${SLURM_JOBID}_${RQ}.dat" "${repo_dir}/bin/run_experiments.py"
+  # export RQ=additional-data; mprof run --output "mprofile_${SLURM_JOBID}_${RQ}.dat" "${repo_dir}/bin/run_experiments.py"
+  # export RQ=SI; mprof run --output "mprofile_${SLURM_JOBID}_${RQ}.dat" "${repo_dir}/bin/run_experiments.py"
+  export RQ=construction-type; mprof run --output "mprofile_${SLURM_JOBID}_${RQ}.dat" "${repo_dir}/bin/run_experiments.py"
 fi

@@ -32,7 +32,7 @@ def calculate_energy_error(y_true, y_predict, labels=None):
 
 
 def assign_heating_energy_demand(df, labels=None):
-    tabula_energy_path = os.path.join(dataset.METADATA_DIR, 'TABULA_heating_demand.csv')
+    tabula_energy_path = os.path.join(dataset.METADATA_DIR, 'TABULA-heating-demand-reburbishments.csv')
     tabula_energy_df = pd.read_csv(tabula_energy_path)
 
     df = df.dropna(subset=['country', 'residential_type'])

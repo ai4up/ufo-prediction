@@ -6,6 +6,7 @@ import logging
 import lib_importer
 import hyperparameter_tuning
 import experiments as exp
+import experiments_cpu as exp_cpu
 import prelim_experiments as prelim
 
 logger = logging.getLogger(__name__)
@@ -16,9 +17,9 @@ def run_experiment():
     method = os.environ.get('METHOD')
 
     if rq == '0' or rq == 'prelim':
-        hyperparameter_tuning.tune(method)
-        prelim.model_selection(method)
-        prelim.compare_resampling_strategies()
+        # hyperparameter_tuning.tune(method)
+        # prelim.model_selection(method)
+        # prelim.compare_resampling_strategies()
         prelim.analyze_spatial_autocorrelation()
 
     if rq == '1' or rq == 'regression-classification-comparison':
@@ -30,7 +31,11 @@ def run_experiment():
         exp.evaluate_specialized_regional_models(method)
     
     elif rq == '3' or rq == 'regional-generalization':
-        exp.generalize_across_countries(method)
+        # exp.generalize_across_countries(method)
+        exp.city_cv()
+    
+    elif rq == '3-cpu':
+        exp_cpu.generalize_across_countries(method)
     
     elif rq == '3b' or rq == 'spatial-distance':
         exp.evaluate_impact_of_spatial_distance_on_generalization(method, 'ESP')
@@ -48,6 +53,12 @@ def run_experiment():
         exp.compare_countries_type_prediction()
         exp.evaluate_impact_of_additional_features(method)
     
+    elif rq == '9':
+        exp.compare_countries(method)
+    
+    elif rq == 'construction-type':
+        exp.evaluate_construction_type_prediction()
+
     else:
         logger.info(f'Specified research question {rq} is not known. Aborting...')
 

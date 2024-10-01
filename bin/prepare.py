@@ -17,7 +17,7 @@ import cluster_utils.dataset as cluster_dataset
 
 # PIK cluster
 DATA_DIR = '/p/projects/eubucco/data/2-database-city-level-v0_1'
-RESULT_DIR = '/p/projects/eubucco/data/3-ml-inputs'
+RESULT_DIR = '/p/projects/eubucco/data/3-ml-inputs-v0_1-alpha'
 COUNTRIES = {'netherlands': 'NLD', 'france': 'FRA', 'spain': 'ESP'}
 
 # local test

@@ -114,6 +114,47 @@ def plot_relative_grid(y_test, y_predict, bin_size=5, **kwargs):
     ax_scatter.set_ylabel('True construction year')
 
 
+def plot_relative_grid_floors(y_test, y_predict, **kwargs):
+    # Idea: periods with more buildings will not be brighter than periods with little buildings
+    bins = list(range(8))
+    X, Y = np.meshgrid(bins, bins)
+    floors_test = y_test[dataset.FLOORS_ATTRIBUTE]
+    floors_predict = y_predict[dataset.FLOORS_ATTRIBUTE]
+    H = np.histogram2d(floors_test, floors_predict, bins=bins)[0]
+    # H_norm: each row describes relative share of all prediction age bands for buildings of a certain test band
+    H_norm = (H.T / H.sum(axis=1)).T
+
+    fig = plt.figure(figsize=(10, 10))
+    gs = GridSpec(4, 4)
+
+    ax_scatter = fig.add_subplot(gs[1:4, 0:3])
+    ax_hist_x = fig.add_subplot(gs[0,0:3])
+    ax_hist_y = fig.add_subplot(gs[1:4, 3])
+
+    cmap = matplotlib.colors.LinearSegmentedColormap.from_list("", ['white', 'cadetblue'])
+    colors = ['thistle', 'lightsteelblue', 'plum']
+
+    ax_scatter.plot([0, 1], [0, 1], transform=ax_scatter.transAxes, color='cadetblue')
+    ax_scatter.pcolormesh(X, Y, H_norm, cmap=cmap, rasterized=True)
+    ax_scatter.set_yticks(bins, labels=bins)
+    ax_scatter.set_xticks(bins, labels=bins)
+
+    ax_hist_x.hist(y_predict[dataset.FLOORS_ATTRIBUTE], bins=bins, color=colors[0], alpha=0.4)
+    ax_hist_y.hist(y_test[dataset.FLOORS_ATTRIBUTE], bins=bins, orientation='horizontal', color=colors[0], alpha=0.4)
+
+    ax_hist_x.set_axis_off()
+    ax_hist_y.set_axis_off()
+    fig.subplots_adjust(hspace=0.05, wspace=0.02)
+
+    ax_scatter.spines['top'].set_linewidth(0.5)
+    ax_scatter.spines['right'].set_linewidth(0.5)
+    ax_scatter.spines['left'].set_linewidth(0.5)
+    ax_scatter.spines['bottom'].set_linewidth(0.5)
+
+    ax_scatter.set_xlabel('Predicted # of floors')
+    ax_scatter.set_ylabel('True # of floors')
+
+
 def plot_grid(y_test, y_predict):
     min_age = int(y_predict[dataset.AGE_ATTRIBUTE].min())
     max_age = int(y_predict[dataset.AGE_ATTRIBUTE].max())
@@ -489,9 +530,9 @@ class SubplotManager:
         SMALL_SIZE = 10
         MEDIUM_SIZE = 12
         BIGGER_SIZE = 14
-        # SMALL_SIZE = 18
-        # MEDIUM_SIZE = 20
-        # BIGGER_SIZE = 22
+        SMALL_SIZE = 18
+        MEDIUM_SIZE = 20
+        BIGGER_SIZE = 22
 
         plt.rc('font', size=BIGGER_SIZE)
         plt.rc('axes', titlesize=BIGGER_SIZE)

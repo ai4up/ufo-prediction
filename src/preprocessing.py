@@ -83,7 +83,7 @@ def split_by_neighborhood(df, frac=0.8):
 
 
 def split(df, attribute, frac):
-    values = sorted(df[attribute].unique())
+    values = sorted(df[attribute].dropna().unique())
     n = round(frac * len(values))
 
     if len(values) < 2:
@@ -374,6 +374,11 @@ def categorical_to_int(df, var, labels=None):
         df[var] = df[var].cat.reorder_categories(labels)
 
     df[var] = df[var].cat.codes
+    return df
+
+
+def categorize_floors(df, bins):
+    df[dataset.FLOORS_ATTRIBUTE] = pd.cut(df[dataset.FLOORS_ATTRIBUTE], bins, right=False).cat.codes
     return df
 
 

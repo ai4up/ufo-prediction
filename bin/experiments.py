@@ -21,7 +21,7 @@ import cluster_utils.dataset as cluster_dataset
 
 # DATA
 RESULT_DIR = '/p/tmp/floriann/ml-exp' # PIK cluster
-DATA_DIR = '/p/projects/eubucco/data/3-ml-inputs' # PIK cluster
+DATA_DIR = '/p/projects/eubucco/data/3-ml-inputs-v0_1-alpha' # PIK cluster
 # DATA_DIR = os.path.join(os.path.abspath(''), 'data', 'exp') # local test
 # RESULT_DIR = os.path.join(os.path.abspath(''), 'data', 'exp', 'results') # local test
 
@@ -58,6 +58,21 @@ logger.setLevel(logging.INFO)
 
 job_id = os.environ.get('SLURM_JOBID', 'local')
 timestr = time.strftime('%Y%m%d-%H-%M-%S')
+
+def city_cv():
+    logger.info('RQ1 - Comparing heating energy estimates derived from predictions...')
+
+    regressor = AgePredictor(
+        model=XGBRegressor(**XGBOOST_PARAMS),
+        df=FRA_DATA_PATH,
+        frac=FRAC,
+        cross_validation_split=pp.city_cross_validation,
+        preprocessing_stages=PREPROC_STAGES,
+        hyperparameters=HYPERPARAMETERS,
+        early_stopping=EARLY_STOPPING,
+    )
+    _save_model(regressor, 'city-cv-reg ')
+    del regressor
 
 """
 Research Question 1
@@ -146,17 +161,17 @@ def compare_countries(method):
     exp_name = f'country-comparison-{job_id}-{timestr}'
 
     comparison_config = {
-        'Spain': {'df': ESP_DATA_PATH},
-        'France': {'df': FRA_DATA_PATH},
+        # 'Spain': {'df': ESP_DATA_PATH},
+        # 'France': {'df': FRA_DATA_PATH},
         'Netherlands': {'df': NLD_DATA_PATH},
-        'All': {'df': ALL_DATA_PATH},
+        # 'All': {'df': ALL_DATA_PATH},
     }
 
     grid_comparison_config = {
-        'random-cv': {'cross_validation_split': pp.cross_validation},
+        # 'random-cv': {'cross_validation_split': pp.cross_validation},
         'neighborhood-cv': {'cross_validation_split': pp.neighborhood_cross_validation},
-        'city-cv': {'cross_validation_split': pp.city_cross_validation},
-        'block-cv': {'cross_validation_split': pp.sbb_cross_validation},
+        # 'city-cv': {'cross_validation_split': pp.city_cross_validation},
+        # 'block-cv': {'cross_validation_split': pp.sbb_cross_validation},
     }
 
     if method == 'regression':
@@ -189,7 +204,8 @@ def compare_countries(method):
             cross_validation_split=None,
             preprocessing_stages=PREPROC_STAGES,
             hyperparameters=CLASSIFICATION_HYPERPARAMETERS,
-            bin_config=BIN_CONFIG,
+            # bin_config=BIN_CONFIG,
+            bins=dataset.TABULA_AGE_BINS['harmonized'],
             predict_probabilities=False,
             mitigate_class_imbalance=MITIGATE_CLASS_IMBALANCE,
             compare_feature_importance=False,
@@ -225,7 +241,8 @@ def generalize_across_countries(method):
             hyperparameters=CLASSIFICATION_HYPERPARAMETERS,
             early_stopping=EARLY_STOPPING,
             mitigate_class_imbalance=MITIGATE_CLASS_IMBALANCE,
-            bin_config=BIN_CONFIG,
+            # bin_config=BIN_CONFIG,
+            bins=dataset.TABULA_AGE_BINS['harmonized'],
         )
 
     elif method == 'regression':
@@ -533,6 +550,39 @@ def compare_countries_type_prediction(binary=True):
 
     _save_comparison_result(comparison, 'type-country-comparison')
     # _save_model(comparison, 'type-country-comparison')
+
+
+def evaluate_construction_type_prediction():
+
+    logger.info('SI - Evaluating construction type prediction performance for FR...')
+
+    exp_name = f'type-country-comparison-{job_id}-{timestr}'
+
+    comparison_config = {
+        'random-cv': {'cross_validation_split': pp.cross_validation},
+        'neighborhood-cv': {'cross_validation_split': pp.neighborhood_cross_validation},
+    }
+
+    # Note: dataset.TYPE_ATTRIBUTE must be 'construction_type'
+    comparison = TypeClassifierComparison(
+        exp_name=exp_name,
+        model=XGBClassifier(**XGBOOST_PARAMS),
+        df=os.path.join(DATA_DIR, 'df-FRA-w-materials.pkl'),
+        frac=FRAC,
+        cross_validation_split=None,
+        preprocessing_stages=[],
+        hyperparameters=CLASSIFICATION_HYPERPARAMETERS,
+        labels=['Masonry', 'Concrete', 'Wood'],
+        predict_probabilities=False,
+        mitigate_class_imbalance=MITIGATE_CLASS_IMBALANCE,
+        compare_feature_importance=False,
+        include_baseline=False,
+        garbage_collect_after_training=True,
+        comparison_config=comparison_config,
+    )
+
+    _save_comparison_result(comparison, 'construction-type')
+    _save_model(comparison, 'construction-type')
 
 
 def evaluate_impact_of_additional_features(method):
