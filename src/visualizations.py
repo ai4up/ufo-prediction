@@ -65,13 +65,11 @@ def plot_distribution(data):
     plt.show()
 
 
-def plot_relative_grid(y_test, y_predict, bin_size=5, **kwargs):
+def plot_relative_grid(y_test, y_predict, attr, bins, ticks=None, **kwargs):
     # Idea: periods with more buildings will not be brighter than periods with little buildings
-    bins = utils.age_bins(y_predict, bin_size=bin_size)
-    ticks = [1920, 1940, 1960, 1980, 2000]
     X, Y = np.meshgrid(bins, bins)
-    age_test = y_test[dataset.AGE_ATTRIBUTE]
-    age_predict = y_predict[dataset.AGE_ATTRIBUTE]
+    age_test = y_test[attr]
+    age_predict = y_predict[attr]
     H = np.histogram2d(age_test, age_predict, bins=bins)[0]
     # H_norm: each row describes relative share of all prediction age bands for buildings of a certain test band
     H_norm = (H.T / H.sum(axis=1)).T
@@ -88,18 +86,19 @@ def plot_relative_grid(y_test, y_predict, bin_size=5, **kwargs):
 
     ax_scatter.plot([0, 1], [0, 1], transform=ax_scatter.transAxes, color='cadetblue')
     ax_scatter.pcolormesh(X, Y, H_norm, cmap=cmap, rasterized=True)
-    ax_scatter.set_yticks(ticks, labels=ticks)
-    ax_scatter.set_xticks(ticks, labels=ticks)
+    if ticks:
+        ax_scatter.set_yticks(ticks, labels=ticks)
+        ax_scatter.set_xticks(ticks, labels=ticks)
 
     if 'country' in y_predict.columns and 'country' in y_test.columns:
         for i, (_, g) in enumerate(y_predict.groupby('country')):
-            ax_hist_x.hist(g[dataset.AGE_ATTRIBUTE], bins=bins, color=colors[i], alpha=0.4)
+            ax_hist_x.hist(g[attr], bins=bins, color=colors[i], alpha=0.4)
 
         for i, (_, g) in enumerate(y_test.groupby('country')):
-            ax_hist_y.hist(g[dataset.AGE_ATTRIBUTE], bins=bins, orientation='horizontal', color=colors[i], alpha=0.4)
+            ax_hist_y.hist(g[attr], bins=bins, orientation='horizontal', color=colors[i], alpha=0.4)
     else:
-        ax_hist_x.hist(y_predict[dataset.AGE_ATTRIBUTE], bins=bins, color=colors[0], alpha=0.4)
-        ax_hist_y.hist(y_test[dataset.AGE_ATTRIBUTE], bins=bins, orientation='horizontal', color=colors[0], alpha=0.4)
+        ax_hist_x.hist(y_predict[attr], bins=bins, color=colors[0], alpha=0.4)
+        ax_hist_y.hist(y_test[attr], bins=bins, orientation='horizontal', color=colors[0], alpha=0.4)
 
     ax_hist_x.set_axis_off()
     ax_hist_y.set_axis_off()
@@ -110,8 +109,8 @@ def plot_relative_grid(y_test, y_predict, bin_size=5, **kwargs):
     ax_scatter.spines['left'].set_linewidth(0.5)
     ax_scatter.spines['bottom'].set_linewidth(0.5)
 
-    ax_scatter.set_xlabel('Predicted construction year')
-    ax_scatter.set_ylabel('True construction year')
+    ax_scatter.set_xlabel(f'Predicted {attr}')
+    ax_scatter.set_ylabel(f'True {attr}')
 
 
 def plot_grid(y_test, y_predict):
