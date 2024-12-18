@@ -1,5 +1,6 @@
 import os
 import ast
+import glob
 import math
 import random
 import logging
@@ -7,7 +8,9 @@ import uuid
 
 import numpy as np
 import pandas as pd
+import geopandas as gpd
 import matplotlib.pyplot as plt
+from joblib import Parallel, delayed
 
 import dataset
 import geometry
@@ -202,6 +205,10 @@ def load_data(country, geo=False, eval_columns=[id], crs=3035, **kwargs):
 
 
 def load_df(df_path):
+    if '*' in df_path:
+        files = glob.glob(df_path)
+        return load_dfs(files)
+
     if '.csv' in df_path:
         return pd.read_csv(df_path)
 
@@ -211,4 +218,14 @@ def load_df(df_path):
     if '.parquet' in df_path:
         return pd.read_parquet(df_path)
 
-    raise Exception('File type not supported, please use .csv, .pkl, .parquet files.')
+    if '.gpkg' in df_path:
+        return gpd.read_file(df_path)
+
+    raise Exception('File type not supported, please use .csv, .pkl, .parquet, or .gpkg files.')
+
+
+def load_dfs(df_paths):
+    dfs = Parallel(n_jobs=-1)(delayed(load_df)(path) for path in df_paths)
+    df = pd.concat(dfs, ignore_index=True)
+
+    return df
