@@ -125,6 +125,9 @@ class Predictor:
         logger.info(f'Dataset length after dropping NaNs: {len(self.df)}')
         logger.info(f'Dataset allocated memory: {int(self.df.memory_usage(index=True).sum() / 1024 / 1024)} MB')
 
+        if self.test_set is not None:
+            self.test_set = self.test_set.dropna(subset=[self.target_attribute])
+
 
     def _pre_preprocess_analysis_hook(self):
         logger.info(f'Training dataset length: {len(self.df_train)}')
