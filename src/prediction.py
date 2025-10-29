@@ -759,14 +759,35 @@ class Classifier(Predictor):
 
 
     @Predictor.cv_aware
-    def f1(self):
-        return metrics.f1_score(self.y_test, self.y_predict[[self.target_attribute]], average='macro')
-
+    def f1(self, label_idx=None):
+        if label_idx is None:
+            return metrics.f1_score(self.y_test, self.y_predict[[self.target_attribute]], average='macro')
+            
+        return metrics.f1_score(self.y_test, self.y_predict[[self.target_attribute]], average=None)[label_idx]
+        
 
     @Predictor.cv_aware
-    def recall(self, label_idx):
-        return metrics.recall_score(self.y_test, self.y_predict[[self.target_attribute]], pos_label=label_idx, labels=[label_idx], average='macro')
+    def recall(self, label_idx=None):
+        if label_idx is None:
+            return metrics.recall_score(self.y_test, self.y_predict[[self.target_attribute]], average='macro')
+            
+        return metrics.recall_score(self.y_test, self.y_predict[[self.target_attribute]], average=None)[label_idx]
+        
 
+    @Predictor.cv_aware
+    def precision(self, label_idx=None):
+        if label_idx is None:
+            return metrics.precision_score(self.y_test, self.y_predict[[self.target_attribute]], average='macro')
+            
+        return metrics.precision_score(self.y_test, self.y_predict[[self.target_attribute]], average=None)[label_idx]
+        
+
+    @Predictor.cv_aware
+    def rel_confusion_matrix(self):
+        cm = metrics.confusion_matrix(self.y_test, self.y_predict)
+        norm_cm = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]
+        return norm_cm
+        
 
     def eval_metrics(self):
         eval_df = self.classification_report()
