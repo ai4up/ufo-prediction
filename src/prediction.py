@@ -13,8 +13,11 @@ import shap
 import pandas as pd
 import numpy as np
 import sklearn
+from sklearn.base import clone
 from sklearn import model_selection
 from sklearn import metrics
+from sklearn.calibration import CalibratedClassifierCV
+from sklearn.utils.validation import check_is_fitted
 from scipy import stats
 import matplotlib.pyplot as plt
 import xgboost
@@ -580,12 +583,15 @@ class Regressor(Predictor):
 
 class Classifier(Predictor):
 
-    def __init__(self, labels=None, predict_probabilities=False, initialize_only=False, validate_labels=True, *args, **kwargs):
+    def __init__(self, labels=None, predict_probabilities=False, initialize_only=False, validate_labels=True, predict_confidence=False, *args, **kwargs):
         super().__init__(*args, **kwargs, initialize_only=True)
         self.labels = labels or list(self.df[self.target_attribute].cat.categories) # TODO: df as file path not yet supported
         self.label_encoding = {label: idx for idx, label in enumerate(self.labels)}
         self.multiclass = len(self.labels) > 2
         self.predict_probabilities = predict_probabilities
+        self.predict_confidence = predict_confidence
+        self.calibrated_model = None
+
         if validate_labels:
             self._validate_labels()
 
@@ -607,13 +613,29 @@ class Classifier(Predictor):
 
 
     def _predict(self):
-        if not self.predict_probabilities:
-            return super()._predict()
+        if self.predict_probabilities:
+            y_proba = self.model.predict_proba(self.X_test)
+            class_drawn = np.apply_along_axis(self._sample_class_from_probabilities,
+                                            axis=1, arr=y_proba).ravel()
+            self.y_predict = pd.DataFrame({self.target_attribute: class_drawn, 'probabilities': list(y_proba)})
+        else:
+            super()._predict()
 
-        class_probabilities = self.model.predict_proba(self.X_test)
-        class_drawn = np.apply_along_axis(self._sample_class_from_probabilities,
-                                          axis=1, arr=class_probabilities).ravel()
-        self.y_predict = pd.DataFrame({self.target_attribute: class_drawn, 'probabilities': list(class_probabilities)})
+        if self.predict_confidence:
+            self.y_predict['confidence'] = self._predict_calibrated_probabilities(self.X_test)
+
+
+    def _predict_calibrated_probabilities(self, X):
+        if self.calibrated_model is None or not check_is_fitted(self.calibrated_model):
+            model = clone(self.model).set_params(early_stopping_rounds=None)
+            self.calibrated_model = CalibratedClassifierCV(model, method='isotonic', cv=2)
+            self.calibrated_model.fit(self.X_train, self.y_train)
+
+        y_pred = self.model.predict(X)
+        y_proba = self.calibrated_model.predict_proba(X)
+        y_proba_top_class = y_proba[np.arange(len(y_pred)), y_pred]
+
+        return y_proba_top_class
 
 
     def _validate_labels(self):
