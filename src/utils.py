@@ -204,28 +204,35 @@ def load_data(country, geo=False, eval_columns=[id], crs=3035, **kwargs):
     return df
 
 
-def load_df(df_path):
+def load_df(df_path, frac=None, n_cities=None):
+    df_path = str(df_path)
     if '*' in df_path:
         files = glob.glob(df_path)
-        return load_dfs(files)
+        return load_dfs(files, frac=frac, n_cities=n_cities)
 
     if '.csv' in df_path:
-        return pd.read_csv(df_path)
+        df = pd.read_csv(df_path)
 
-    if '.pkl' in df_path:
-        return pd.read_pickle(df_path)
+    elif '.pkl' in df_path:
+        df = pd.read_pickle(df_path)
 
-    if '.parquet' in df_path:
-        return pd.read_parquet(df_path)
+    elif '.parquet' in df_path:
+        df = pd.read_parquet(df_path)
 
-    if '.gpkg' in df_path:
-        return gpd.read_file(df_path)
+    elif '.gpkg' in df_path:
+        df = gpd.read_file(df_path)
 
-    raise Exception('File type not supported, please use .csv, .pkl, .parquet, or .gpkg files.')
+    else:
+        raise Exception('File type not supported, please use .csv, .pkl, .parquet, or .gpkg files.')
+
+    if frac or n_cities:
+        df = sample_cities(df, frac=frac, n=n_cities)
+
+    return df
 
 
-def load_dfs(df_paths):
-    dfs = Parallel(n_jobs=-1)(delayed(load_df)(path) for path in df_paths)
+def load_dfs(df_paths, *args, **kwargs):
+    dfs = Parallel(n_jobs=-1)(delayed(load_df)(path, *args, **kwargs) for path in df_paths)
     df = pd.concat(dfs, ignore_index=True)
 
     return df

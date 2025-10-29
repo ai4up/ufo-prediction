@@ -102,14 +102,20 @@ class Predictor:
 
 
     def _load(self):
-        if isinstance(self.df, str):
-            self.df = utils.load_df(self.df)
+        if isinstance(self.df, list):
+            self.df = utils.load_dfs(self.df, frac=self.frac, n_cities=self.n_cities)
 
-        if isinstance(self.test_set, str):
-            self.test_set = utils.load_df(self.test_set)
-
-        if self.frac or self.n_cities:
+        elif isinstance(self.df, str):
+            self.df = utils.load_df(self.df, frac=self.frac, n_cities=self.n_cities)
+            
+        elif self.frac or self.n_cities:
             self.df = utils.sample_cities(self.df, frac=self.frac, n=self.n_cities)
+
+        if isinstance(self.test_set, list):
+            self.test_set = utils.load_dfs(self.test_set)
+
+        elif isinstance(self.test_set, str):
+            self.test_set = utils.load_df(self.test_set)
 
         self.df.reset_index(drop=True, inplace=True)
 
