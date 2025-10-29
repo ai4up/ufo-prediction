@@ -365,6 +365,11 @@ def resample_skewed_distribution(df, sampler):
     return df_resampled
 
 
+def encode_labels(df, var, label_encoding):
+    df[var] = df[var].map(label_encoding).astype(int)
+    return df
+
+
 def categorical_to_int(df, var, labels=None):
     df[var + '_label'] = df[var]
     df[var] = df[var].astype('category')

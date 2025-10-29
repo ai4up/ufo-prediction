@@ -7,7 +7,7 @@ import pickle
 import copy
 import time
 import collections
-from functools import wraps
+from functools import wraps, partial
 
 import shap
 import pandas as pd
@@ -580,18 +580,27 @@ class Regressor(Predictor):
 
 class Classifier(Predictor):
 
-    def __init__(self, labels, predict_probabilities=False, initialize_only=False, validate_labels=True, *args, **kwargs):
+    def __init__(self, labels=None, predict_probabilities=False, initialize_only=False, validate_labels=True, *args, **kwargs):
         super().__init__(*args, **kwargs, initialize_only=True)
-
-        self.labels = labels
+        self.labels = labels or list(self.df[self.target_attribute].cat.categories) # TODO: df as file path not yet supported
+        self.label_encoding = {label: idx for idx, label in enumerate(self.labels)}
         self.multiclass = len(self.labels) > 2
         self.predict_probabilities = predict_probabilities
         if validate_labels:
             self._validate_labels()
 
-        objective = 'multi:softprob' if self.multiclass else 'binary:logistic'
-        eval_metric = ['mlogloss', 'merror'] if self.multiclass else ['logloss', 'error']
-        self.model.set_params(objective=objective, eval_metric=eval_metric, use_label_encoder=False)
+        if self.multiclass:
+            objective = 'multi:softprob' if self.predict_probabilities else 'multi:softmax'
+            eval_metric = ['mlogloss', 'merror']
+            num_class = len(self.labels)
+        else:
+            objective = 'binary:logistic'
+            eval_metric = ['logloss', 'error']
+            num_class = 1
+
+        self.model.set_params(objective=objective, eval_metric=eval_metric, num_class=num_class)
+
+        self.preprocessing_stages.append(partial(preprocessing.encode_labels, var=self.target_attribute, label_encoding=self.label_encoding))
 
         if not initialize_only:
             self._e2e_training()
