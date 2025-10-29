@@ -105,7 +105,7 @@ class Predictor:
         if isinstance(self.df, list):
             self.df = utils.load_dfs(self.df, frac=self.frac, n_cities=self.n_cities)
 
-        elif isinstance(self.df, str):
+        elif isinstance(self.df, str) or isinstance(self.df, os.PathLike):
             self.df = utils.load_df(self.df, frac=self.frac, n_cities=self.n_cities)
             
         elif self.frac or self.n_cities:
@@ -114,7 +114,7 @@ class Predictor:
         if isinstance(self.test_set, list):
             self.test_set = utils.load_dfs(self.test_set)
 
-        elif isinstance(self.test_set, str):
+        elif isinstance(self.test_set, str) or isinstance(self.test_set, os.PathLike):
             self.test_set = utils.load_df(self.test_set)
 
         self.df.reset_index(drop=True, inplace=True)
