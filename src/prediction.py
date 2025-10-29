@@ -583,7 +583,7 @@ class Regressor(Predictor):
 
 class Classifier(Predictor):
 
-    def __init__(self, labels=None, predict_probabilities=False, initialize_only=False, validate_labels=True, predict_confidence=False, *args, **kwargs):
+    def __init__(self, labels=None, predict_probabilities=False, initialize_only=False, validate_labels=True, predict_confidence=False, label_groups=None, *args, **kwargs):
         super().__init__(*args, **kwargs, initialize_only=True)
         self.labels = labels or list(self.df[self.target_attribute].cat.categories) # TODO: df as file path not yet supported
         self.label_encoding = {label: idx for idx, label in enumerate(self.labels)}
@@ -591,6 +591,10 @@ class Classifier(Predictor):
         self.predict_probabilities = predict_probabilities
         self.predict_confidence = predict_confidence
         self.calibrated_model = None
+        self.label_groups = label_groups
+
+        if label_groups:
+            self.label_groups = [[self.label_encoding[label] for label in group] for group in self.label_groups]
 
         if validate_labels:
             self._validate_labels()
@@ -622,7 +626,13 @@ class Classifier(Predictor):
             super()._predict()
 
         if self.predict_confidence:
-            self.y_predict['confidence'] = self._predict_calibrated_probabilities(self.X_test)
+            conf = self._predict_calibrated_probabilities(self.X_test)
+
+            if self.label_groups:
+                self.y_predict['confidence'] = conf[0]
+                self.y_predict['confidence_group'] = conf[1]
+            else:
+                self.y_predict['confidence'] = conf
 
 
     def _predict_calibrated_probabilities(self, X):
@@ -634,6 +644,15 @@ class Classifier(Predictor):
         y_pred = self.model.predict(X)
         y_proba = self.calibrated_model.predict_proba(X)
         y_proba_top_class = y_proba[np.arange(len(y_pred)), y_pred]
+
+        if self.label_groups:
+            y_pred_group = [group for y in y_pred for group in self.label_groups if y in group]
+            y_proba_group = np.array([
+                y_proba[i, classes].sum()
+                for i, classes in enumerate(y_pred_group)
+            ])
+            
+            return y_proba_top_class, y_proba_group
 
         return y_proba_top_class
 
