@@ -171,7 +171,7 @@ class Predictor:
         self.df_train = sklearn.utils.shuffle(self.df_train, random_state=dataset.GLOBAL_REPRODUCIBILITY_SEED)
         self.df_test = sklearn.utils.shuffle(self.df_test, random_state=dataset.GLOBAL_REPRODUCIBILITY_SEED)
 
-        feature_cols = list(self.df_test.columns.intersection(dataset.FEATURES))
+        feature_cols = list(self.df_test.columns.intersection(dataset.FEATURES).intersection(self.df_train.columns).difference([self.target_attribute]))
 
         self.aux_vars_train = self.df_train.drop(columns=feature_cols + [self.target_attribute])
         self.aux_vars_test = self.df_test.drop(columns=feature_cols + [self.target_attribute])
