@@ -507,6 +507,11 @@ class Regressor(Predictor):
         super().__init__(*args, **kwargs)
 
 
+    def _clean(self):
+        super()._clean()
+        self.df[self.target_attribute] = self.df[self.target_attribute].astype(float)
+
+
     @Predictor.cv_aware
     def print_model_error(self):
         print('MAE: {:.2f} y'.format(self.mae()))
