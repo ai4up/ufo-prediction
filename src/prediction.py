@@ -115,9 +115,14 @@ class Predictor:
 
 
     def _clean(self):
-        self.df.dropna(subset=[self.target_attribute], inplace=True)
+        logger.info(f'Dataset length original: {len(self.df)}')
         self.df.drop_duplicates(subset=['id'], inplace=True)
-        logger.info(f'Dataset length: {len(self.df)}')
+        self.df = self.df.set_index('id', drop=False)
+        logger.info(f'Dataset length after dropping duplicates: {len(self.df)}')
+        target_missing_mask = self.df[self.target_attribute].isna()
+        self.df_missings = self.df[target_missing_mask]
+        self.df = self.df[~target_missing_mask]
+        logger.info(f'Dataset length after dropping NaNs: {len(self.df)}')
         logger.info(f'Dataset allocated memory: {int(self.df.memory_usage(index=True).sum() / 1024 / 1024)} MB')
 
 
@@ -156,9 +161,6 @@ class Predictor:
 
         self.df_train = sklearn.utils.shuffle(self.df_train, random_state=dataset.GLOBAL_REPRODUCIBILITY_SEED)
         self.df_test = sklearn.utils.shuffle(self.df_test, random_state=dataset.GLOBAL_REPRODUCIBILITY_SEED)
-
-        self.df_train = self.df_train.set_index('id', drop=False)
-        self.df_test = self.df_test.set_index('id', drop=False)
 
         feature_cols = list(self.df_test.columns.intersection(dataset.FEATURES))
 
@@ -393,6 +395,28 @@ class Predictor:
 
     def evaluate(self):
         raise NotImplementedError('To be implemented.')
+
+
+    def predict_missing(self, preprocessing_stages):
+        df = self.df_missings.copy()
+        if len(df) == 0:
+            logger.info('No missing target values to predict.')
+            return pd.DataFrame(columns=[self.target_attribute])
+
+        for func in preprocessing_stages:
+            params = inspect.signature(func).parameters
+
+            if 'df_train' in params and 'df_test' in params:
+                _, df = func(df_train=pd.DataFrame(columns=df.columns), df_test=df)
+            else:
+                df = func(df)
+
+        fts = self.model.get_booster().feature_names
+        X = df[fts]
+        y_predict = pd.DataFrame(
+            {self.target_attribute: self.model.predict(X)}, index=df.index)
+
+        return y_predict
 
 
     def calculate_SHAP_values(self):
@@ -655,6 +679,37 @@ class Classifier(Predictor):
             return y_proba_top_class, y_proba_group
 
         return y_proba_top_class
+
+
+    def predict_missing(self, preprocessing_stages):
+        df = self.df_missings.copy()
+        if len(df) == 0:
+            logger.info('No missing target values to predict.')
+            return pd.DataFrame(columns=[self.target_attribute])
+
+        for func in preprocessing_stages:
+            params = inspect.signature(func).parameters
+
+            if 'df_train' in params and 'df_test' in params:
+                _, df = func(df_train=pd.DataFrame(columns=df.columns), df_test=df)
+            else:
+                df = func(df)
+
+        fts = self.model.get_booster().feature_names
+        X = df[fts]
+        y_predict = pd.DataFrame(
+            {self.target_attribute: self.model.predict(X)}, index=df.index)
+
+        if self.predict_confidence:
+            conf = self._predict_calibrated_probabilities(X)
+
+            if self.label_groups:
+                y_predict['confidence'] = conf[0]
+                y_predict['confidence_group'] = conf[1]
+            else:
+                y_predict['confidence'] = conf
+
+        return y_predict
 
 
     def _validate_labels(self):
