@@ -117,13 +117,10 @@ class Predictor:
         elif isinstance(self.test_set, str) or isinstance(self.test_set, os.PathLike):
             self.test_set = utils.load_df(self.test_set)
 
-        self.df.reset_index(drop=True, inplace=True)
-
 
     def _clean(self):
         logger.info(f'Dataset length original: {len(self.df)}')
-        self.df.drop_duplicates(subset=['id'], inplace=True)
-        self.df = self.df.set_index('id', drop=False)
+        self.df = self.df.loc[~self.df.index.duplicated()]
         logger.info(f'Dataset length after dropping duplicates: {len(self.df)}')
         target_missing_mask = self.df[self.target_attribute].isna()
         self.df_missings = self.df[target_missing_mask]
@@ -595,7 +592,7 @@ class Regressor(Predictor):
         else:
             raise Exception(f'Please specify either "error" or "{self.target_attribute}" as the attribute for calculation spatial autocorrelation.')
 
-        aux_df = pd.concat([y, self.aux_vars_test], axis=1, join="inner").reset_index()
+        aux_df = pd.concat([y, self.aux_vars_test], axis=1, join="inner")
 
         if type == 'block':
             moran = spatial_autocorrelation.moran_within_block(aux_df, attribute=attribute)

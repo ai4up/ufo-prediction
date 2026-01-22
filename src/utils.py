@@ -228,11 +228,13 @@ def load_df(df_path, frac=None, n_cities=None):
     if frac or n_cities:
         df = sample_cities(df, frac=frac, n=n_cities)
 
+    df = df.set_index('id')
+
     return df
 
 
 def load_dfs(df_paths, *args, **kwargs):
     dfs = Parallel(n_jobs=-1)(delayed(load_df)(path, *args, **kwargs) for path in df_paths)
-    df = pd.concat(dfs, ignore_index=True)
+    df = pd.concat(dfs)
 
     return df
