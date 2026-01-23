@@ -204,11 +204,15 @@ def load_data(country, geo=False, eval_columns=[id], crs=3035, **kwargs):
     return df
 
 
-def load_df(df_path, frac=None, n_cities=None):
+def load_df(df_path, frac=None, n_cities=None, cols=None):
     df_path = str(df_path)
     if '*' in df_path:
         files = glob.glob(df_path)
-        return load_dfs(files, frac=frac, n_cities=n_cities)
+        if not files:
+            logger.warning(f'No files found for pattern: {df_path}')
+            return pd.DataFrame()
+
+        return load_dfs(files, frac=frac, n_cities=n_cities, cols=cols)
 
     if '.csv' in df_path:
         df = pd.read_csv(df_path)
@@ -217,16 +221,19 @@ def load_df(df_path, frac=None, n_cities=None):
         df = pd.read_pickle(df_path)
 
     elif '.parquet' in df_path:
-        df = pd.read_parquet(df_path)
+        df = pd.read_parquet(df_path, columns=cols)
 
     elif '.gpkg' in df_path:
-        df = gpd.read_file(df_path)
+        df = gpd.read_file(df_path, columns=cols)
 
     else:
         raise Exception('File type not supported, please use .csv, .pkl, .parquet, or .gpkg files.')
 
     if frac or n_cities:
         df = sample_cities(df, frac=frac, n=n_cities)
+
+    if cols:
+        df = df[cols]
 
     df = df.set_index('id')
 
