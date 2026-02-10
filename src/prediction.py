@@ -23,6 +23,7 @@ from scipy import stats
 import matplotlib.pyplot as plt
 import xgboost
 import sklearn.ensemble
+from sklearn.utils.class_weight import compute_sample_weight
 
 import dataset
 import utils
@@ -138,7 +139,6 @@ class Predictor:
     def _pre_preprocess_analysis_hook(self):
         logger.info(f'Training dataset length: {len(self.df_train)}')
         logger.info(f'Test dataset length: {len(self.df_test)}')
-        logger.info(f'Test cities: {self.df_test["city"].unique()}')
 
 
     def _abort_signal(self):
@@ -191,7 +191,7 @@ class Predictor:
 
     def _train(self):
         if self.mitigate_class_imbalance:
-            self.sample_weights = sklearn.utils.class_weight.compute_sample_weight(
+            self.sample_weights = compute_sample_weight(
                 class_weight='balanced',
                 y=self.y_train[self.target_attribute]
             )
@@ -218,7 +218,7 @@ class Predictor:
             fit_params['eval_set'] = [(self.X_train, self.y_train), (self.X_test, self.y_test)]
 
             if self.early_stopping:
-                fit_params['early_stopping_rounds'] = max(50, self.model.n_estimators / 10)
+                model_params['early_stopping_rounds'] = max(50, model_params.get('n_estimators', 100) / 10)
 
         if self._sklearn_model():
             model_params['verbose'] = 2 if utils.verbose() else 0
@@ -390,12 +390,10 @@ class Predictor:
 
     @staticmethod
     def load(path):
-        predictor = pickle.load(open(path, 'rb'))
+        with open(path, 'rb') as f:
+            predictor = pickle.load(f)
 
-        if isinstance(predictor, Predictor):
-            return predictor
-
-        logger.error(f'The object loaded from {path} is not a Predictor instance.')
+        return predictor
 
 
     def save(self, path, results_only=False):
@@ -776,13 +774,13 @@ class Classifier(Predictor):
             logger.warning('Labels can not be validated because no DataFrame but a file path is passed to the predictor.')
             return
 
-        labels_dataset = self.df[self.target_attribute].unique()
+        labels_dataset = self.df[self.target_attribute].cat.categories
         if len(self.labels) > len(labels_dataset):
             self.labels = [l for l in self.labels if l in labels_dataset]
-            logger.error(f'Some labels are not in the dataset. They will be ignored. New labels are {self.labels}')
+            logger.warning(f'Some labels are not in the dataset. They will be ignored. New labels are {self.labels}')
 
         if len(self.labels) < len(labels_dataset):
-            raise Exception(f'Length of labels provided ({self.labels}) does not match the labels in the dataset ({labels_dataset}).')
+            logger.warning(f'Length of labels provided ({self.labels}) does not match the labels in the dataset ({labels_dataset}).')
 
 
     def _sample_class_from_probabilities(self, prob):

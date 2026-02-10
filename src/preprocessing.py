@@ -362,7 +362,7 @@ def normalize_features_citywise(df, selection=None, regex=None):
 
 def normalize_columns(df, columns=None):
     columns = columns or df.columns
-    scaler = preprocessing.MinMaxScaler()
+    scaler = preprocessing.RobustScaler()
     df[columns] = scaler.fit_transform(df[columns])
     return df
 

@@ -118,7 +118,7 @@ def sample_cities(df, frac=None, n=None):
     if n == 0:
         return df.drop(df.index)
 
-    cities = sorted(df['city'].unique())
+    cities = sorted(df[dataset.CITY_ATTRIBUTE].unique())
     n = n or round(frac * len(cities))
 
     if n > len(cities):
@@ -132,7 +132,7 @@ def sample_cities(df, frac=None, n=None):
     random.seed(dataset.GLOBAL_REPRODUCIBILITY_SEED)
     sampled_cities = random.sample(cities, n)
 
-    return df[df['city'].isin(sampled_cities)]
+    return df[df[dataset.CITY_ATTRIBUTE].isin(sampled_cities)]
 
 
 def sample_cities_until_n_buildings(df, min_n_buildings):
