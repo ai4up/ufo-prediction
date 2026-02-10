@@ -658,7 +658,7 @@ class Classifier(Predictor):
 
         if self.multiclass:
             objective = 'multi:softprob' if self.predict_probabilities else 'multi:softmax'
-            eval_metric = ['mlogloss', 'merror']
+            eval_metric = 'mlogloss'
             num_class = len(self.labels)
         else:
             objective = 'binary:logistic'

@@ -324,7 +324,7 @@ class AgeClassifierComparison(PredictorComparison):
         if include_plot:
             evals_results = {}
             for name, predictors in self.predictors.items():
-                eval_metric = 'merror' if predictors[0].multiclass else 'error'
+                eval_metric = 'mlogloss' if predictors[0].multiclass else 'logloss'
                 evals_results[f'{name}_train'] = predictors[0].evals_result['validation_0'][eval_metric]
                 evals_results[f'{name}_test'] = predictors[0].evals_result['validation_1'][eval_metric]
 

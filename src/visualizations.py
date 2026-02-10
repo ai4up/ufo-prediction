@@ -146,7 +146,7 @@ def plot_log_loss(model, multiclass=False, **kwargs):
 
 
 def plot_classification_error(model, multiclass=False, **kwargs):
-    metric = 'merror' if multiclass else 'error'
+    metric = 'mlogloss' if multiclass else 'logloss'
     plot_eval_metric(model, metric=metric, title='Classification Error', **kwargs)
 
 
