@@ -11,6 +11,8 @@ import pandas as pd
 import geopandas as gpd
 import matplotlib.pyplot as plt
 from joblib import Parallel, delayed
+from sklearn.exceptions import NotFittedError
+from sklearn.utils.validation import check_is_fitted
 
 import dataset
 import geometry
@@ -245,3 +247,12 @@ def load_dfs(df_paths, *args, **kwargs):
     df = pd.concat(dfs)
 
     return df
+
+
+def is_fitted(est):
+    try:
+        check_is_fitted(est)
+        return True
+
+    except NotFittedError:
+        return False

@@ -34,6 +34,13 @@ def use_other_attributes_as_features(df, target=dataset.AGE_ATTRIBUTE):
     return df
 
 
+def type_dummy_encoding(df):
+    df = utils.dummy_encoding(df, 'type')
+    df = utils.dummy_encoding(df, 'residential_type')
+
+    return df
+
+
 def use_height_as_feature(df):
     dataset.FEATURES.append(dataset.HEIGHT_ATTRIBUTE)
     return df
@@ -47,6 +54,116 @@ def use_type_as_feature(df):
 
     df = categorical_to_int(df, var=dataset.TYPE_ATTRIBUTE)  # label encoding
 
+    return df
+
+
+def drop_na_cols(df):
+    return df.dropna(axis=1, how='all')
+
+
+def drop_height_ground_truth_features(df):
+    cols = ['bldg_height'] + [
+        f'{prefix}_{buffer}km2'
+        for buffer in [
+            '0.02', '0.11', '0.92'
+        ]
+        for prefix in [
+            'bldg_diff_height_within_buffer',
+            'bldg_diff_std_height_within_buffer',
+            'bldg_max_height_within_buffer',
+            'bldg_min_height_within_buffer',
+            'bldg_std_height_within_buffer'
+        ]
+    ]
+    return df.drop(columns=cols, errors='ignore')
+
+
+def drop_floors_ground_truth_features(df):
+    cols = ['bldg_floors'] + [
+        f'{prefix}_{buffer}km2'
+        for buffer in [
+            '0.02', '0.11', '0.92'
+        ]
+        for prefix in [
+            'bldg_diff_floors_within_buffer',
+            'bldg_diff_std_floors_within_buffer',
+            'bldg_max_floors_within_buffer',
+            'bldg_min_floors_within_buffer',
+            'bldg_std_floors_within_buffer'
+        ]
+    ]
+    return df.drop(columns=cols, errors='ignore')
+
+
+def drop_age_ground_truth_features(df):
+    cols = ['bldg_age'] + [
+        f'{prefix}_{buffer}km2'
+        for buffer in [
+            '0.02', '0.11', '0.92'
+        ]
+        for prefix in [
+            'bldg_diff_age_within_buffer',
+            'bldg_diff_std_age_within_buffer',
+            'bldg_max_age_within_buffer',
+            'bldg_min_age_within_buffer',
+            'bldg_std_age_within_buffer'
+        ]
+    ]
+    return df.drop(columns=cols, errors='ignore')
+
+
+def drop_type_ground_truth_features(df):
+    cols = ['bldg_type', 'bldg_res_type'] + [
+        f'{prefix}_{buffer}km2'
+        for buffer in [
+            '0.02', '0.11', '0.92'
+        ]
+        for prefix in [
+            'bldg_type_variety_within_buffer',
+            'bldg_res_type_variety_within_buffer',
+        ]
+    ]
+    return df.drop(columns=cols, errors='ignore')
+
+
+def drop_res_type_ground_truth_features(df):
+    cols = ['bldg_type', 'bldg_res_type'] + [
+        f'{prefix}_{buffer}km2'
+        for buffer in [
+            '0.02', '0.11', '0.92'
+        ]
+        for prefix in [
+            'bldg_type_variety_within_buffer',
+            'bldg_res_type_variety_within_buffer',
+        ]
+    ]
+    return df.drop(columns=cols, errors='ignore')
+
+
+def fill_block_na_with_bldg_features(df):
+    fts = [
+        'perimeter',
+        'footprint_area',
+        'longest_axis_length',
+        'elongation',
+        'convexity',
+        'orientation',
+        'corners',
+    ]
+    for ft in set(fts).intersection(set(df.columns)):
+        df['block_' + ft] = df['block_' + ft].fillna(df['bldg_' + ft])
+
+    if 'block_length' in df.columns:
+        df['block_length'] = df['block_length'].fillna(1)
+
+    return df
+
+
+def differentiate_by_residential_type(df):
+    all_categories = df['type'].cat.categories.tolist() + df['residential_type'].cat.categories.tolist()
+    mask = (df['type'] == 'residential')
+    df.loc[mask, 'type'] = df.loc[mask, 'residential_type']
+    df['type'] = pd.Categorical(df['type'], categories=all_categories)
     return df
 
 
@@ -70,6 +187,14 @@ def split_10_90(df):
     return model_selection.train_test_split(df, test_size=0.9, random_state=dataset.GLOBAL_REPRODUCIBILITY_SEED)
 
 
+def split_by_h3_cell(df, frac=0.8):
+    return split(df, 'h3_08', frac)
+
+
+def split_by_lau(df, frac=0.8):
+    return split(df, 'LAU_ID', frac)
+
+
 def split_by_city(df, frac=0.8):
     return split(df, 'city', frac)
 
@@ -82,19 +207,31 @@ def split_by_neighborhood(df, frac=0.8):
     return split(df, 'neighborhood', frac)
 
 
+def split_by_country(df, frac=0.8):
+    if 'country' not in df.columns:
+        df['country'] = df['LAU_ID'].str[:2]
+
+    return split(df, 'country', frac)
+
+
+def split_by_existing_split(df):
+    val_mask = df['validation']
+    return df[~val_mask], df[val_mask]
+
+
 def split(df, attribute, frac):
-    values = sorted(df[attribute].unique())
+    values = sorted(df[attribute].dropna().unique())
     n = round(frac * len(values))
 
     if len(values) < 2:
         raise Exception(f'At least two distinct values of "{attribute}" are required to split the dataset. Found only {values}.')
 
     if n == 0:
-        logger.warning(f'Provided fraction ({frac}) is too small. Increasing fraction to {1 / len(values)} to include at least one distinct "{attribute}" value per split.')
+        logger.warning(f'Provided fraction ({frac}) is too small. Increasing fraction to {1 / len(values):.3f} to include at least one distinct "{attribute}" value per split.')
         n = 1
 
     if n == len(values):
-        logger.warning(f'Provided fraction ({frac}) is too big. Decreasing fraction to {(len(values) - 1) / len(values)} to include at least one distinct "{attribute}" value per split.')
+        logger.warning(f'Provided fraction ({frac}) is too big. Decreasing fraction to {(len(values) - 1) / len(values):.3f} to include at least one distinct "{attribute}" value per split.')
         n = len(values) - 1
 
     random.seed(dataset.GLOBAL_REPRODUCIBILITY_SEED)
@@ -117,11 +254,18 @@ def cross_validation(df, balanced_attribute=None):
 
 
 def country_cross_validation(df, balanced_attribute=None, spatial_buffer_size=None):
+    if 'country' not in df.columns:
+        df['country'] = df['LAU_ID'].str[:2]
+
     return _group_cross_validation(df, 'country', balanced_attribute, spatial_buffer_size)
 
 
 def city_cross_validation(df, balanced_attribute=None, spatial_buffer_size=None):
     return _group_cross_validation(df, 'city', balanced_attribute, spatial_buffer_size)
+
+
+def lau_cross_validation(df, balanced_attribute=None, spatial_buffer_size=None):
+    return _group_cross_validation(df, 'LAU_ID', balanced_attribute, spatial_buffer_size)
 
 
 def sbb_cross_validation(df, balanced_attribute=None, spatial_buffer_size=None):
@@ -270,6 +414,19 @@ def remove_outliers(df):
     df = df[df[dataset.AGE_ATTRIBUTE] > 1900]
     df = df[df[dataset.AGE_ATTRIBUTE] < 2020]
     return df
+
+
+def remove_height_outliers(df_train, df_test):
+    df_train = df_train[df_train[dataset.HEIGHT_ATTRIBUTE] > 2]
+    df_train = df_train[df_train[dataset.HEIGHT_ATTRIBUTE] < 100]
+
+    return df_train, df_test
+
+
+def remove_floors_outliers(df_train, df_test):
+    df_train = df_train[df_train[dataset.FLOORS_ATTRIBUTE] < df_train[dataset.HEIGHT_ATTRIBUTE] / 1.5]
+
+    return df_train, df_test
 
 
 def remove_non_residential_buildings(df):

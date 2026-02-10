@@ -8,6 +8,8 @@ import copy
 import time
 import collections
 from functools import wraps, partial
+from pathlib import Path
+import joblib
 
 import shap
 import pandas as pd
@@ -17,7 +19,6 @@ from sklearn.base import clone
 from sklearn import model_selection
 from sklearn import metrics
 from sklearn.calibration import CalibratedClassifierCV
-from sklearn.utils.validation import check_is_fitted
 from scipy import stats
 import matplotlib.pyplot as plt
 import xgboost
@@ -371,6 +372,14 @@ class Predictor:
         return getattr(self.model, '__module__', None) == sklearn.ensemble.__name__
 
 
+    @classmethod
+    def load_model(cls, model, path, **kwargs):
+        model.load_model(path)
+        predictor = cls(model=model, initialize_only=True, **kwargs)
+
+        return predictor
+
+
     @staticmethod
     def load(path):
         predictor = pickle.load(open(path, 'rb'))
@@ -388,6 +397,11 @@ class Predictor:
         pickle.dump(self, open(path, 'wb'))
 
 
+    def save_model(self, path):
+        self.model.save_model(path)
+        logger.info(f'Model saved to {path}.')
+
+
     def cv_aware(f):
         @wraps(f)
         def wrapped(self, *args, **kwargs):
@@ -403,13 +417,12 @@ class Predictor:
         raise NotImplementedError('To be implemented.')
 
 
-    def predict_missing(self, preprocessing_stages):
-        df = self.df_missings.copy()
+    def predict(self, df, preprocessing_stages=[]):
         if len(df) == 0:
             logger.info('No missing target values to predict.')
             return pd.DataFrame(columns=[self.target_attribute])
 
-        for func in preprocessing_stages:
+        for func in preprocessing_stages or self.preprocessing_stages:
             params = inspect.signature(func).parameters
 
             if 'df_train' in params and 'df_test' in params:
@@ -618,14 +631,15 @@ class Regressor(Predictor):
 
 class Classifier(Predictor):
 
-    def __init__(self, labels=None, predict_probabilities=False, initialize_only=False, validate_labels=True, predict_confidence=False, label_groups=None, *args, **kwargs):
+    def __init__(self, labels=None, predict_probabilities=False, initialize_only=False, validate_labels=True, predict_confidence=False, calibrated_model=None, label_groups=None, *args, **kwargs):
         super().__init__(*args, **kwargs, initialize_only=True)
         self.labels = labels or list(self.df[self.target_attribute].cat.categories) # TODO: df as file path not yet supported
         self.label_encoding = {label: idx for idx, label in enumerate(self.labels)}
+        self.label_decoding = dict(enumerate(self.labels))
         self.multiclass = len(self.labels) > 2
         self.predict_probabilities = predict_probabilities
         self.predict_confidence = predict_confidence
-        self.calibrated_model = None
+        self.calibrated_model = calibrated_model
         self.label_groups = label_groups
 
         if label_groups:
@@ -671,7 +685,7 @@ class Classifier(Predictor):
 
 
     def _predict_calibrated_probabilities(self, X):
-        if self.calibrated_model is None or not check_is_fitted(self.calibrated_model):
+        if self.calibrated_model is None or not utils.is_fitted(self.calibrated_model):
             model = clone(self.model).set_params(early_stopping_rounds=None)
             self.calibrated_model = CalibratedClassifierCV(model, method='isotonic', cv=2)
             self.calibrated_model.fit(self.X_train, self.y_train)
@@ -692,13 +706,38 @@ class Classifier(Predictor):
         return y_proba_top_class
 
 
-    def predict_missing(self, preprocessing_stages):
-        df = self.df_missings.copy()
+    def save_model(self, path):
+        self.model.save_model(path)
+        logger.info(f'Model saved to {path}.')
+
+        if self.calibrated_model is not None and utils.is_fitted(self.calibrated_model):
+            cali_path = Path(path).with_suffix('.calibration.joblib')
+            joblib.dump(self.calibrated_model, cali_path)
+            logger.info(f'Calibrated model saved to {cali_path}.')
+
+
+    @classmethod
+    def load_model(cls, model, path, **kwargs):
+        model.load_model(path)
+        cali_path = Path(path).with_suffix('.calibration.joblib')
+
+        if cali_path.exists():
+            calibrated_model = joblib.load(cali_path)
+            logger.info(f'Calibrated model loaded from {cali_path}.')
+        else:
+            calibrated_model = None
+
+        predictor = cls(model=model, calibrated_model=calibrated_model, initialize_only=True, **kwargs)
+
+        return predictor
+
+
+    def predict(self, df, preprocessing_stages=[]):
         if len(df) == 0:
             logger.info('No missing target values to predict.')
             return pd.DataFrame(columns=[self.target_attribute])
 
-        for func in preprocessing_stages:
+        for func in preprocessing_stages or self.preprocessing_stages:
             params = inspect.signature(func).parameters
 
             if 'df_train' in params and 'df_test' in params:
@@ -710,6 +749,7 @@ class Classifier(Predictor):
         X = df[fts]
         y_predict = pd.DataFrame(
             {self.target_attribute: self.model.predict(X)}, index=df.index)
+        y_predict[self.target_attribute] = y_predict[self.target_attribute].map(self.label_decoding)
 
         if self.predict_confidence:
             conf = self._predict_calibrated_probabilities(X)
