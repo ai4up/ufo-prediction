@@ -42,6 +42,7 @@ class Predictor:
             model,
             df=None,
             frac=None,
+            feature_cols=None,
             n_cities=None,
             test_set=None,
             test_training_split=None,
@@ -59,6 +60,7 @@ class Predictor:
         self.model = model
         self.df = df
         self.frac = frac
+        self.feature_cols = feature_cols
         self.n_cities = n_cities
         self.test_set = test_set
         self.test_training_split = test_training_split
@@ -169,7 +171,13 @@ class Predictor:
         self.df_train = sklearn.utils.shuffle(self.df_train, random_state=dataset.GLOBAL_REPRODUCIBILITY_SEED)
         self.df_test = sklearn.utils.shuffle(self.df_test, random_state=dataset.GLOBAL_REPRODUCIBILITY_SEED)
 
-        feature_cols = list(self.df_test.columns.intersection(dataset.FEATURES).intersection(self.df_train.columns).difference([self.target_attribute]))
+        existing_cols = set(self.df_test.columns).intersection(set(self.df_train.columns))
+        if self.feature_cols:
+            missing_cols = set(self.feature_cols).difference(existing_cols)
+            if missing_cols:
+                logger.warning(f'Missing columns {missing_cols}. Proceeding with available columns.')
+
+        feature_cols = list(existing_cols.intersection(self.feature_cols or dataset.FEATURES).difference([self.target_attribute]))
 
         self.aux_vars_train = self.df_train.drop(columns=feature_cols + [self.target_attribute])
         self.aux_vars_test = self.df_test.drop(columns=feature_cols + [self.target_attribute])

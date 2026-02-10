@@ -367,10 +367,25 @@ def normalize_columns(df, columns=None):
     return df
 
 
-def filter_features(df, selection=[], regex=None):
-    non_feature_columns = set(df.columns) - set(dataset.FEATURES)
-    filtered_features = set(selection) or set(df.filter(regex=regex)).intersection(dataset.FEATURES)
-    return df[sorted(filtered_features.union(non_feature_columns))]
+def filter_features(df, selection=[], regex=None, frac=None, n=None, keep=[]):
+    feature_columns = list(set(df.columns).intersection(dataset.FEATURES))
+    non_feature_columns = set(df.columns) - set(feature_columns)
+    if selection:
+        filtered_features = set(feature_columns).intersection(set(selection))
+    elif regex:
+        filtered_features = set(df[feature_columns].filter(regex=regex).columns)
+    elif n or frac:
+        random.seed(dataset.GLOBAL_REPRODUCIBILITY_SEED)
+        n = n or max(1, int(len(feature_columns) * frac))
+        filtered_features = set(random.sample(feature_columns, n))
+    else:
+        filtered_features = set(feature_columns)
+
+    return df[list(filtered_features.union(non_feature_columns).union(set(keep)))]
+
+
+def drop_microsoft_bldgs(df):
+    return df[df['dataset'] != 'msft']
 
 
 def drop_features(df, selection=None, regex=None):
